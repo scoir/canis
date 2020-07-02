@@ -34,11 +34,11 @@ var config *viper.Viper
 var frameworkCfg *framework.Config
 
 var rootCmd = &cobra.Command{
-	Use:   "canis",
+	Use:   "canisctl",
 	Short: "The canis CLI controls the Canis Credential Hub.",
 	Long: `The canis CLI controls the Canis Credential Hub.
 
- Find more information at: https://canis.io/docs/reference/canis/overview`,
+ Find more information at: https://canis.network/docs/reference/canis/overview`,
 }
 
 func Execute() {
@@ -50,7 +50,6 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.canis.yaml)")
 }
 

@@ -12,10 +12,10 @@ import (
 )
 
 type Config struct {
-	ctx                   *context.Provider `yaml:"-"`
-	framework.AgentConfig `yaml:",inline"`
-	Datastore             framework.DatastoreConfig `yaml:"datastore"`
-	Execution             framework.RuntimeConfig   `yaml:"execution"`
+	ctx                   *context.Provider `mapstructure:"-"`
+	framework.AgentConfig `mapstructure:",squash"`
+	Datastore             framework.DatastoreConfig `mapstructure:"datastore"`
+	Execution             framework.RuntimeConfig   `mapstructure:"execution"`
 }
 
 func NewConfig() *Config {

@@ -18,11 +18,11 @@ import (
 
 type AgentConfig struct {
 	Endpoint
-	DBPath     string   `yaml:"dbpath"`
-	WSInbound  Endpoint `yaml:"wsinbound"`
-	GRPC       Endpoint `yaml:"grpc"`
-	GRPCBridge Endpoint `yaml:"grpcbridge"`
-	LedgerURL  string   `yaml:"ledgerURL"redis:"-"`
+	DBPath     string   `mapstructure:"dbpath"`
+	WSInbound  Endpoint `mapstructure:"wsinbound"`
+	GRPC       Endpoint `mapstructure:"grpc"`
+	GRPCBridge Endpoint `mapstructure:"grpcbridge"`
+	LedgerURL  string   `mapstructure:"ledgerURL"`
 
 	GetAriesOptions func() []aries.Option
 

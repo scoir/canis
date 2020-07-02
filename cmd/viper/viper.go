@@ -1,42 +1,59 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"log"
+	"os"
 
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 )
 
 func main() {
-
-	//NewFileConfig constructs the agent config from filesystem
-	//noinspection GoUnusedExportedFunction
-	pflag.Parse()
-	viper.SetConfigName("canis")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("/etc/canis/")
-	//maybe
-	viper.AddConfigPath("./config/proc/")
-	err := viper.ReadInConfig()
-
+	cli, err := client.NewEnvClient()
 	if err != nil {
-		log.Fatalln("Fatal error config file", err)
+		panic(err)
 	}
 
-	ds := viper.GetStringMap("mongo")
-	st := viper.Sub("steward")
+	ctx := context.Background()
+	//images, err := cli.ImageList(ctx, types.ImageListOptions{})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//for _, image := range images {
+	//	fmt.Printf("%s\t%s\n", image.ID, image.RepoTags)
+	//}
 
-	st.Set("mongo", ds)
+	args := filters.NewArgs()
+	args.Add("name", "canis_steward")
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
+		Filters: args,
+	})
 
-	out := map[string]interface{}{}
-	err = st.Unmarshal(&out)
-	if err != nil {
-		log.Fatalln(err)
+	for _, c := range containers {
+		if c.State != "running" {
+			err := cli.ContainerRemove(ctx, c.ID, types.ContainerRemoveOptions{})
+			if err != nil {
+				log.Printf("error removing container %s\n", c.Names[0])
+			} else {
+				log.Printf("successfully removed container %s\n", c.Names[0])
+			}
+		} else {
+			fmt.Printf("%s %s %s\n", c.ID[:10], c.Image, c.State)
+		}
 	}
 
-	d, _ := json.MarshalIndent(out, " ", " ")
-	fmt.Println(string(d))
+	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
+	if err != nil {
+		panic(err)
+	}
 
+	_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+	if err != nil {
+		panic(err)
+	}
 }

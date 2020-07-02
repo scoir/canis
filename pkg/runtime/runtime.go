@@ -12,10 +12,11 @@ type Watcher interface {
 	ResultChan() <-chan AgentEvent
 }
 type Process interface {
+	Name() string
+	ID() string
 	Status() datastore.StatusType
-	Exited() bool
+	Config() string
 	Time() time.Duration
-	Tail() []byte
 }
 
 type AgentEvent struct {
@@ -25,12 +26,14 @@ type AgentEvent struct {
 //go:generate mockery -name=Executor
 type Executor interface {
 	LaunchSteward([]byte) (string, error)
+	ShutdownSteward() error
 	LaunchAgent(agent *datastore.Agent) (string, error)
-	AgentStatus(pID string) (Process, error)
 	ShutdownAgent(pID string) error
+	AgentPS() []Process
 
+	Status(pID string) (Process, error)
 	Watch(pID string) (Watcher, error)
 	StreamLogs(pID string) (io.ReadCloser, error)
-	PS()
+	PS() []Process
 	Describe()
 }

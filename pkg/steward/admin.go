@@ -310,7 +310,7 @@ func (r *Steward) LaunchAgent(_ context.Context, req *api.LaunchAgentRequest) (*
 			case datastore.Error:
 				out.Status = api.Agent_ERROR
 				return out, nil
-			case datastore.Terminated:
+			case datastore.Completed:
 				out.Status = api.Agent_TERMINATED
 				return out, nil
 			}

@@ -23,31 +23,43 @@ type Config struct {
 type Executor struct {
 }
 
+func (r *Executor) ShutdownSteward() error {
+	panic("implement me")
+}
+
+func (r *Executor) AgentPS() []runtime.Process {
+	panic("implement me")
+}
+
+func (r *Executor) PS() []runtime.Process {
+	panic("implement me")
+}
+
 func New(conf *Config) runtime.Executor {
 	return &Executor{}
 }
 
-func (e Executor) LaunchSteward(conf []byte) (string, error) {
+func (r *Executor) LaunchSteward(conf []byte) (string, error) {
 	panic("implement me")
 }
 
-func (e Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
+func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
 	panic("implement me")
 }
 
-func (e Executor) AgentStatus(pID string) (runtime.Process, error) {
+func (r *Executor) Status(pID string) (runtime.Process, error) {
 	panic("implement me")
 }
 
-func (e Executor) ShutdownAgent(pID string) error {
+func (r *Executor) ShutdownAgent(pID string) error {
 	panic("implement me")
 }
 
-func (e Executor) Watch(pID string) (runtime.Watcher, error) {
+func (r *Executor) Watch(pID string) (runtime.Watcher, error) {
 	panic("implement me")
 }
 
-func (e Executor) StreamLogs(pID string) (io.ReadCloser, error) {
+func (r *Executor) StreamLogs(pID string) (io.ReadCloser, error) {
 	panic("implement me")
 }
 
@@ -79,10 +91,6 @@ func GetClientSetWithConfig(c *Config) *context.Clientset {
 	return GetClientSet(c.KubeConfig, c.Namespace)
 }
 
-func (e Executor) PS() {
-	panic("implement me")
-}
-
-func (e Executor) Describe() {
+func (r *Executor) Describe() {
 	panic("implement me")
 }

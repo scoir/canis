@@ -17,27 +17,20 @@ type Executor struct {
 	mock.Mock
 }
 
-// AgentStatus provides a mock function with given fields: pID
-func (_m *Executor) AgentStatus(pID string) (runtime.Process, error) {
-	ret := _m.Called(pID)
+// AgentPS provides a mock function with given fields:
+func (_m *Executor) AgentPS() []runtime.Process {
+	ret := _m.Called()
 
-	var r0 runtime.Process
-	if rf, ok := ret.Get(0).(func(string) runtime.Process); ok {
-		r0 = rf(pID)
+	var r0 []runtime.Process
+	if rf, ok := ret.Get(0).(func() []runtime.Process); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(runtime.Process)
+			r0 = ret.Get(0).([]runtime.Process)
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(pID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // Describe provides a mock function with given fields:
@@ -66,9 +59,41 @@ func (_m *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
 	return r0, r1
 }
 
+// LaunchSteward provides a mock function with given fields: _a0
+func (_m *Executor) LaunchSteward(_a0 []byte) (string, error) {
+	ret := _m.Called(_a0)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func([]byte) string); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]byte) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PS provides a mock function with given fields:
-func (_m *Executor) PS() {
-	_m.Called()
+func (_m *Executor) PS() []runtime.Process {
+	ret := _m.Called()
+
+	var r0 []runtime.Process
+	if rf, ok := ret.Get(0).(func() []runtime.Process); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]runtime.Process)
+		}
+	}
+
+	return r0
 }
 
 // ShutdownAgent provides a mock function with given fields: pID
@@ -85,8 +110,45 @@ func (_m *Executor) ShutdownAgent(pID string) error {
 	return r0
 }
 
+// ShutdownSteward provides a mock function with given fields:
+func (_m *Executor) ShutdownSteward() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Status provides a mock function with given fields: pID
+func (_m *Executor) Status(pID string) (runtime.Process, error) {
+	ret := _m.Called(pID)
+
+	var r0 runtime.Process
+	if rf, ok := ret.Get(0).(func(string) runtime.Process); ok {
+		r0 = rf(pID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(runtime.Process)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(pID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // StreamLogs provides a mock function with given fields: pID
-func (_m *Executor) StreamAgentLogs(pID string) (io.ReadCloser, error) {
+func (_m *Executor) StreamLogs(pID string) (io.ReadCloser, error) {
 	ret := _m.Called(pID)
 
 	var r0 io.ReadCloser
@@ -109,7 +171,7 @@ func (_m *Executor) StreamAgentLogs(pID string) (io.ReadCloser, error) {
 }
 
 // Watch provides a mock function with given fields: pID
-func (_m *Executor) WatchAgent(pID string) (runtime.Watcher, error) {
+func (_m *Executor) Watch(pID string) (runtime.Watcher, error) {
 	ret := _m.Called(pID)
 
 	var r0 runtime.Watcher

@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -29,12 +28,10 @@ var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Starts a canis credential hub",
 	Long:  `Starts a canis credential hub.`,
-	Run:   runStart,
+	Run:   startCluster,
 }
 
-func runStart(_ *cobra.Command, _ []string) {
-	d, _ := json.MarshalIndent(frameworkCfg, " ", " ")
-	fmt.Println(string(d))
+func startCluster(_ *cobra.Command, _ []string) {
 	executor, err := frameworkCfg.Execution.Executor()
 	if err != nil {
 		log.Fatalln("unable to access executor", err)
@@ -50,7 +47,7 @@ func runStart(_ *cobra.Command, _ []string) {
 	out := map[string]interface{}{}
 	err = st.Unmarshal(&out)
 
-	d, err = yaml.Marshal(out)
+	d, err := yaml.Marshal(out)
 	if err != nil {
 		log.Fatalln("unable to marshal steward config")
 	}

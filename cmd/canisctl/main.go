@@ -16,7 +16,7 @@ limitations under the License.
 package main
 
 import (
-	"github.com/scoir/canis/pkg/cli/cmd"
+	"github.com/scoir/canis/pkg/canisctl/cmd"
 )
 
 func main() {

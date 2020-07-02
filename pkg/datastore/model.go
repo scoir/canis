@@ -25,10 +25,10 @@ type AgentList struct {
 type StatusType string
 
 var (
-	Starting   StatusType = "STARTING"
+	NotStarted StatusType = "NOT STARTED"
 	Running    StatusType = "RUNNING"
 	Error      StatusType = "ERROR"
-	Terminated StatusType = "TERMINATED"
+	Completed  StatusType = "COMPLETED"
 )
 
 type Agent struct {

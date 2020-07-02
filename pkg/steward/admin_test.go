@@ -443,20 +443,24 @@ func (r *watch) ResultChan() <-chan runtime.AgentEvent {
 
 type process struct{ status datastore.StatusType }
 
+func (r *process) Name() string {
+	panic("implement me")
+}
+
+func (r *process) ID() string {
+	panic("implement me")
+}
+
+func (r *process) Config() string {
+	panic("implement me")
+}
+
 func (r *process) Status() datastore.StatusType {
 	return r.status
 }
 
-func (r *process) Exited() bool {
-	return false
-}
-
 func (r *process) Time() time.Duration {
 	return time.Minute
-}
-
-func (r *process) Tail() []byte {
-	return []byte{}
 }
 
 func (suite *AdminTestSuite) TestLaunchAgentWait() {
