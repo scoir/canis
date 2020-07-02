@@ -4,22 +4,18 @@ on:
   push:
     branches:
       - master
-      - develop
-      - 'feature/**'
   pull_request:
-    branches: [ master, develop, feature/* ]
 
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-18.04
     steps:
 
-    - name: Set up Go 1.x
+    - name: Set up Go 1.14
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: 1.14
       id: go
 
     - name: Check out code into the Go module directory
@@ -28,15 +24,21 @@ jobs:
     - name: Test
       run: make test
 
+    - name: Upload coverage to Codecov
+      timeout-minutes: 10
+      uses: codecov/codecov-action@v1.0.6
+      with:
+        file: ./coverage.txt
+
   publish:
     name: Publish Docker Image
     runs-on: ubuntu-18.04
     steps:
 
-    - name: Set up Go 1.x
+    - name: Set up Go 1.14
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: 1.14
       id: go
 
     - name: Check out code into the Go module directory

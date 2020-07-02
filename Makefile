@@ -82,7 +82,7 @@ demo-web:
 
 # Development Local Run Shortcuts
 test: clean tools
-	go test ./pkg/...
+	@./scripts/test.sh
 
 cover:
 	go test -coverprofile cover.out ./pkg/...

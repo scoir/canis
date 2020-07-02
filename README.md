@@ -1,4 +1,9 @@
+![Canis Major](/static/CanisMajor.jpg?raw=true "Canis Major")
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://raw.githubusercontent.com/scoir/canis/master/LICENSE)
 ![Build](https://github.com/scoir/canis/workflows/Build/badge.svg)
+[![codecov](https://codecov.io/gh/scoir/canis/branch/master/graph/badge.svg?token=dXh8Imy2PO)](https://codecov.io/gh/scoir/canis)
+[![Go Report Card](https://goreportcard.com/badge/github.com/scoir/canis)](https://goreportcard.com/report/github.com/scoir/canis)
 
 # CANIS
 
@@ -12,6 +17,10 @@ identity standards including [W3C decentralized identifiers](https://w3c.github.
 - [**Distributions**](#distributions)
 - [**Development**](#development)
 - [**License**](#license)
+
+## Architecture
+
+![Architecture](/static/V1.png?raw=true "Canis Architecture")
 
 ## Why Canis?
 
@@ -35,3 +44,21 @@ Canis provides an easy to use RESTful API and extensible data model to allow for
 1. **CLI**: Control your Canis platform from the command line.
 1. **Mediator/Router**:  Offer single endpoint to all entities maintaining identity on platform
 1. **Mailbox**: Message routing and storage for agents in support of remote, not-always-on devices
+
+## License
+
+```
+Copyright 2016-2020 Scoir, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
