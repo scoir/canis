@@ -1,3 +1,9 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package schema
 
 import (
@@ -6,7 +12,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/indy"
 )
 
@@ -14,7 +19,7 @@ type Client struct {
 	vdr indy.VDR
 }
 
-func New(conf *framework.Config) *Client {
+func New() *Client {
 	//TODO: initialize VDR
 	return &Client{}
 }

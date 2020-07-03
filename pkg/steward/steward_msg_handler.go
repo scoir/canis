@@ -1,3 +1,9 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package steward
 
 import (
@@ -18,7 +24,7 @@ func (r *Steward) handleAgentConnection(invitationID string, conn *didexchange.C
 	}
 
 	agent.ConnectionID = conn.ConnectionID
-	agent.DID = conn.TheirDID
+	agent.PeerDID = conn.TheirDID
 
 	agent.ConnectionState = "completed"
 	_ = r.store.UpdateAgent(agent)
@@ -28,5 +34,5 @@ func (r *Steward) handleAgentConnection(invitationID string, conn *didexchange.C
 	// if err != nil {
 	// 	log.Printf("error responding to high school connection activation %s: (%+v)\n", hs.HighSchoolID, err)
 	// }
-	log.Printf("Agent %s successfully issued Scoir HS credential\n", agent.DID)
+	log.Printf("Agent %s successfully issued Scoir HS credential\n", agent.PeerDID)
 }

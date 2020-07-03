@@ -487,6 +487,16 @@
     }
   },
   "definitions": {
+    "AgentStatus": {
+      "type": "string",
+      "enum": [
+        "STARTING",
+        "RUNNING",
+        "ERROR",
+        "TERMINATED"
+      ],
+      "default": "STARTING"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -540,6 +550,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "status": {
+          "$ref": "#/definitions/AgentStatus"
         }
       }
     },
@@ -613,7 +626,12 @@
       }
     },
     "stewardLaunchAgentResponse": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/AgentStatus"
+        }
+      }
     },
     "stewardListAgentResponse": {
       "type": "object",

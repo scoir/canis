@@ -87,6 +87,13 @@ message Agent {
     string name = 2;
     string assigned_schema_id = 3;
     repeated string endorsable_schema_ids = 4;
+    enum Status {
+        STARTING = 0;
+        RUNNING = 1;
+        ERROR = 2;
+        TERMINATED = 3;
+    }
+    Status status = 5;
 }
 
 message CreateAgentRequest {
@@ -128,8 +135,11 @@ message UpdateAgentResponse {
 
 message LaunchAgentRequest {
     string id = 1;
+    bool wait = 2;
 }
 message LaunchAgentResponse {
+    Agent.Status status = 5;
+
 }
 
 message ShutdownAgentRequest {

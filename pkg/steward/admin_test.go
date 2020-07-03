@@ -1,12 +1,20 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package steward
 
 import (
 	"context"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/runtime"
 	"github.com/scoir/canis/pkg/steward/api"
 )
 
@@ -57,6 +65,7 @@ func (suite *AdminTestSuite) TestCreateAgentFails() {
 
 	resp, err := target.CreateAgent(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = Internal desc = failed to create agent 123: Boom", err.Error())
 }
 
@@ -72,6 +81,7 @@ func (suite *AdminTestSuite) TestCreateAgentMissingRequiredField() {
 
 	resp, err := target.CreateAgent(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = InvalidArgument desc = name and id are required fields", err.Error())
 }
 
@@ -89,6 +99,7 @@ func (suite *AdminTestSuite) TestCreateAgentAlreadyExists() {
 
 	resp, err := target.CreateAgent(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = AlreadyExists desc = agent with id 123 already exists", err.Error())
 }
 
@@ -113,6 +124,7 @@ func (suite *AdminTestSuite) TestGetAgentErr() {
 
 	resp, err := target.GetAgent(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = Internal desc = unable to get agent: BOOM", err.Error())
 }
 
@@ -136,6 +148,7 @@ func (suite *AdminTestSuite) TestListAgentErr() {
 
 	resp, err := target.ListAgent(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = Internal desc = unable to list agent: BOOM", err.Error())
 }
 
@@ -160,6 +173,7 @@ func (suite *AdminTestSuite) TestDeleteAgentErr() {
 
 	resp, err := target.DeleteAgent(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = Internal desc = failed to delete agent 123: BOOM", err.Error())
 }
 
@@ -238,6 +252,7 @@ func (suite *AdminTestSuite) TestCreateSchemaFails() {
 
 	resp, err := target.CreateSchema(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = Internal desc = failed to create schema 123: Boom", err.Error())
 }
 
@@ -251,6 +266,7 @@ func (suite *AdminTestSuite) TestCreateSchemaMissingRequiredField() {
 
 	resp, err := target.CreateSchema(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = InvalidArgument desc = name and id are required fields", err.Error())
 }
 
@@ -266,6 +282,7 @@ func (suite *AdminTestSuite) TestCreateSchemaAlreadyExists() {
 
 	resp, err := target.CreateSchema(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = AlreadyExists desc = schema with id 123 already exists", err.Error())
 }
 
@@ -290,6 +307,7 @@ func (suite *AdminTestSuite) TestGetSchemaErr() {
 
 	resp, err := target.GetSchema(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = Internal desc = unable to get schema: BOOM", err.Error())
 }
 
@@ -313,6 +331,7 @@ func (suite *AdminTestSuite) TestListSchemaErr() {
 
 	resp, err := target.ListSchema(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = Internal desc = unable to list schema: BOOM", err.Error())
 }
 
@@ -337,6 +356,7 @@ func (suite *AdminTestSuite) TestDeleteSchemaErr() {
 
 	resp, err := target.DeleteSchema(context.Background(), request)
 	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = Internal desc = failed to delete schema 123: BOOM", err.Error())
 }
 
@@ -369,4 +389,153 @@ func (suite *AdminTestSuite) TestUpdateSchema() {
 	resp, err := target.UpdateSchema(context.Background(), request)
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), resp)
+}
+
+func (suite *AdminTestSuite) TestLaunchAgent() {
+	agent := &datastore.Agent{
+		ID:                  "123",
+		Name:                "Test Agent",
+		AssignedSchemaId:    "",
+		EndorsableSchemaIds: nil,
+	}
+
+	req := &api.LaunchAgentRequest{
+		Id:   "123",
+		Wait: false,
+	}
+
+	suite.Store.On("GetAgent", "123").Return(agent, nil)
+	suite.Exec.On("LaunchAgent", agent).Return("ABC", nil)
+	suite.Store.On("UpdateAgent", agent).Return(nil)
+
+	resp, err := target.LaunchAgent(context.Background(), req)
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), resp)
+	assert.Equal(suite.T(), api.Agent_STARTING, resp.Status)
+}
+
+func (suite *AdminTestSuite) TestLaunchAgentError() {
+	agent := &datastore.Agent{
+		ID:                  "123",
+		Name:                "Test Agent",
+		AssignedSchemaId:    "",
+		EndorsableSchemaIds: nil,
+	}
+
+	req := &api.LaunchAgentRequest{
+		Id:   "123",
+		Wait: false,
+	}
+
+	suite.Store.On("GetAgent", "123").Return(agent, nil)
+	suite.Exec.On("LaunchAgent", agent).Return("", errors.New("BOOM"))
+
+	resp, err := target.LaunchAgent(context.Background(), req)
+	assert.NotNil(suite.T(), err)
+	assert.Nil(suite.T(), resp)
+	assert.Equal(suite.T(), "rpc error: code = Internal desc = unable to launch agent: BOOM", err.Error())
+}
+
+type watch struct {
+	ch <-chan runtime.AgentEvent
+}
+
+func (r *watch) Stop() {
+}
+
+func (r *watch) ResultChan() <-chan runtime.AgentEvent {
+	return r.ch
+}
+
+type process struct{ status datastore.StatusType }
+
+func (r *process) Name() string {
+	panic("implement me")
+}
+
+func (r *process) ID() string {
+	panic("implement me")
+}
+
+func (r *process) Config() string {
+	panic("implement me")
+}
+
+func (r *process) Status() datastore.StatusType {
+	return r.status
+}
+
+func (r *process) Time() time.Duration {
+	return time.Minute
+}
+
+func (suite *AdminTestSuite) TestLaunchAgentWait() {
+	agent := &datastore.Agent{
+		ID:                  "123",
+		Name:                "Test Agent",
+		AssignedSchemaId:    "",
+		EndorsableSchemaIds: nil,
+	}
+
+	req := &api.LaunchAgentRequest{
+		Id:   "123",
+		Wait: true,
+	}
+
+	ch := make(chan runtime.AgentEvent, 1)
+	suite.Store.On("GetAgent", "123").Return(agent, nil)
+	suite.Exec.On("LaunchAgent", agent).Return("ABC", nil)
+	suite.Store.On("UpdateAgent", agent).Return(nil)
+	suite.Exec.On("Watch", "ABC").Return(&watch{ch: ch}, nil)
+	ch <- runtime.AgentEvent{
+		RuntimeContext: &process{status: datastore.Running},
+	}
+
+	resp, err := target.LaunchAgent(context.Background(), req)
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), resp)
+	assert.Equal(suite.T(), api.Agent_RUNNING, resp.Status)
+}
+
+func (suite *AdminTestSuite) TestShutdown() {
+	agent := &datastore.Agent{
+		ID:                  "123",
+		Name:                "Test Agent",
+		AssignedSchemaId:    "",
+		PID:                 "ABC",
+		EndorsableSchemaIds: nil,
+	}
+
+	req := &api.ShutdownAgentRequest{
+		Id: "123",
+	}
+
+	suite.Store.On("GetAgent", "123").Return(agent, nil)
+	suite.Exec.On("ShutdownAgent", "ABC").Return(nil)
+	suite.Store.On("UpdateAgent", agent).Return(nil)
+
+	resp, err := target.ShutdownAgent(context.Background(), req)
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), resp)
+}
+
+func (suite *AdminTestSuite) TestShutdownNotRunning() {
+	agent := &datastore.Agent{
+		ID:                  "123",
+		Name:                "Test Agent",
+		AssignedSchemaId:    "",
+		PID:                 "",
+		EndorsableSchemaIds: nil,
+	}
+
+	req := &api.ShutdownAgentRequest{
+		Id: "123",
+	}
+
+	suite.Store.On("GetAgent", "123").Return(agent, nil)
+
+	resp, err := target.ShutdownAgent(context.Background(), req)
+	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), err)
+	assert.Equal(suite.T(), "rpc error: code = InvalidArgument desc = agent with ID 123 is not currently running", err.Error())
 }

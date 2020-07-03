@@ -1,3 +1,9 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package mongodb
 
 import (
@@ -16,7 +22,7 @@ import (
 var (
 	SchemaC = "Schema"
 	AgentC  = "Agent"
-	DIDC    = "DID"
+	DIDC    = "PeerDID"
 )
 
 type Store struct {
@@ -26,7 +32,7 @@ type Store struct {
 func (r *Store) InsertDID(d *datastore.DID) error {
 	_, err := r.database.Collection(DIDC).InsertOne(context.Background(), d)
 	if err != nil {
-		return errors.Wrap(err, "unable to insert DID")
+		return errors.Wrap(err, "unable to insert PeerDID")
 	}
 
 	return nil
@@ -63,12 +69,12 @@ func (r *Store) SetPublicDID(DID string) error {
 	ctx := context.Background()
 	_, err := r.database.Collection(DIDC).UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"Public": false}})
 	if err != nil {
-		return errors.Wrap(err, "unable to unset public DID")
+		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
 
-	_, err = r.database.Collection(DIDC).UpdateOne(ctx, bson.M{"DID": DID}, bson.M{"$set": bson.M{"Public": true}})
+	_, err = r.database.Collection(DIDC).UpdateOne(ctx, bson.M{"PeerDID": DID}, bson.M{"$set": bson.M{"Public": true}})
 	if err != nil {
-		return errors.Wrap(err, "unable to unset public DID")
+		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
 
 	return nil
@@ -78,7 +84,7 @@ func (r *Store) GetPublicDID() (*datastore.DID, error) {
 	out := &datastore.DID{}
 	err := r.database.Collection(DIDC).FindOne(context.Background(), bson.M{"Public": true}).Decode(out)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to find public DID")
+		return nil, errors.Wrap(err, "unable to find public PeerDID")
 	}
 
 	return out, nil

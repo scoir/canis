@@ -1,0 +1,58 @@
+###############################################################
+#
+#  Datastore configuration
+#
+###############################################################
+datastore:
+  database: mongo
+  mongo:
+     url: "mongodb://127.0.0.1:27017"
+     database: "crux"
+
+
+###############################################################
+#
+#  Runtime configuration
+#
+###############################################################
+execution:
+  runtime: proc
+  proc:
+    path: ${CANIS_ROOT}/bin
+    home: /data/canis
+
+###############################################################
+#
+#  Steward configuration
+#
+###############################################################
+steward:
+  dbpath: /data/steward
+
+  wsinbound:
+    host: 0.0.0.0
+    port: 7777
+  grpc:
+    host: 0.0.0.0
+    port: 7778
+  grpcBridge:
+    host: 0.0.0.0
+    port: 7779
+
+###############################################################
+#
+#  Agent configuration
+#
+###############################################################
+agent:
+  dbpath: /data/agent
+  wsinbound:
+    host: 0.0.0.0
+    port: 8887
+  grpc:
+    host: 0.0.0.0
+    port: 8888
+  grpcBridge:
+    host: 0.0.0.0
+    port: 8889
+

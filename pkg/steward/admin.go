@@ -1,3 +1,9 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package steward
 
 import (
@@ -6,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
@@ -271,18 +278,83 @@ func (r *Steward) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*
 	return &api.UpdateAgentResponse{}, nil
 }
 
-func (r *Steward) LaunchAgent(_ context.Context, _ *api.LaunchAgentRequest) (*api.LaunchAgentResponse, error) {
-	panic("implement me")
+func (r *Steward) LaunchAgent(_ context.Context, req *api.LaunchAgentRequest) (*api.LaunchAgentResponse, error) {
+	agent, err := r.store.GetAgent(req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to load agent to launch: %v", err)
+	}
+
+	pID, err := r.exec.LaunchAgent(agent)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to launch agent: %v", err)
+	}
+	agent.PID = pID
+
+	err = r.store.UpdateAgent(agent)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to save agent: %v", err)
+	}
+
+	out := &api.LaunchAgentResponse{
+		Status: api.Agent_STARTING,
+	}
+	if req.Wait {
+		w, err := r.exec.Watch(agent.PID)
+		if err != nil {
+			log.Println("error watching agent")
+		}
+		stopper := time.AfterFunc(time.Minute, func() {
+			w.Stop()
+		})
+		defer stopper.Stop()
+
+		for event := range w.ResultChan() {
+			switch event.RuntimeContext.Status() {
+			case datastore.Running:
+				out.Status = api.Agent_RUNNING
+				return out, nil
+			case datastore.Error:
+				out.Status = api.Agent_ERROR
+				return out, nil
+			case datastore.Completed:
+				out.Status = api.Agent_TERMINATED
+				return out, nil
+			}
+		}
+	}
+
+	return out, nil
 }
 
-func (r *Steward) ShutdownAgent(_ context.Context, _ *api.ShutdownAgentRequest) (*api.ShutdownAgentResponse, error) {
-	panic("implement me")
+func (r *Steward) ShutdownAgent(_ context.Context, req *api.ShutdownAgentRequest) (*api.ShutdownAgentResponse, error) {
+	agent, err := r.store.GetAgent(req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to load agent to shutdown: %v", err)
+	}
+
+	if agent.PID == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "agent with ID %s is not currently running", req.Id)
+	}
+
+	err = r.exec.ShutdownAgent(agent.PID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to shutdown agent: %v", err)
+	}
+
+	agent.PID = ""
+	err = r.store.UpdateAgent(agent)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to save agent after shutdown: %v", err)
+	}
+
+	return &api.ShutdownAgentResponse{}, nil
 }
 
-func (r *Steward) RegisterPublicDID(ctx context.Context, req *api.PublicDIDRequest) (*api.PublicDIDResponse, error) {
+func (r *Steward) RegisterPublicDID(_ context.Context, req *api.PublicDIDRequest) (*api.PublicDIDResponse, error) {
 	log.Printf("Registering %s:%s in ledger for agent %s\n", req.Did, req.Verkey, req.AgentId)
 
-	//TODO, this should be done with VDR, not the ledgerBrowser
+	//TODO:  I don't think this is a Public Method
+	//TODO, this should be done with Identity Service abstraction
 	//err := r.ledgerBrowser.RegisterPublicDID(req.Did, req.Verkey, fmt.Sprintf("Agent-%s", req.AgentId), ledger.EndorserRole)
 	//if err != nil {
 	//	return nil, status.Errorf(codes.Internal, "unable to register college with ledger: %v", err)
@@ -291,8 +363,7 @@ func (r *Steward) RegisterPublicDID(ctx context.Context, req *api.PublicDIDReque
 	return &api.PublicDIDResponse{}, nil
 }
 
-func (r *Steward) GetInvitationForAgent(ctx context.Context,
-	req *api.AgentInvitiationRequest) (*api.AgentInivitationResponse, error) {
+func (r *Steward) GetInvitationForAgent(_ context.Context, req *api.AgentInvitiationRequest) (*api.AgentInivitationResponse, error) {
 
 	agent, err := r.store.GetAgent(req.AgentId)
 	if err != nil {

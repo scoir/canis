@@ -1,3 +1,9 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package framework
 
 import (
@@ -7,8 +13,12 @@ import (
 	api "github.com/scoir/canis/pkg/steward/api"
 )
 
-func (r *Config) GetStewardClient() (api.AdminClient, error) {
-	cc, err := grpc.Dial(r.Steward.Address(), grpc.WithInsecure())
+type GRPCConfig struct {
+	StewardEndpoint Endpoint
+}
+
+func (r *GRPCConfig) GetStewardClient() (api.AdminClient, error) {
+	cc, err := grpc.Dial(r.StewardEndpoint.Address(), grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial grpc for steward client")
 	}
