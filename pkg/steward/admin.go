@@ -350,19 +350,6 @@ func (r *Steward) ShutdownAgent(_ context.Context, req *api.ShutdownAgentRequest
 	return &api.ShutdownAgentResponse{}, nil
 }
 
-func (r *Steward) RegisterPublicDID(_ context.Context, req *api.PublicDIDRequest) (*api.PublicDIDResponse, error) {
-	log.Printf("Registering %s:%s in ledger for agent %s\n", req.Did, req.Verkey, req.AgentId)
-
-	//TODO:  I don't think this is a Public Method
-	//TODO, this should be done with Identity Service abstraction
-	//err := r.ledgerBrowser.RegisterPublicDID(req.Did, req.Verkey, fmt.Sprintf("Agent-%s", req.AgentId), ledger.EndorserRole)
-	//if err != nil {
-	//	return nil, status.Errorf(codes.Internal, "unable to register college with ledger: %v", err)
-	//}
-
-	return &api.PublicDIDResponse{}, nil
-}
-
 func (r *Steward) GetInvitationForAgent(_ context.Context, req *api.AgentInvitiationRequest) (*api.AgentInivitationResponse, error) {
 
 	agent, err := r.store.GetAgent(req.AgentId)
@@ -374,11 +361,6 @@ func (r *Steward) GetInvitationForAgent(_ context.Context, req *api.AgentInvitia
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to create invitation to high school agent: %v", err)
 	}
-
-	// err = r.storeHighSchool(hs)
-	// if err != nil {
-	// 	return nil, status.Errorf(codes.Internal, "Error saving high school for invite: (%v)", err)
-	// }
 
 	d, _ := json.Marshal(invite)
 	return &api.AgentInivitationResponse{Body: string(d)}, nil

@@ -224,12 +224,6 @@ service Admin {
             post: "/agents/{id}/shutdown"
         };
     }
-    rpc RegisterPublicDID (PublicDIDRequest) returns (PublicDIDResponse) {
-        option (google.api.http) = {
-            post: "/agents/{agent_id}/register"
-            body: "*"
-        };
-    }
     rpc GetInvitationForAgent (AgentInvitiationRequest) returns (AgentInivitationResponse) {
         option (google.api.http) = {
             get: "/agents/{agent_id}/invitation"

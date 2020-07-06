@@ -153,44 +153,6 @@
         ]
       }
     },
-    "/agents/{agent_id}/register": {
-      "post": {
-        "operationId": "Admin_RegisterPublicDID",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/stewardPublicDIDResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "agent_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/stewardPublicDIDRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Admin"
-        ]
-      }
-    },
     "/agents/{id}": {
       "get": {
         "operationId": "Admin_GetAgent",
@@ -662,23 +624,6 @@
           }
         }
       }
-    },
-    "stewardPublicDIDRequest": {
-      "type": "object",
-      "properties": {
-        "agent_id": {
-          "type": "string"
-        },
-        "did": {
-          "type": "string"
-        },
-        "verkey": {
-          "type": "string"
-        }
-      }
-    },
-    "stewardPublicDIDResponse": {
-      "type": "object"
     },
     "stewardSchema": {
       "type": "object",

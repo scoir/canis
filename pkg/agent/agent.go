@@ -25,7 +25,7 @@ type Agent struct {
 	agentID        string
 	stewardPeerDID string
 	steward        api.AdminClient
-	bouncer        *ndid.Bouncer
+	bouncer        ndid.Bouncer
 }
 
 func NewAgent(agentID string, conf *Config) (*Agent, error) {

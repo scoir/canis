@@ -29,6 +29,7 @@ type Supervisor struct {
 	actions map[string]chan service.DIDCommAction
 }
 
+//go:generate mockery -name=provider
 type provider interface {
 	GetDIDClient() (*didexchange.Client, error)
 }

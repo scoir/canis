@@ -10,8 +10,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/runtime"
@@ -291,7 +293,16 @@ func (suite *AdminTestSuite) TestGetSchema() {
 		Id: "123",
 	}
 
-	suite.Store.On("GetSchema", "123").Return(&datastore.Schema{ID: "123", Name: "test schema"}, nil)
+	suite.Store.On("GetSchema", "123").Return(&datastore.Schema{
+		ID:   "123",
+		Name: "test schema",
+		Attributes: []*datastore.Attribute{
+			{
+				Name: "City",
+				Type: 1,
+			},
+		},
+	}, nil)
 
 	resp, err := target.GetSchema(context.Background(), request)
 	assert.Nil(suite.T(), err)
@@ -315,8 +326,17 @@ func (suite *AdminTestSuite) TestListSchema() {
 	request := &api.ListSchemaRequest{}
 
 	suite.Store.On("ListSchema", &datastore.SchemaCriteria{}).Return(&datastore.SchemaList{
-		Count:  1,
-		Schema: []*datastore.Schema{{ID: "123", Name: "test schema"}},
+		Count: 1,
+		Schema: []*datastore.Schema{{
+			ID:   "123",
+			Name: "test schema",
+			Attributes: []*datastore.Attribute{
+				{
+					Name: "City",
+					Type: 1,
+				},
+			},
+		}},
 	}, nil)
 
 	resp, err := target.ListSchema(context.Background(), request)
@@ -389,6 +409,44 @@ func (suite *AdminTestSuite) TestUpdateSchema() {
 	resp, err := target.UpdateSchema(context.Background(), request)
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), resp)
+}
+
+func (suite *AdminTestSuite) TestUpdateSchemaErr() {
+	request := &api.UpdateSchemaRequest{
+		Schema: &api.Schema{
+			Id:      "123",
+			Name:    "Test Schema",
+			Version: "0.0.1",
+			Attributes: []*api.Attribute{{
+				Name: "City",
+				Type: api.Attribute_STRING,
+			}},
+		},
+	}
+
+	suite.Store.On("GetSchema", "123").Return(nil, errors.New("BOOM"))
+
+	resp, err := target.UpdateSchema(context.Background(), request)
+	assert.NotNil(suite.T(), err)
+	assert.Nil(suite.T(), resp)
+}
+
+func (suite *AdminTestSuite) TestUpdateSchemaDataMissing() {
+	request := &api.UpdateSchemaRequest{
+		Schema: &api.Schema{
+			Id:      "",
+			Name:    "Test Schema",
+			Version: "0.0.1",
+			Attributes: []*api.Attribute{{
+				Name: "City",
+				Type: api.Attribute_STRING,
+			}},
+		},
+	}
+
+	resp, err := target.UpdateSchema(context.Background(), request)
+	assert.NotNil(suite.T(), err)
+	assert.Nil(suite.T(), resp)
 }
 
 func (suite *AdminTestSuite) TestLaunchAgent() {
@@ -538,4 +596,60 @@ func (suite *AdminTestSuite) TestShutdownNotRunning() {
 	assert.Nil(suite.T(), resp)
 	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "rpc error: code = InvalidArgument desc = agent with ID 123 is not currently running", err.Error())
+}
+
+func (suite *AdminTestSuite) TestGetInvitationForAgent() {
+	req := &api.AgentInvitiationRequest{
+		AgentId: "123",
+	}
+	agent := &datastore.Agent{
+		ID:                  "123",
+		Name:                "Test Agent",
+		AssignedSchemaId:    "",
+		PID:                 "",
+		EndorsableSchemaIds: nil,
+	}
+
+	invite := &didexchange.Invitation{}
+
+	suite.Store.On("GetAgent", "123").Return(agent, nil)
+	suite.Bouncer.On("CreateInvitationNotify", agent.Name, mock.AnythingOfType("didexchange.NotifySuccess"),
+		mock.AnythingOfType("didexchange.NotifyError")).Return(invite, nil)
+
+	resp, err := target.GetInvitationForAgent(context.Background(), req)
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), resp)
+}
+
+func (suite *AdminTestSuite) TestGetInvitationForAgentStoreError() {
+	req := &api.AgentInvitiationRequest{
+		AgentId: "123",
+	}
+
+	suite.Store.On("GetAgent", "123").Return(nil, errors.New("BOOM"))
+
+	resp, err := target.GetInvitationForAgent(context.Background(), req)
+	assert.NotNil(suite.T(), err)
+	assert.Nil(suite.T(), resp)
+}
+
+func (suite *AdminTestSuite) TestGetInvitationForAgentInviteError() {
+	req := &api.AgentInvitiationRequest{
+		AgentId: "123",
+	}
+	agent := &datastore.Agent{
+		ID:                  "123",
+		Name:                "Test Agent",
+		AssignedSchemaId:    "",
+		PID:                 "",
+		EndorsableSchemaIds: nil,
+	}
+
+	suite.Store.On("GetAgent", "123").Return(agent, nil)
+	suite.Bouncer.On("CreateInvitationNotify", agent.Name, mock.AnythingOfType("didexchange.NotifySuccess"),
+		mock.AnythingOfType("didexchange.NotifyError")).Return(nil, errors.New("BOOM"))
+
+	resp, err := target.GetInvitationForAgent(context.Background(), req)
+	assert.NotNil(suite.T(), err)
+	assert.Nil(suite.T(), resp)
 }

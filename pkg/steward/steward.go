@@ -27,7 +27,7 @@ import (
 type Steward struct {
 	ctx       api.Provider
 	didcl     *didexchange.Client
-	bouncer   *ndid.Bouncer
+	bouncer   ndid.Bouncer
 	schemacl  *schema.Client
 	credcl    *issuecredential.Client
 	notifier  *webnotifier.WebNotifier
