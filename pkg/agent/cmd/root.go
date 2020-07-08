@@ -9,18 +9,17 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
-	"github.com/scoir/canis/pkg/agent"
+	"github.com/scoir/canis/pkg/framework/context"
 )
 
 var cfgFile string
 
-var config *agent.Config
+var ctx *context.Provider
 
 var rootCmd = &cobra.Command{
 	Use:   "agent",
@@ -39,43 +38,31 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.canis.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is/etc/canis/agent_config.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile == "" {
+	vp := viper.New()
+	if cfgFile != "" {
+		// Use vp file from the flag.
+		vp.SetConfigFile(cfgFile)
+	} else {
 		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		cfgFile = strings.Join([]string{home, ".canis"}, string(os.PathSeparator))
+		vp.SetConfigType("yaml")
+		vp.AddConfigPath("/etc/canis/")
+		vp.AddConfigPath("./config/docker/")
+		vp.SetConfigName("agent_config")
 	}
 
-	// If a config file is found, read it in.
-	f, err := os.Open(cfgFile)
-	if err != nil {
-		fmt.Println("unable to read config:", cfgFile, err)
+	vp.AutomaticEnv() // read in environment variables that match
+	_ = vp.BindPFlags(pflag.CommandLine)
+
+	// If a vp file is found, read it in.
+	if err := vp.ReadInConfig(); err != nil {
+		fmt.Println("unable to read vp:", vp.ConfigFileUsed(), err)
 		os.Exit(1)
 	}
 
-	config = &agent.Config{}
-	err = yaml.NewDecoder(f).Decode(config)
-	if err != nil {
-		fmt.Println("failed to unmarshal config", err)
-		os.Exit(1)
-	}
-
+	ctx = context.NewProvider(vp)
 }

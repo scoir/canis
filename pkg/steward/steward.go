@@ -12,7 +12,6 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
 	"github.com/hyperledger/aries-framework-go/pkg/controller/webnotifier"
-	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/credential"
@@ -25,7 +24,6 @@ import (
 //go:generate wire
 
 type Steward struct {
-	ctx       api.Provider
 	didcl     *didexchange.Client
 	bouncer   ndid.Bouncer
 	schemacl  *schema.Client
@@ -36,39 +34,45 @@ type Steward struct {
 	publicDID *datastore.DID
 }
 
-func New(ctx api.Provider, conf *Config, sc *schema.Client) (*Steward, error) {
+type provider interface {
+	Datastore() (datastore.Store, error)
+	Executor() (runtime.Executor, error)
+	GetDIDClient() (*didexchange.Client, error)
+	GetCredentialClient() (*issuecredential.Client, error)
+	GetSchemaClient() (*schema.Client, error)
+}
+
+func New(ctx provider) (*Steward, error) {
 
 	var err error
-	r := &Steward{
-		ctx:      ctx,
-		schemacl: sc,
-	}
+	r := &Steward{}
 
-	store, err := conf.Datastore.Datastore()
+	r.schemacl, _ = ctx.GetSchemaClient()
+	store, err := ctx.Datastore()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to access datastore")
 	}
 
 	r.store = store
 
-	exec, err := conf.Execution.Executor()
+	exec, err := ctx.Executor()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to access runtime executor")
 	}
 
 	r.exec = exec
 
-	r.didcl, err = conf.GetDIDClient()
+	r.didcl, err = ctx.GetDIDClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create didexchange client in steward init")
 	}
 
-	r.credcl, err = conf.GetCredentialClient()
+	r.credcl, err = ctx.GetCredentialClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create issue credential client in steward init")
 	}
 
-	sup, err := credential.New(conf)
+	sup, err := credential.New(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create credential supervisor for steward")
 	}
@@ -77,7 +81,7 @@ func New(ctx api.Provider, conf *Config, sc *schema.Client) (*Steward, error) {
 		return nil, errors.Wrap(err, "unable to start credential supervisor for steward")
 	}
 
-	r.bouncer, err = ndid.NewBouncer(conf)
+	r.bouncer, err = ndid.NewBouncer(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create did supervisor for high school agent")
 	}

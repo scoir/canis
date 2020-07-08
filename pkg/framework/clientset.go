@@ -4,7 +4,7 @@ Copyright Scoir Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package context
+package framework
 
 import "k8s.io/client-go/kubernetes"
 

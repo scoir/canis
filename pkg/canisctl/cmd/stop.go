@@ -22,7 +22,7 @@ var stopCmd = &cobra.Command{
 }
 
 func stopCluster(_ *cobra.Command, _ []string) {
-	executor, err := frameworkCfg.Execution.Executor()
+	executor, err := ctx.Executor()
 	if err != nil {
 		log.Fatalln("unable to access executor", err)
 	}

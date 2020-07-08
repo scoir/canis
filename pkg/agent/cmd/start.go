@@ -15,7 +15,7 @@ import (
 	"github.com/scoir/canis/pkg/controller"
 )
 
-var agentID *string
+var agentID string
 
 var startCmd = &cobra.Command{
 	Use:   "start",
@@ -26,22 +26,15 @@ var startCmd = &cobra.Command{
 
 func runStart(_ *cobra.Command, _ []string) {
 
-	if *agentID == "" {
+	if agentID == "" {
 	}
-	ctx := config.GetAriesContext()
 
-	a, err := agent.NewAgent(*agentID, config)
+	a, err := agent.NewAgent(agentID, ctx)
 	if err != nil {
 		log.Fatalln("error initializing agent", err)
 	}
 
-	runner, err := controller.New(
-		ctx,
-		config.GRPC.Host,
-		config.GRPC.Port,
-		config.GRPCBridge.Host,
-		config.GRPCBridge.Port,
-		a)
+	runner, err := controller.New(ctx, a)
 
 	if err != nil {
 		log.Fatalln("unable to start steward", err)
@@ -57,6 +50,6 @@ func runStart(_ *cobra.Command, _ []string) {
 
 func init() {
 	rootCmd.AddCommand(startCmd)
-	startCmd.Flags().StringVar(agentID, "id", "", "The unique ID of this agent")
-	_ = startCmd.MarkFlagRequired("agentID")
+	startCmd.Flags().StringVar(&agentID, "id", "", "The unique ID of this agent")
+	_ = startCmd.MarkFlagRequired("id")
 }

@@ -8,25 +8,28 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"strconv"
-	"syscall"
+	"net"
 )
 
 func main() {
-	for _, p := range os.Args[1:] {
-		pid, err := strconv.ParseInt(p, 10, 64)
-		if err != nil {
-			log.Fatal(err)
-		}
-		process, err := os.FindProcess(int(pid))
-		if err != nil {
-			fmt.Printf("Failed to find process: %s\n", err)
-		} else {
-			err := process.Signal(syscall.Signal(0))
-			fmt.Printf("process.Signal on pid %d returned: %v\n", pid, err)
-		}
-
+	port, err := GetFreePort()
+	if err != nil {
+		panic(err)
 	}
+
+	fmt.Println(port)
+}
+
+func GetFreePort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
+	if err != nil {
+		return 0, err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
 }

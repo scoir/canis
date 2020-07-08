@@ -28,7 +28,12 @@ type Agent struct {
 	bouncer        ndid.Bouncer
 }
 
-func NewAgent(agentID string, conf *Config) (*Agent, error) {
+type provider interface {
+	GetStewardClient() (api.AdminClient, error)
+	GetDIDClient() (*didexchange.Client, error)
+}
+
+func NewAgent(agentID string, conf provider) (*Agent, error) {
 	r := &Agent{
 		agentID: agentID,
 	}

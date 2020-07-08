@@ -6,7 +6,7 @@
 datastore:
   database: mongo
   mongo:
-     url: "mongodb://127.0.0.1:27017"
+     url: "mongodb://172.17.0.1:27017"
      database: "crux"
 
 
@@ -16,9 +16,8 @@ datastore:
 #
 ###############################################################
 execution:
-  runtime: proc
-  proc:
-    path: ${CANIS_ROOT}/bin
+  runtime: docker
+  docker:
     home: /data/canis
 
 ###############################################################

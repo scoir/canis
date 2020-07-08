@@ -10,8 +10,6 @@ import (
 	"encoding/json"
 
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
-
-	"github.com/scoir/canis/pkg/framework"
 )
 
 type Client struct {
@@ -24,7 +22,7 @@ type credKeys struct {
 	SchemaID            string
 }
 
-func NewClient(conf *framework.Config) (*Client, error) {
+func NewClient() (*Client, error) {
 	//provider := conf.GetAriesContext()
 	//store, err := provider.StorageProvider().OpenStore("cred-defs")
 	//if err != nil {
