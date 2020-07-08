@@ -1,8 +1,6 @@
 package context
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
@@ -13,6 +11,8 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage/mem"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/scoir/canis/pkg/test"
 )
 
 var baseCfg = map[string]interface{}{
@@ -47,7 +47,7 @@ func TestProvider_GetAriesContext(t *testing.T) {
 	})
 
 	t.Run("get context, base config", func(t *testing.T) {
-		d, cleanup := generateTempDir(t)
+		d, cleanup := test.GenerateTempDir(t)
 		defer cleanup()
 		baseCfg["dbpath"] = d
 		vp := viper.New()
@@ -66,7 +66,7 @@ func TestProvider_GetAriesContext(t *testing.T) {
 	})
 
 	t.Run("get context, base config, wsinbound", func(t *testing.T) {
-		d, cleanup := generateTempDir(t)
+		d, cleanup := test.GenerateTempDir(t)
 		defer cleanup()
 		inboundCfg["dbpath"] = d
 		vp := viper.New()
@@ -83,20 +83,6 @@ func TestProvider_GetAriesContext(t *testing.T) {
 		_, ok := s.(*leveldb.Provider)
 		assert.True(t, ok)
 	})
-}
-
-func generateTempDir(t testing.TB) (string, func()) {
-	path, err := ioutil.TempDir("", "db")
-	if err != nil {
-		t.Fatalf("Failed to create leveldb directory: %s", err)
-	}
-
-	return path, func() {
-		err := os.RemoveAll(path)
-		if err != nil {
-			t.Fatalf("Failed to clear leveldb directory: %s", err)
-		}
-	}
 }
 
 func TestProvider_GetDIDClient(t *testing.T) {
@@ -176,7 +162,7 @@ func TestProvider_GetRouterClient(t *testing.T) {
 
 func TestProvider_newProvider(t *testing.T) {
 	t.Run("initialize with directory", func(t *testing.T) {
-		d, cleanup := generateTempDir(t)
+		d, cleanup := test.GenerateTempDir(t)
 		defer cleanup()
 
 		p := newProvider(d)

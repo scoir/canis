@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package steward
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
@@ -34,6 +35,7 @@ type Steward struct {
 	publicDID *datastore.DID
 }
 
+//go:generate mockery -name=provider --structname=Provider
 type provider interface {
 	Datastore() (datastore.Store, error)
 	Executor() (runtime.Executor, error)
@@ -81,6 +83,7 @@ func New(ctx provider) (*Steward, error) {
 		return nil, errors.Wrap(err, "unable to start credential supervisor for steward")
 	}
 
+	fmt.Println("calling bouncer")
 	r.bouncer, err = ndid.NewBouncer(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create did supervisor for high school agent")
