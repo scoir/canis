@@ -2,7 +2,7 @@
 
 CANIS_ROOT=$(abspath .)
 
-all: clean tools steward agent
+all: clean tools build
 
 commit: cover build
 
