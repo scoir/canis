@@ -1,0 +1,15 @@
+datastore:
+  database: mongo
+  mongo:
+    database: crux
+    url: mongodb://127.0.0.1:27017
+dbpath: /data/agent
+grpc:
+  host: 0.0.0.0
+  port: 8888
+grpcbridge:
+  host: 0.0.0.0
+  port: 8889
+wsinbound:
+  host: 0.0.0.0
+  port: 8887

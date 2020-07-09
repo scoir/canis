@@ -6,8 +6,8 @@
 datastore:
   database: mongo
   mongo:
-     url: "mongodb://127.0.0.1:27017"
-     database: "crux"
+     url: "mongodb://172.17.0.1:27017"
+     database: "canis"
 
 
 ###############################################################
@@ -16,10 +16,9 @@ datastore:
 #
 ###############################################################
 execution:
-  runtime: proc
-  proc:
-    path: ${CANIS_ROOT}/bin
-    home: /data/canis
+  runtime: docker
+  docker:
+    home: /tmp/canis
 
 ###############################################################
 #
@@ -27,7 +26,7 @@ execution:
 #
 ###############################################################
 steward:
-  dbpath: /data/steward
+  dbpath: /tmp/canis/steward
 
   wsinbound:
     host: 0.0.0.0
@@ -45,7 +44,7 @@ steward:
 #
 ###############################################################
 agent:
-  dbpath: /data/agent
+  dbpath: /tmp/canis/agent
   wsinbound:
     host: 0.0.0.0
     port: 8887

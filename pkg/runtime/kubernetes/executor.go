@@ -15,7 +15,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/framework/context"
+	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/runtime"
 )
 
@@ -69,7 +69,7 @@ func (r *Executor) StreamLogs(pID string) (io.ReadCloser, error) {
 	panic("implement me")
 }
 
-func GetClientSet(kubeconfig, namespace string) *context.Clientset {
+func GetClientSet(kubeconfig, namespace string) *framework.Clientset {
 	var config *rest.Config
 	var err error
 
@@ -90,10 +90,10 @@ func GetClientSet(kubeconfig, namespace string) *context.Clientset {
 		panic(err)
 	}
 
-	return &context.Clientset{Clientset: cs, Namespace: namespace}
+	return &framework.Clientset{Clientset: cs, Namespace: namespace}
 }
 
-func GetClientSetWithConfig(c *Config) *context.Clientset {
+func GetClientSetWithConfig(c *Config) *framework.Clientset {
 	return GetClientSet(c.KubeConfig, c.Namespace)
 }
 

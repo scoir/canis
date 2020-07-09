@@ -16,13 +16,13 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 
-	"github.com/scoir/canis/pkg/framework"
+	"github.com/scoir/canis/pkg/framework/context"
 )
 
 var cfgFile string
 
 var config *viper.Viper
-var frameworkCfg *framework.Config
+var ctx *context.Provider
 
 var rootCmd = &cobra.Command{
 	Use:   "canisctl",
@@ -72,11 +72,5 @@ func initConfig() {
 		os.Exit(1)
 	}
 
-	frameworkCfg = &framework.Config{}
-	err := config.Unmarshal(frameworkCfg)
-	if err != nil {
-		fmt.Println("failed to unmarshal config", err)
-		os.Exit(1)
-	}
-
+	ctx = context.NewProvider(config)
 }

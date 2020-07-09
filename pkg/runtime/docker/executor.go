@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -20,6 +21,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
@@ -30,7 +32,10 @@ const (
 	StewardName          = "steward"
 	StewardConfig        = "%s/steward_config.yaml"
 	StewardContainerName = "canis_steward"
-	StewardImage         = "canis/steward:latest"
+	CanisImage           = "canis/canis:latest"
+
+	AgentContainerName = "canis_agent_%s"
+	AgentConfig        = "%s/agent_%s_config.yaml"
 )
 
 type Config struct {
@@ -39,11 +44,17 @@ type Config struct {
 
 type Executor struct {
 	home string
+	ctx  provider
 	cli  *client.Client
 }
 
-func New(conf *Config) (runtime.Executor, error) {
+type provider interface {
+	GetAgentConfig(agentID string) (map[string]interface{}, error)
+}
+
+func New(ctx provider, conf *Config) (runtime.Executor, error) {
 	r := &Executor{
+		ctx:  ctx,
 		home: conf.HomeDir,
 	}
 
@@ -111,7 +122,6 @@ func (r *Executor) PS() []runtime.Process {
 }
 
 func (r *Executor) LaunchSteward(configFileData []byte) (string, error) {
-
 	ctx := context.Background()
 
 	steward, err := r.getRunningConainer(StewardContainerName)
@@ -142,19 +152,24 @@ func (r *Executor) LaunchSteward(configFileData []byte) (string, error) {
 				Source: r.home,
 				Target: "/etc/canis",
 			},
+			{
+				Type:   mount.TypeBind,
+				Source: "/var/run/docker.sock",
+				Target: "/var/run/docker.sock",
+			},
 		}}
 
 	net := &network.NetworkingConfig{}
 
 	conf := &container.Config{
-		Image: StewardImage,
-		Cmd: []string{
-			"steward", "start",
-		},
 		ExposedPorts: nat.PortSet{
 			"7778/tcp": struct{}{},
 			"7779/tcp": struct{}{},
 		},
+		Cmd: []string{
+			"steward", "start",
+		},
+		Image: CanisImage,
 	}
 
 	resp, err := r.cli.ContainerCreate(ctx, conf, host, net, StewardContainerName)
@@ -186,7 +201,75 @@ func (r *Executor) ShutdownSteward() error {
 }
 
 func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
-	panic("implement me")
+	ctx := context.Background()
+	agentContainerName := fmt.Sprintf(AgentContainerName, agent.ID)
+
+	steward, err := r.getRunningConainer(agentContainerName)
+	if err == nil {
+		state := r.processStatus(steward)
+		if state == datastore.Running {
+			return "", errors.Errorf("Agent %s is already running", agentContainerName)
+		}
+	}
+
+	_ = r.removeContainer(agentContainerName)
+
+	am, err := r.ctx.GetAgentConfig(agent.ID)
+	if err != nil {
+		return "", errors.Wrap(err, "unexpected error generating agent configuration")
+	}
+	agentConfigFileData, err := yaml.Marshal(am)
+	if err != nil {
+		return "", errors.Wrap(err, "unexpected yaml marshal error")
+	}
+	agentConfigFile := fmt.Sprintf(AgentConfig, "/etc/canis", agent.ID)
+	err = ioutil.WriteFile(agentConfigFile, agentConfigFileData, 0644)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to write config for agent")
+	}
+
+	p1, _ := r.FreePort()
+	p2, _ := r.FreePort()
+	host := &container.HostConfig{
+		PortBindings: nat.PortMap{
+			"8888/tcp": []nat.PortBinding{{"0.0.0.0", fmt.Sprintf("%d", p1)}},
+			"8889/tcp": []nat.PortBinding{{"0.0.0.0", fmt.Sprintf("%d", p2)}},
+		},
+		AutoRemove: false,
+		Mounts: []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: r.home,
+				Target: "/etc/canis",
+			},
+		}}
+
+	nt := &network.NetworkingConfig{}
+
+	conf := &container.Config{
+		Image: CanisImage,
+		Cmd: []string{
+			"agent", "start",
+			"--config", agentConfigFile,
+			"--id", agent.ID,
+		},
+
+		ExposedPorts: nat.PortSet{
+			"8888/tcp": struct{}{},
+			"8889/tcp": struct{}{},
+		},
+	}
+
+	resp, err := r.cli.ContainerCreate(ctx, conf, host, nt, agentContainerName)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to create container for agenta")
+	}
+
+	if err := r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+		return "", errors.Wrap(err, "unable to start agent")
+	}
+
+	return resp.ID[:12], nil
 }
 
 func (r *Executor) Status(pID string) (runtime.Process, error) {
@@ -245,4 +328,18 @@ func (r *Executor) removeContainer(name string) error {
 
 	err = r.cli.ContainerRemove(ctx, containers[0].ID, types.ContainerRemoveOptions{})
 	return errors.Wrap(err, "unexpected error trying to remove container")
+}
+
+func (r *Executor) FreePort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
+	if err != nil {
+		return 0, err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
 }

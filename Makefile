@@ -2,7 +2,7 @@
 
 CANIS_ROOT=$(abspath .)
 
-all: clean tools steward agent
+all: clean tools build
 
 commit: cover build
 
@@ -20,7 +20,7 @@ swagger_pack: pkg/static/steward_agent_swagger.go
 pkg/static/steward_agent_swagger.go: steward-pb pkg/steward/api/spec/steward_agent.swagger.json
 	staticfiles -o pkg/static/steward_agent_swagger.go --package static pkg/steward/api/spec
 
-build: bin/steward bin/agency bin/router bin/canisctl
+build: bin/steward bin/agent bin/canisctl
 build-steward: bin/steward
 
 steward: bin/steward
@@ -31,24 +31,15 @@ canisctl: bin/canisctl
 bin/canisctl:
 	cd cmd/canisctl && go build -o $(CANIS_ROOT)/bin/canisctl
 
-.PHONY: steward-docker agency-docker router-docker
-package: steward-docker agency-docker router-docker
-
-steward-docker: bin/steward
-	@echo "Building steward docker image"
-	@docker build -f ./docker/steward/Dockerfile -t canis/steward:latest .
-
-agent-docker: bin/agent
-	@echo "Building agent docker image"
-	@docker build -f ./docker/agent/Dockerfile -t canis/agent:latest .
-
+.PHONY: canis-docker
+package: canis-docker
 
 build-agent: bin/agent
 build-agency: bin/agency
 build-router: bin/router
 
 agent: bin/agent
-bin/agent:
+bin/agent: steward-pb
 	cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
 
 agency: bin/agency bin/router
@@ -58,14 +49,6 @@ bin/agency:
 router: bin/router
 bin/router:
 	cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
-
-agency-docker: bin/agency
-	@echo "Building agency docker image"
-	@docker build -f ./docker/agency/Dockerfile --no-cache -t canis/agency:latest .
-
-router-docker: bin/router
-	@echo "Building router docker image"
-	@docker build -f ./docker/router/Dockerfile --no-cache -t canis/router:latest .
 
 canis-docker: build
 	@echo "Building canis docker image"

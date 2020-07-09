@@ -23,21 +23,15 @@ var startCmd = &cobra.Command{
 }
 
 func startCluster(_ *cobra.Command, _ []string) {
-	executor, err := frameworkCfg.Execution.Executor()
+	executor, err := ctx.Executor()
 	if err != nil {
 		log.Fatalln("unable to access executor", err)
 	}
 
-	ex := config.GetStringMap("execution")
-	ds := config.GetStringMap("datastore")
-	st := config.Sub("steward")
-
-	st.Set("execution", ex)
-	st.Set("datastore", ds)
-
-	out := map[string]interface{}{}
-	err = st.Unmarshal(&out)
-
+	out, err := ctx.GetStewardConfig()
+	if err != nil {
+		log.Fatalln("unable to generate steward config", err)
+	}
 	d, err := yaml.Marshal(out)
 	if err != nil {
 		log.Fatalln("unable to marshal steward config")

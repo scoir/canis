@@ -4,12 +4,11 @@ Copyright Scoir Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package framework
+package context
 
 import (
 	"context"
 	"reflect"
-	"sync"
 
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -21,12 +20,13 @@ import (
 	"github.com/scoir/canis/pkg/datastore/mongodb"
 )
 
+const (
+	datastoreKey = "datastore"
+)
+
 type DatastoreConfig struct {
 	Database string `mapstructure:"database"`
 	Mongo    *Mongo `mapstructure:"mongo"`
-
-	lock sync.Mutex
-	ds   datastore.Store
 }
 
 type Mongo struct {
@@ -34,42 +34,53 @@ type Mongo struct {
 	Database string `mapstructure:"database"`
 }
 
-func (r *DatastoreConfig) Datastore() (datastore.Store, error) {
+func (r *Provider) Datastore() (datastore.Store, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	if r.ds != nil {
 		return r.ds, nil
 	}
 
-	var err error
-	switch r.Database {
+	dc := &DatastoreConfig{}
+	err := r.vp.UnmarshalKey(datastoreKey, dc)
+	if err != nil {
+		return nil, errors.Wrap(err, "execution environment is not correctly configured")
+	}
+
+	switch dc.Database {
 	case "mongo":
-		r.ds, err = r.loadMongo()
+		r.ds, err = r.loadMongo(dc.Mongo)
 	case "postgres":
 		r.ds, err = r.loadPostgres()
+	default:
+		return nil, errors.New("no datastore configuration was provided")
 	}
 
 	return r.ds, errors.Wrap(err, "unable to get datastore from config")
 }
 
-func (r *DatastoreConfig) loadMongo() (datastore.Store, error) {
-	mongoClient, err := getClient(r)
+func (r *Provider) loadMongo(dsc *Mongo) (datastore.Store, error) {
+	if dsc == nil {
+		return nil, errors.New("mongo driver not property configured")
+	}
+
+	mongoClient, err := getClient(dsc)
 	if err != nil {
 		return nil, err
 	}
 
-	return mongodb.NewStore(mongoClient.Database(r.Mongo.Database)), nil
+	return mongodb.NewStore(mongoClient.Database(dsc.Database)), nil
 }
 
-func (r *DatastoreConfig) loadPostgres() (datastore.Store, error) {
+func (r *Provider) loadPostgres() (datastore.Store, error) {
 	return nil, errors.New("not implemented")
 }
 
-func getClient(conf *DatastoreConfig) (*mongo.Client, error) {
+func getClient(conf *Mongo) (*mongo.Client, error) {
 	var err error
 	tM := reflect.TypeOf(bson.M{})
 	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, tM).Build()
-	clientOpts := options.Client().SetRegistry(reg).ApplyURI(conf.Mongo.URL)
+	clientOpts := options.Client().SetRegistry(reg).ApplyURI(conf.URL)
 
 	mongoClient, err := mongo.NewClient(clientOpts)
 	if err != nil {

@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/scoir/canis/pkg/controller"
-	"github.com/scoir/canis/pkg/schema"
 	"github.com/scoir/canis/pkg/steward"
 )
 
@@ -24,21 +23,13 @@ var startCmd = &cobra.Command{
 }
 
 func runStart(cmd *cobra.Command, args []string) {
-	ctx := config.GetAriesContext()
 
-	client := schema.New()
-	agent, err := steward.New(ctx, config, client)
+	agent, err := steward.New(ctx)
 	if err != nil {
 		log.Fatalln("error initializing steward agent", err)
 	}
 
-	runner, err := controller.New(
-		ctx,
-		config.GRPC.Host,
-		config.GRPC.Port,
-		config.GRPCBridge.Host,
-		config.GRPCBridge.Port,
-		agent)
+	runner, err := controller.New(ctx, agent)
 
 	if err != nil {
 		log.Fatalln("unable to start steward", err)
