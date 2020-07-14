@@ -1,9 +1,9 @@
 # Basics
 
-You start a Canis cluster using the `canisctl` command line tool.  The basic command structure is:
+You start a Canis cluster using the `sirius` command line tool.  The basic command structure is:
 
 ```
-% canisctl start --config <path-to-yaml>
+% sirius start --config <path-to-yaml>
 ```
 
 ## Configuration
@@ -83,13 +83,13 @@ steward:
 To start your cluster run:
 
 ```sh
-% canisctl start --config config/docker/canis.yaml
+% sirius start --config config/docker/canis.yaml
 ```
 
 To check the status of the components of a canis cluster run the status command.  The output should resemble:
 
 ```sh 
-% canisctl status --config config/docker/canis.yaml
+% sirius status --config config/docker/canis.yaml
 NAME      ID             STATUS    TIME
 steward   7311b8deabe9   RUNNING   5s
 
@@ -110,7 +110,7 @@ then execute `POST /agents/{id}/launch` to launch an agent container.  Running t
 one agent is now running:
 
 ```sh 
-% canisctl status --config config/docker/canis.yaml
+% sirius status --config config/docker/canis.yaml
 NAME      ID             STATUS    TIME
 steward   7311b8deabe9   RUNNING   4m
 
