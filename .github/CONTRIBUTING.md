@@ -18,10 +18,7 @@ include a code sample that illustrates the test case. Use the
 
 Use the [template](PULL_REQUEST_TEMPLATE.md) and make sure:
 
-* **Required:** The build must pass. In particular, the following build targets
-must pass successfully:
-  * `make android-aar`
-  * `make ios-framework`
+* **Required:** The build must pass. 
 * **Required:** Adherence to the  [Developer Certificate of Origin
 (DCO)](https://developercertificate.org/) version 1.1 (`git --signoff`).
 * **Required:** *squash your commits*. Yes, we know - it's nice to be able to
