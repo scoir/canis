@@ -21,7 +21,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
 	github.com/hyperledger/aries-framework-go v0.1.3
 	github.com/imdario/mergo v0.3.9 // indirect
-	github.com/jackc/pgx/v4 v4.8.0 // indirect
+	github.com/jackc/pgx/v4 v4.8.0
 	github.com/lib/pq v1.7.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.1.2

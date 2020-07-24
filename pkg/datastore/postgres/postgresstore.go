@@ -7,10 +7,8 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
-	"os"
 	"sync"
 
 	"github.com/google/uuid"
@@ -19,22 +17,25 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 )
 
-const (
-	tablePrefix = "t_"
-)
+type Config struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"postgres"`
+	SSLMode  string `mapstructure:"sslmode"`
+	DB       string `mapstructure:"sslmode"`
+}
 
 // Provider represents a Postgres DB implementation of the storage.Provider interface
 type Provider struct {
 	dbURL    string
-	adminDB  *sql.DB
-	db       *sql.DB
-	dbs      map[string]*sqlDBStore
-	dbPrefix string
+	adminURL string
+	conns    map[string]*postgresDBStore
 	sync.RWMutex
 }
 
-type sqlDBStore struct {
-	db        *sql.DB
+type postgresDBStore struct {
+	pool      *pgxpool.Pool
 	tableName string
 }
 
@@ -45,24 +46,13 @@ func NewProvider(config *Config) (*Provider, error) {
 		return nil, errors.New("info for new postgres DB provider can't be empty")
 	}
 
-	db, err := sql.Open("postgres", config.String())
-	if err != nil {
-		return nil, fmt.Errorf("failed to open connection: %w", err)
-	}
-
-	admindb, err := sql.Open("postgres", config.AdminString())
-	if err != nil {
-		return nil, fmt.Errorf("failed to open admin connection: %w", err)
-	}
-
 	p := &Provider{
-		dbURL:   config.String(),
-		db:      db,
-		adminDB: admindb,
-		dbs:     map[string]*sqlDBStore{},
+		dbURL: fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+			config.User, config.Password, config.Host, config.Port, config.DB, config.SSLMode),
+		adminURL: fmt.Sprintf("postgres://%s:%s@%s:%d/postgres?sslmode=%s",
+			config.User, config.Password, config.Host, config.Port, config.SSLMode),
+		conns: map[string]*postgresDBStore{},
 	}
-	pgxpool.Connect(context.Background(), os.Getenv("DATABASE_URL"))
-
 
 	return p, nil
 }
@@ -76,58 +66,25 @@ func (p *Provider) OpenStore(name string) (datastore.Store, error) {
 		return nil, errors.New("store name is required")
 	}
 
-	fmt.Println("prefix", p.dbPrefix)
-
-	if p.dbPrefix != "" {
-		name = p.dbPrefix + "_" + name
-	}
-
-	// query the postgres db to see if the store exists
-	statement := `SELECT EXISTS(SELECT datname FROM pg_catalog.pg_database WHERE datname = '` + name + `');`
-
-	row := p.adminDB.QueryRow(statement)
-
-	var exists bool
-	err := row.Scan(&exists)
-
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	fmt.Println("CREATE DATABASE ", name, p.dbURL)
-
-	if exists == false {
-		statement = fmt.Sprintf("CREATE DATABASE %s;", name)
-		_, err = p.adminDB.Exec(statement)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// connect to store
-	newDBConn, err := sql.Open("postgres", p.dbURL)
+	pool, err := pgxpool.Connect(context.Background(), p.dbURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new connection %s: %w", p.dbURL, err)
 	}
 
-	fmt.Println("new conn")
-
-	tableName := tablePrefix + name
-	createTableStmt := `CREATE Table IF NOT EXISTS ` + tableName +
+	createTableStmt := `CREATE Table IF NOT EXISTS ` + name +
 		` (key SERIAL NOT NULL, data JSONB, PRIMARY KEY (key));`
 
-	_, err = newDBConn.Exec(createTableStmt)
+	_, err = pool.Exec(context.Background(), createTableStmt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create table %s: %w", name, err)
 	}
 
-	store := &sqlDBStore{
-		db:        newDBConn,
-		tableName: tableName,
+	store := &postgresDBStore{
+		pool:      pool,
+		tableName: name,
 	}
 
-	p.dbs[name] = store
+	p.conns[name] = store
 
 	return store, nil
 }
@@ -137,18 +94,12 @@ func (p *Provider) Close() error {
 	p.Lock()
 	defer p.Unlock()
 
-	for _, store := range p.dbs {
-		err := store.db.Close()
-		if err != nil {
-			return fmt.Errorf("failed to close provider: %w", err)
-		}
+	// timeout?
+	for _, store := range p.conns {
+		store.pool.Close()
 	}
 
-	if err := p.db.Close(); err != nil {
-		return err
-	}
-
-	p.dbs = make(map[string]*sqlDBStore)
+	p.conns = make(map[string]*postgresDBStore)
 
 	return nil
 }
@@ -158,23 +109,20 @@ func (p *Provider) CloseStore(name string) error {
 	p.Lock()
 	defer p.Unlock()
 
-	if p.dbPrefix != "" {
-		name = p.dbPrefix + "_" + name
-	}
-
-	store, exists := p.dbs[name]
+	store, exists := p.conns[name]
 	if !exists {
 		return nil
 	}
 
-	delete(p.dbs, name)
+	delete(p.conns, name)
 
-	return store.db.Close()
+	store.pool.Close()
+	return nil
 }
 
 // InsertDID todo
-func (p *sqlDBStore) InsertDID(d *datastore.DID) error {
-	_, err := p.db.Exec("INSERT INTO "+p.tableName+" (data) VALUES ($1)", d)
+func (p *postgresDBStore) InsertDID(d *datastore.DID) error {
+	_, err := p.pool.Exec(context.Background(), fmt.Sprintf(`INSERT INTO %s (data) VALUES ($1)`, p.tableName), d)
 	if err != nil {
 		return err
 	}
@@ -183,7 +131,7 @@ func (p *sqlDBStore) InsertDID(d *datastore.DID) error {
 }
 
 // ListDIDs todo
-func (p *sqlDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
+func (p *postgresDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
 	if c == nil {
 		c = &datastore.DIDCriteria{
 			Start:    0,
@@ -191,8 +139,9 @@ func (p *sqlDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, err
 		}
 	}
 
-	all := []*datastore.DID{}
-	rows, err := p.db.Query(fmt.Sprintf("SELECT data FROM %s LIMIT %d OFFSET %d", p.tableName, c.PageSize, c.Start))
+	var all []*datastore.DID
+	rows, err := p.pool.Query(context.Background(),
+		fmt.Sprintf("SELECT data FROM %s LIMIT %d OFFSET %d", p.tableName, c.PageSize, c.Start))
 	if err != nil {
 		return nil, err
 	}
@@ -220,14 +169,17 @@ func (p *sqlDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, err
 }
 
 // SetPublicDID todo
-func (p *sqlDBStore) SetPublicDID(DID string) error {
+func (p *postgresDBStore) SetPublicDID(DID string) error {
 
-	_, err := p.db.Exec(`UPDATE ` + p.tableName + ` SET data = jsonb_set(data, '{"Public"}', 'false', true);`)
+	_, err := p.pool.Exec(context.Background(),
+		fmt.Sprintf(`UPDATE %s SET data = jsonb_set(data, '{"Public"}', 'false', true);`, p.tableName))
 	if err != nil {
 		return err
 	}
 
-	_, err = p.db.Exec(`UPDATE ` + p.tableName + ` SET data = jsonb_set(data, '{"Public"}', 'true', true) WHERE data ->> 'DID' = '` + DID + `';`)
+	_, err = p.pool.Exec(context.Background(),
+		fmt.Sprintf(`UPDATE %s SET data = jsonb_set(data, '{"Public"}', 'true', true) WHERE data ->> 'DID' = '%s';`,
+			p.tableName, DID))
 	if err != nil {
 		return err
 	}
@@ -236,10 +188,11 @@ func (p *sqlDBStore) SetPublicDID(DID string) error {
 }
 
 // GetPublicDID todo
-func (p *sqlDBStore) GetPublicDID() (*datastore.DID, error) {
+func (p *postgresDBStore) GetPublicDID() (*datastore.DID, error) {
 
 	did := &datastore.DID{}
-	row := p.db.QueryRow(`SELECT data FROM ` + p.tableName + ` WHERE data ->> 'Public' = 'true';`)
+	row := p.pool.QueryRow(context.Background(),
+		fmt.Sprintf(`SELECT data FROM %s WHERE data ->> 'Public' = 'true';`, p.tableName))
 
 	err := row.Scan(did)
 	if err != nil {
@@ -250,12 +203,13 @@ func (p *sqlDBStore) GetPublicDID() (*datastore.DID, error) {
 }
 
 // InsertSchema todo
-func (p *sqlDBStore) InsertSchema(s *datastore.Schema) (string, error) {
+func (p *postgresDBStore) InsertSchema(s *datastore.Schema) (string, error) {
 	if s.ID == "" {
 		s.ID = uuid.New().String()
 	}
 
-	_, err := p.db.Exec(fmt.Sprintf(`INSERT INTO %s (data) VALUES ($1)`, p.tableName), s)
+	_, err := p.pool.Exec(context.Background(),
+		fmt.Sprintf(`INSERT INTO %s (data) VALUES ($1)`, p.tableName), s)
 	if err != nil {
 		return "", err
 	}
@@ -264,7 +218,7 @@ func (p *sqlDBStore) InsertSchema(s *datastore.Schema) (string, error) {
 }
 
 // ListSchema todo
-func (p *sqlDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaList, error) {
+func (p *postgresDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaList, error) {
 	if c == nil {
 		c = &datastore.SchemaCriteria{
 			Start:    0,
@@ -273,7 +227,8 @@ func (p *sqlDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaL
 	}
 
 	var all []*datastore.Schema
-	rows, err := p.db.Query(fmt.Sprintf("SELECT data FROM %s LIMIT %d OFFSET %d", p.tableName, c.PageSize, c.Start))
+	rows, err := p.pool.Query(context.Background(),
+		fmt.Sprintf("SELECT data FROM %s LIMIT %d OFFSET %d", p.tableName, c.PageSize, c.Start))
 	if err != nil {
 		return nil, err
 	}
@@ -301,46 +256,147 @@ func (p *sqlDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaL
 }
 
 // GetSchema todo
-func (p *sqlDBStore) GetSchema(id string) (*datastore.Schema, error) {
-	return nil, nil
+func (p *postgresDBStore) GetSchema(id string) (*datastore.Schema, error) {
+	s := &datastore.Schema{}
+	err := p.pool.QueryRow(context.Background(),
+		fmt.Sprintf(`SELECT data FROM %s WHERE data ->> 'ID' = '%s';`, p.tableName, id)).Scan(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
 //DeleteSchema todo
-func (p *sqlDBStore) DeleteSchema(id string) error {
+func (p *postgresDBStore) DeleteSchema(id string) error {
+	t, err := p.pool.Exec(context.Background(),
+		fmt.Sprintf(`DELETE FROM %s WHERE data ->> 'ID' = '%s';`, p.tableName, id))
+	if err != nil {
+		return err
+	}
+
+	if t.RowsAffected() != 1 {
+		return errors.New("no schema deleted")
+	}
+
 	return nil
 }
 
 // UpdateSchema todo
-func (p *sqlDBStore) UpdateSchema(s *datastore.Schema) error {
+func (p *postgresDBStore) UpdateSchema(s *datastore.Schema) error {
+	_, err := p.pool.Exec(context.Background(),
+		fmt.Sprintf(`UPDATE %s SET data = $1 WHERE data ->> 'ID' = '%s';`,
+			p.tableName, s.ID), s)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // InsertAgent todo
-func (p *sqlDBStore) InsertAgent(s *datastore.Agent) (string, error) {
-	return "", nil
+func (p *postgresDBStore) InsertAgent(s *datastore.Agent) (string, error) {
+	if s.ID == "" {
+		s.ID = uuid.New().String()
+	}
+
+	_, err := p.pool.Exec(context.Background(),
+		fmt.Sprintf(`INSERT INTO %s (data) VALUES ($1)`, p.tableName), s)
+	if err != nil {
+		return "", err
+	}
+
+	return s.ID, nil
 }
 
 // ListAgent todo
-func (p *sqlDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentList, error) {
-	return nil, nil
+func (p *postgresDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentList, error) {
+	if c == nil {
+		c = &datastore.AgentCriteria{
+			Start:    0,
+			PageSize: 10,
+		}
+	}
+
+	var all []*datastore.Agent
+	rows, err := p.pool.Query(context.Background(),
+		fmt.Sprintf("SELECT data FROM %s LIMIT %d OFFSET %d", p.tableName, c.PageSize, c.Start))
+	if err != nil {
+		return nil, err
+	}
+
+	var errs bool
+	for rows.Next() {
+		s := &datastore.Agent{}
+		err := rows.Scan(s)
+		if err != nil {
+			errs = true
+			continue
+		}
+
+		all = append(all, s)
+	}
+
+	if errs {
+		return nil, errors.New("scanning rows")
+	}
+
+	return &datastore.AgentList{
+		Count:  len(all),
+		Agents: all,
+	}, nil
 }
 
 // GetAgent todo
-func (p *sqlDBStore) GetAgent(id string) (*datastore.Agent, error) {
-	return nil, nil
+func (p *postgresDBStore) GetAgent(id string) (*datastore.Agent, error) {
+	a := &datastore.Agent{}
+	err := p.pool.QueryRow(context.Background(),
+		fmt.Sprintf(`SELECT data FROM %s WHERE data ->> 'ID' = '%s';`, p.tableName, id)).Scan(a)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
 }
 
 // GetAgentByInvitation todo
-func (p *sqlDBStore) GetAgentByInvitation(invitationID string) (*datastore.Agent, error) {
-	return nil, nil
+func (p *postgresDBStore) GetAgentByInvitation(invitationID string) (*datastore.Agent, error) {
+	a := &datastore.Agent{}
+	err := p.pool.QueryRow(context.Background(),
+		fmt.Sprintf(`SELECT data FROM %s WHERE data ->> 'InvitationID' = '%s';`, p.tableName, invitationID)).Scan(a)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
 }
 
 // DeleteAgent todo
-func (p *sqlDBStore) DeleteAgent(id string) error {
+func (p *postgresDBStore) DeleteAgent(id string) error {
+	t, err := p.pool.Exec(context.Background(),
+		fmt.Sprintf(`DELETE FROM %s WHERE data ->> 'ID' = '%s';`, p.tableName, id))
+	if err != nil {
+		return err
+	}
+
+	if t.RowsAffected() != 1 {
+		return errors.New("no agent deleted")
+	}
+
 	return nil
 }
 
 // UpdateAgent todo
-func (p *sqlDBStore) UpdateAgent(s *datastore.Agent) error {
+func (p *postgresDBStore) UpdateAgent(s *datastore.Agent) error {
+	_, err := p.pool.Exec(context.Background(),
+		fmt.Sprintf(`UPDATE %s SET data = $1 WHERE data ->> 'ID' = '%s';`,
+			p.tableName, s.ID), s)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

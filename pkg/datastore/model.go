@@ -36,9 +36,45 @@ type Agent struct {
 	Status              StatusType
 	PID                 string
 	PublicDID           bool
+	InvitationID        string
 }
 
 type AgentCriteria struct {
 	Start, PageSize int
 	Name            string
+}
+
+type SchemaCriteria struct {
+	Start, PageSize int
+	Name            string
+}
+
+type SchemaList struct {
+	Count  int
+	Schema []*Schema
+}
+
+type Schema struct {
+	ID         string
+	Name       string
+	Version    string
+	Attributes []*Attribute
+}
+
+type Schemas []*Schema
+
+type DIDCriteria struct {
+	Start, PageSize int
+}
+
+type DIDs []*DID
+
+type DID struct {
+	DID, Verkey, Endpoint string
+	Public                bool
+}
+
+type DIDList struct {
+	Count int
+	DIDs  []*DID
 }
