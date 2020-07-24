@@ -18,6 +18,7 @@ import (
 
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/mongodb"
+	"github.com/scoir/canis/pkg/datastore/postgres"
 )
 
 const (
@@ -25,8 +26,9 @@ const (
 )
 
 type DatastoreConfig struct {
-	Database string `mapstructure:"database"`
-	Mongo    *Mongo `mapstructure:"mongo"`
+	Database string           `mapstructure:"database"`
+	Mongo    *Mongo           `mapstructure:"mongo"`
+	Postgres *postgres.Config `mapstructure:"postgres"`
 }
 
 type Mongo struct {
@@ -34,7 +36,7 @@ type Mongo struct {
 	Database string `mapstructure:"database"`
 }
 
-func (r *Provider) Datastore() (datastore.Store, error) {
+func (r *Provider) Datastore() (datastore.Provider, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	if r.ds != nil {
@@ -51,7 +53,7 @@ func (r *Provider) Datastore() (datastore.Store, error) {
 	case "mongo":
 		r.ds, err = r.loadMongo(dc.Mongo)
 	case "postgres":
-		r.ds, err = r.loadPostgres()
+		r.ds, err = postgres.NewProvider(dc.Postgres)
 	default:
 		return nil, errors.New("no datastore configuration was provided")
 	}
@@ -70,10 +72,6 @@ func (r *Provider) loadMongo(dsc *Mongo) (datastore.Store, error) {
 	}
 
 	return mongodb.NewStore(mongoClient.Database(dsc.Database)), nil
-}
-
-func (r *Provider) loadPostgres() (datastore.Store, error) {
-	return nil, errors.New("not implemented")
 }
 
 func getClient(conf *Mongo) (*mongo.Client, error) {

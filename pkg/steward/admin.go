@@ -61,12 +61,12 @@ func (r *Steward) CreateSchema(_ context.Context, req *api.CreateSchemaRequest) 
 		}
 	}
 
-	_, err := r.store.GetSchema(s.ID)
+	_, err := r.schemaStore.GetSchema(s.ID)
 	if err == nil {
 		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", req.Schema.Id))
 	}
 
-	id, err := r.store.InsertSchema(s)
+	id, err := r.schemaStore.InsertSchema(s)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create schema %s", req.Schema.Id).Error())
 	}
@@ -83,7 +83,7 @@ func (r *Steward) ListSchema(_ context.Context, req *api.ListSchemaRequest) (*ap
 		Name:     req.Name,
 	}
 
-	results, err := r.store.ListSchema(critter)
+	results, err := r.schemaStore.ListSchema(critter)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to list schema").Error())
 	}
@@ -113,7 +113,7 @@ func (r *Steward) ListSchema(_ context.Context, req *api.ListSchemaRequest) (*ap
 }
 
 func (r *Steward) GetSchema(_ context.Context, req *api.GetSchemaRequest) (*api.GetSchemaResponse, error) {
-	schema, err := r.store.GetSchema(req.Id)
+	schema, err := r.schemaStore.GetSchema(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to get schema").Error())
 	}
@@ -138,7 +138,7 @@ func (r *Steward) GetSchema(_ context.Context, req *api.GetSchemaRequest) (*api.
 }
 
 func (r *Steward) DeleteSchema(_ context.Context, req *api.DeleteSchemaRequest) (*api.DeleteSchemaResponse, error) {
-	err := r.store.DeleteSchema(req.Id)
+	err := r.schemaStore.DeleteSchema(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to delete schema %s", req.Id).Error())
 	}
@@ -151,7 +151,7 @@ func (r *Steward) UpdateSchema(_ context.Context, req *api.UpdateSchemaRequest) 
 		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
 	}
 
-	s, err := r.store.GetSchema(req.Schema.Id)
+	s, err := r.schemaStore.GetSchema(req.Schema.Id)
 	if err != nil {
 		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", req.Schema.Id))
 	}
@@ -166,7 +166,7 @@ func (r *Steward) UpdateSchema(_ context.Context, req *api.UpdateSchemaRequest) 
 		}
 	}
 
-	err = r.store.UpdateSchema(s)
+	err = r.schemaStore.UpdateSchema(s)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create schema %s", req.Schema.Id).Error())
 	}
@@ -185,12 +185,12 @@ func (r *Steward) CreateAgent(_ context.Context, req *api.CreateAgentRequest) (*
 	if a.ID == "" || a.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
 	}
-	_, err := r.store.GetAgent(a.ID)
+	_, err := r.schemaStore.GetAgent(a.ID)
 	if err == nil {
 		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("agent with id %s already exists", req.Agent.Id))
 	}
 
-	id, err := r.store.InsertAgent(a)
+	id, err := r.schemaStore.InsertAgent(a)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
 	}
@@ -207,7 +207,7 @@ func (r *Steward) ListAgent(_ context.Context, req *api.ListAgentRequest) (*api.
 		Name:     req.Name,
 	}
 
-	results, err := r.store.ListAgent(critter)
+	results, err := r.agentStore.ListAgent(critter)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to list agent").Error())
 	}
@@ -230,7 +230,7 @@ func (r *Steward) ListAgent(_ context.Context, req *api.ListAgentRequest) (*api.
 }
 
 func (r *Steward) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.GetAgentResponse, error) {
-	Agent, err := r.store.GetAgent(req.Id)
+	Agent, err := r.agentStore.GetAgent(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to get agent").Error())
 	}
@@ -248,7 +248,7 @@ func (r *Steward) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.Ge
 }
 
 func (r *Steward) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) (*api.DeleteAgentResponse, error) {
-	err := r.store.DeleteAgent(req.Id)
+	err := r.agentStore.DeleteAgent(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to delete agent %s", req.Id).Error())
 	}
@@ -261,7 +261,7 @@ func (r *Steward) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*
 		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
 	}
 
-	s, err := r.store.GetAgent(req.Agent.Id)
+	s, err := r.agentStore.GetAgent(req.Agent.Id)
 	if err != nil {
 		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("agent with id %s already exists", req.Agent.Id))
 	}
@@ -270,7 +270,7 @@ func (r *Steward) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*
 	s.AssignedSchemaId = req.Agent.AssignedSchemaId
 	s.EndorsableSchemaIds = req.Agent.EndorsableSchemaIds
 
-	err = r.store.UpdateAgent(s)
+	err = r.agentStore.UpdateAgent(s)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
 	}
@@ -279,7 +279,7 @@ func (r *Steward) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*
 }
 
 func (r *Steward) LaunchAgent(_ context.Context, req *api.LaunchAgentRequest) (*api.LaunchAgentResponse, error) {
-	agent, err := r.store.GetAgent(req.Id)
+	agent, err := r.agentStore.GetAgent(req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to load agent to launch: %v", err)
 	}
@@ -290,7 +290,7 @@ func (r *Steward) LaunchAgent(_ context.Context, req *api.LaunchAgentRequest) (*
 	}
 	agent.PID = pID
 
-	err = r.store.UpdateAgent(agent)
+	err = r.agentStore.UpdateAgent(agent)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to save agent: %v", err)
 	}
@@ -327,7 +327,7 @@ func (r *Steward) LaunchAgent(_ context.Context, req *api.LaunchAgentRequest) (*
 }
 
 func (r *Steward) ShutdownAgent(_ context.Context, req *api.ShutdownAgentRequest) (*api.ShutdownAgentResponse, error) {
-	agent, err := r.store.GetAgent(req.Id)
+	agent, err := r.agentStore.GetAgent(req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to load agent to shutdown: %v", err)
 	}
@@ -342,7 +342,7 @@ func (r *Steward) ShutdownAgent(_ context.Context, req *api.ShutdownAgentRequest
 	}
 
 	agent.PID = ""
-	err = r.store.UpdateAgent(agent)
+	err = r.agentStore.UpdateAgent(agent)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to save agent after shutdown: %v", err)
 	}
@@ -352,7 +352,7 @@ func (r *Steward) ShutdownAgent(_ context.Context, req *api.ShutdownAgentRequest
 
 func (r *Steward) GetInvitationForAgent(_ context.Context, req *api.AgentInvitiationRequest) (*api.AgentInivitationResponse, error) {
 
-	agent, err := r.store.GetAgent(req.AgentId)
+	agent, err := r.agentStore.GetAgent(req.AgentId)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "Error querying high school for invite: (%v)", err)
 	}

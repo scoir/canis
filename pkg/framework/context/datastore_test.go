@@ -22,7 +22,7 @@ var postgresCfg = map[string]interface{}{
 
 func TestProvider_Datastore(t *testing.T) {
 	t.Run("test existing store", func(t *testing.T) {
-		s := &mongodb.Store{}
+		s := &mongodb.mongoDBStore{}
 		p := &Provider{ds: s}
 		store, err := p.Datastore()
 		assert.Nil(t, err)
@@ -40,7 +40,7 @@ func TestProvider_Datastore(t *testing.T) {
 		store, err := p.Datastore()
 		assert.Nil(t, err)
 
-		_, ok := store.(*mongodb.Store)
+		_, ok := store.(*mongodb.mongoDBStore)
 		assert.True(t, ok)
 	})
 

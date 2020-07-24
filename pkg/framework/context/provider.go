@@ -23,7 +23,7 @@ type Provider struct {
 	vp *viper.Viper
 
 	lock    sync.Mutex
-	ds      datastore.Store
+	ds      datastore.Provider
 	exec    runtime.Executor
 	ctx     *context.Provider
 	didcl   *didexchange.Client

@@ -1,8 +1,17 @@
 datastore:
-  database: mongo
-  mongo:
-    database: crux
-    url: mongodb://127.0.0.1:27017
+  #  database: mongo
+  #  mongo:
+  #    database: canis
+  #    url: mongodb://127.0.0.1:27017
+  database: postgres
+  postgres:
+    database: canis
+    host: 127.0.0.1
+    port: 5432
+    user: postgres
+    password: mysecretpassword
+    sslmode: disable
+    dbname: canis
 dbpath: /data/agent
 grpc:
   host: 0.0.0.0
