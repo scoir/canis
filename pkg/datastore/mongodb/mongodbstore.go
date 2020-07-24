@@ -22,11 +22,16 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 )
 
-// Provider represents a Postgres DB implementation of the storage.Provider interface
+type Config struct {
+	URL      string `mapstructure:"url"`
+	Database string `mapstructure:"database"`
+}
+
+// Provider represents a Mongo DB implementation of the storage.Provider interface
 type Provider struct {
-	dbURL    string
 	db       *mongo.Database
-	dbs      map[string]*mongoDBStore
+	dbURL    string
+	stores   map[string]*mongoDBStore
 	dbPrefix string
 	sync.RWMutex
 }
@@ -35,16 +40,16 @@ type mongoDBStore struct {
 	collection *mongo.Collection
 }
 
-//opts ...Option
-func NewProvider(dbPath string) (*Provider, error) {
-	if dbPath == "" {
-		return nil, errors.New("blank")
+// NewProvider instantiates Provider
+func NewProvider(config *Config) (*Provider, error) {
+	if config == nil {
+		return nil, errors.New("config missing")
 	}
 
 	var err error
 	tM := reflect.TypeOf(bson.M{})
 	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, tM).Build()
-	clientOpts := options.Client().SetRegistry(reg).ApplyURI(dbPath)
+	clientOpts := options.Client().SetRegistry(reg).ApplyURI(config.URL)
 
 	mongoClient, err := mongo.NewClient(clientOpts)
 	if err != nil {
@@ -55,37 +60,56 @@ func NewProvider(dbPath string) (*Provider, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error connecting to mongo")
 	}
-
-	db := mongoClient.Database("canis")
+	db := mongoClient.Database(config.Database)
 
 	p := &Provider{
-		dbURL: dbPath,
-		db:    db,
-		dbs:   map[string]*mongoDBStore{}}
+		db:     db,
+		stores: map[string]*mongoDBStore{}}
 
 	return p, nil
 }
 
-// OpenStore opens and returns new db for given name space.
+// OpenStore opens and returns the collection for given name space.
 func (p *Provider) OpenStore(name string) (datastore.Store, error) {
 	p.Lock()
 	defer p.Unlock()
 
 	if name == "" {
-		return nil, errors.New("store name is required")
-	}
-
-	if p.dbPrefix != "" {
-		name = p.dbPrefix + "_" + name
+		return nil, errors.New("stores name is required")
 	}
 
 	store := &mongoDBStore{
 		collection: p.db.Collection(name),
 	}
 
-	p.dbs[name] = store
+	p.stores[name] = store
 
 	return store, nil
+}
+
+// Close closes the provider.
+func (p *Provider) Close() error {
+	p.Lock()
+	defer p.Unlock()
+
+	p.stores = make(map[string]*mongoDBStore)
+
+	return nil
+}
+
+// CloseStore closes a previously opened stores
+func (p *Provider) CloseStore(name string) error {
+	p.Lock()
+	defer p.Unlock()
+
+	_, exists := p.stores[name]
+	if !exists {
+		return nil
+	}
+
+	delete(p.stores, name)
+
+	return p.db.Client().Disconnect(context.Background())
 }
 
 func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
@@ -131,7 +155,7 @@ func (r *mongoDBStore) SetPublicDID(DID string) error {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
 
-	_, err = r.collection.UpdateOne(ctx, bson.M{"PeerDID": DID}, bson.M{"$set": bson.M{"Public": true}})
+	_, err = r.collection.UpdateOne(ctx, bson.M{"DID": DID}, bson.M{"$set": bson.M{"Public": true}})
 	if err != nil {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}

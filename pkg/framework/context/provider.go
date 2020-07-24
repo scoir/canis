@@ -31,6 +31,10 @@ type Provider struct {
 	routecl *route.Client
 }
 
+func (r *Provider) StorageProvider() (datastore.Provider, error) {
+	return r.Datastore()
+}
+
 func NewProvider(vp *viper.Viper) *Provider {
 	return &Provider{vp: vp}
 }

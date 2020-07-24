@@ -23,7 +23,7 @@ type Config struct {
 	User     string `mapstructure:"user"`
 	Password string `mapstructure:"postgres"`
 	SSLMode  string `mapstructure:"sslmode"`
-	DB       string `mapstructure:"sslmode"`
+	DB       string `mapstructure:"database"`
 }
 
 // Provider represents a Postgres DB implementation of the storage.Provider interface
@@ -41,9 +41,8 @@ type postgresDBStore struct {
 
 // NewProvider instantiates Provider
 func NewProvider(config *Config) (*Provider, error) {
-
 	if config == nil {
-		return nil, errors.New("info for new postgres DB provider can't be empty")
+		return nil, errors.New("config missing")
 	}
 
 	p := &Provider{
@@ -57,7 +56,7 @@ func NewProvider(config *Config) (*Provider, error) {
 	return p, nil
 }
 
-// OpenStore opens and returns new db for given name space.
+// OpenStore opens and returns new connection pool for given name space.
 func (p *Provider) OpenStore(name string) (datastore.Store, error) {
 	p.Lock()
 	defer p.Unlock()

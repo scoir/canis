@@ -29,6 +29,7 @@ func TestNew(t *testing.T) {
 	t.Run("test init", func(t *testing.T) {
 		dir, cleanup := test.GenerateTempDir(t)
 		defer cleanup()
+
 		vp := viper.New()
 		err := vp.MergeConfigMap(map[string]interface{}{
 			"dbpath":    dir,
