@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	psqlInfo = &Config{
+	config = &Config{
 		Host:     "127.0.0.1",
 		Port:     5432,
 		User:     "postgres",
@@ -78,7 +78,7 @@ func waitForSQLDBToStart() error {
 
 func TestSQLDBStore(t *testing.T) {
 	t.Run("Test sql db store open close", func(t *testing.T) {
-		prov, err := NewProvider(psqlInfo)
+		prov, err := NewProvider(config)
 		require.NoError(t, err)
 
 		pool, err := pgxpool.Connect(context.Background(), prov.adminURL)
@@ -109,7 +109,7 @@ func TestSQLDBStore(t *testing.T) {
 
 func TestInsertListDID(t *testing.T) {
 	t.Run("Test insert / list public did", func(t *testing.T) {
-		prov, err := NewProvider(psqlInfo)
+		prov, err := NewProvider(config)
 		require.NoError(t, err)
 
 		store, err := prov.OpenStore("test_list")
@@ -136,7 +136,7 @@ func TestInsertListDID(t *testing.T) {
 
 func TestSetGetPublicDID(t *testing.T) {
 	t.Run("Test get / set public did", func(t *testing.T) {
-		prov, err := NewProvider(psqlInfo)
+		prov, err := NewProvider(config)
 		require.NoError(t, err)
 
 		store, err := prov.OpenStore("test_dids")
@@ -162,7 +162,7 @@ func TestSetGetPublicDID(t *testing.T) {
 
 func TestSchema(t *testing.T) {
 	t.Run("Test schema CRUD", func(t *testing.T) {
-		prov, err := NewProvider(psqlInfo)
+		prov, err := NewProvider(config)
 		require.NoError(t, err)
 
 		store, err := prov.OpenStore("test_schemas")
@@ -199,7 +199,7 @@ func TestSchema(t *testing.T) {
 
 func TestAgent(t *testing.T) {
 	t.Run("Test Agent CRUD", func(t *testing.T) {
-		prov, err := NewProvider(psqlInfo)
+		prov, err := NewProvider(config)
 		require.NoError(t, err)
 
 		store, err := prov.OpenStore("test_agents")

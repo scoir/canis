@@ -75,7 +75,7 @@ func (p *Provider) OpenStore(name string) (datastore.Store, error) {
 	defer p.Unlock()
 
 	if name == "" {
-		return nil, errors.New("stores name is required")
+		return nil, errors.New("store name is required")
 	}
 
 	store := &mongoDBStore{
@@ -115,13 +115,19 @@ func (p *Provider) CloseStore(name string) error {
 func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
 	_, err := r.collection.InsertOne(context.Background(), d)
 	if err != nil {
-		return errors.Wrap(err, "unable to insert PeerDID")
+		return errors.Wrap(err, "unable to insert DID")
 	}
 
 	return nil
 }
 
 func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
+	//todo or fail if no criteria?
+	c = &datastore.DIDCriteria{
+		Start:    0,
+		PageSize: 10,
+	}
+
 	bc := bson.M{}
 
 	opts := &options.FindOptions{}
@@ -150,12 +156,12 @@ func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 
 func (r *mongoDBStore) SetPublicDID(DID string) error {
 	ctx := context.Background()
-	_, err := r.collection.UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"Public": false}})
+	_, err := r.collection.UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"public": false}})
 	if err != nil {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
 
-	_, err = r.collection.UpdateOne(ctx, bson.M{"DID": DID}, bson.M{"$set": bson.M{"Public": true}})
+	_, err = r.collection.UpdateOne(ctx, bson.M{"did": DID}, bson.M{"$set": bson.M{"public": true}})
 	if err != nil {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
@@ -165,17 +171,13 @@ func (r *mongoDBStore) SetPublicDID(DID string) error {
 
 func (r *mongoDBStore) GetPublicDID() (*datastore.DID, error) {
 	out := &datastore.DID{}
-	err := r.collection.FindOne(context.Background(), bson.M{"Public": true}).Decode(out)
+	err := r.collection.FindOne(context.Background(), bson.M{"public": true}).Decode(out)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to find public PeerDID")
 	}
 
 	return out, nil
 }
-
-//func NewStore(db *mongo.Database) *mongoDBStore {
-//	return &mongoDBStore{database: db}
-//}
 
 func (r *mongoDBStore) InsertSchema(s *datastore.Schema) (string, error) {
 	_, err := r.collection.InsertOne(context.Background(), s)
@@ -255,6 +257,13 @@ func (r *mongoDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 }
 
 func (r *mongoDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentList, error) {
+	if c == nil {
+		c = &datastore.AgentCriteria{
+			Start:    0,
+			PageSize: 10,
+		}
+	}
+
 	bc := bson.M{}
 	if c.Name != "" {
 		p := fmt.Sprintf(".*%s.*", c.Name)
@@ -300,7 +309,7 @@ func (r *mongoDBStore) GetAgent(id string) (*datastore.Agent, error) {
 func (r *mongoDBStore) GetAgentByInvitation(invitationID string) (*datastore.Agent, error) {
 	agent := &datastore.Agent{}
 
-	err := r.collection.FindOne(context.Background(), bson.M{"InvitationID": invitationID}).Decode(agent)
+	err := r.collection.FindOne(context.Background(), bson.M{"invitationid": invitationID}).Decode(agent)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load agent by invitation")
 	}
