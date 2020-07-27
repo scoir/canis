@@ -121,6 +121,7 @@ func (p *Provider) CloseStore(name string) error {
 
 // InsertDID todo
 func (p *postgresDBStore) InsertDID(d *datastore.DID) error {
+
 	_, err := p.pool.Exec(context.Background(), fmt.Sprintf(`INSERT INTO %s (data) VALUES ($1)`, p.tableName), d)
 	if err != nil {
 		return err

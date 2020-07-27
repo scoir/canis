@@ -102,6 +102,9 @@ func TestSQLDBStore(t *testing.T) {
 		_, err = prov.OpenStore("test_store")
 		require.NoError(t, err)
 
+		err = prov.CloseStore("test_store")
+		require.NoError(t, err)
+
 		err = prov.Close()
 		require.NoError(t, err)
 	})
@@ -129,6 +132,9 @@ func TestInsertListDID(t *testing.T) {
 		did := didlist.DIDs[0]
 		require.Equal(t, "a did", did.DID)
 
+		err = prov.CloseStore("test_list")
+		require.NoError(t, err)
+
 		err = prov.Close()
 		require.NoError(t, err)
 	})
@@ -155,6 +161,9 @@ func TestSetGetPublicDID(t *testing.T) {
 
 		require.Equal(t, "did to be public", public.DID)
 
+		err = prov.CloseStore("test_dids")
+		require.NoError(t, err)
+
 		err = prov.Close()
 		require.NoError(t, err)
 	})
@@ -174,9 +183,12 @@ func TestSchema(t *testing.T) {
 		_, err = store.InsertSchema(&datastore.Schema{ID: "another schema id", Name: "another schema name"})
 		require.NoError(t, err)
 
+		_, err = store.InsertSchema(&datastore.Schema{Name: "a third schema name"})
+		require.NoError(t, err)
+
 		list, err := store.ListSchema(nil)
 		require.NoError(t, err)
-		require.Equal(t, 2, list.Count)
+		require.Equal(t, 3, list.Count)
 
 		err = store.UpdateSchema(&datastore.Schema{ID: "schema id", Name: "different schema name"})
 		require.NoError(t, err)
@@ -190,7 +202,10 @@ func TestSchema(t *testing.T) {
 
 		list, err = store.ListSchema(nil)
 		require.NoError(t, err)
-		require.Equal(t, 1, list.Count)
+		require.Equal(t, 2, list.Count)
+
+		err = prov.CloseStore("test_schemas")
+		require.NoError(t, err)
 
 		err = prov.Close()
 		require.NoError(t, err)
@@ -211,9 +226,12 @@ func TestAgent(t *testing.T) {
 		_, err = store.InsertAgent(&datastore.Agent{ID: "agent id 2", Name: "another agent", InvitationID: "abc123"})
 		require.NoError(t, err)
 
+		_, err = store.InsertAgent(&datastore.Agent{Name: "another third agent", InvitationID: "abc123"})
+		require.NoError(t, err)
+
 		list, err := store.ListAgent(nil)
 		require.NoError(t, err)
-		require.Equal(t, 2, list.Count)
+		require.Equal(t, 3, list.Count)
 
 		err = store.UpdateAgent(&datastore.Agent{ID: "agent id", Name: "an different agent"})
 		require.NoError(t, err)
@@ -231,9 +249,82 @@ func TestAgent(t *testing.T) {
 
 		list, err = store.ListAgent(nil)
 		require.NoError(t, err)
-		require.Equal(t, 1, list.Count)
+		require.Equal(t, 2, list.Count)
+
+		err = prov.CloseStore("test_agents")
+		require.NoError(t, err)
 
 		err = prov.Close()
+		require.NoError(t, err)
+	})
+}
+
+func TestProviderFailures(t *testing.T) {
+	t.Run("no config error", func(t *testing.T) {
+		_, err := NewProvider(nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "config missing")
+	})
+
+	t.Run("config params error", func(t *testing.T) {
+		prov, err := NewProvider(&Config{})
+		require.NoError(t, err)
+
+		_, err = prov.OpenStore("test_provider failures")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to create new connection")
+	})
+}
+
+func TestOpenStoreFailures(t *testing.T) {
+	t.Run("no name error", func(t *testing.T) {
+		prov, err := NewProvider(config)
+		require.NoError(t, err)
+
+		_, err = prov.OpenStore("")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "")
+	})
+}
+
+func TestCloseMissingCloseStoreFailures(t *testing.T) {
+	t.Run("no name error", func(t *testing.T) {
+		prov, err := NewProvider(config)
+		require.NoError(t, err)
+
+		_, err = prov.OpenStore("test_this")
+		require.NoError(t, err)
+
+		err = prov.Close()
+		require.NoError(t, err)
+
+		require.Nil(t, prov.conns["test_this"])
+
+	})
+}
+
+func TestCloseStore(t *testing.T) {
+	t.Run("no config error", func(t *testing.T) {
+		prov, err := NewProvider(config)
+		require.NoError(t, err)
+
+		_, err = prov.OpenStore("test_closing")
+		require.NoError(t, err)
+
+		err = prov.CloseStore("test_closing")
+		require.NoError(t, err)
+	})
+
+	t.Run("no mapping found", func(t *testing.T) {
+		prov, err := NewProvider(config)
+		require.NoError(t, err)
+
+		_, err = prov.OpenStore("test_closing")
+		require.NoError(t, err)
+
+		delete(prov.conns, "test_closing")
+
+		err = prov.CloseStore("test_closing")
 		require.NoError(t, err)
 	})
 }
