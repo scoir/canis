@@ -66,6 +66,29 @@ func (_m *Bouncer) CreateInvitationNotify(name string, success pkgdidexchange.No
 	return r0, r1
 }
 
+// CreateInvitationWithDIDNotify provides a mock function with given fields: name, did, success, nerr
+func (_m *Bouncer) CreateInvitationWithDIDNotify(name string, did string, success pkgdidexchange.NotifySuccess, nerr pkgdidexchange.NotifyError) (*didexchange.Invitation, error) {
+	ret := _m.Called(name, did, success, nerr)
+
+	var r0 *didexchange.Invitation
+	if rf, ok := ret.Get(0).(func(string, string, pkgdidexchange.NotifySuccess, pkgdidexchange.NotifyError) *didexchange.Invitation); ok {
+		r0 = rf(name, did, success, nerr)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*didexchange.Invitation)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, pkgdidexchange.NotifySuccess, pkgdidexchange.NotifyError) error); ok {
+		r1 = rf(name, did, success, nerr)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // EstablishConnection provides a mock function with given fields: invitation, timeout
 func (_m *Bouncer) EstablishConnection(invitation *didexchange.Invitation, timeout time.Duration) (*didexchange.Connection, error) {
 	ret := _m.Called(invitation, timeout)

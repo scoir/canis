@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/mocks"
 	dmocks "github.com/scoir/canis/pkg/didexchange/mocks"
 	emocks "github.com/scoir/canis/pkg/runtime/mocks"
@@ -30,7 +31,9 @@ func (suite *AdminTestSuite) SetupTest() {
 	suite.Exec = &emocks.Executor{}
 	suite.Bouncer = &dmocks.Bouncer{}
 
-	target = &Steward{store: suite.Store, exec: suite.Exec, bouncer: suite.Bouncer}
+	target = &Steward{store: suite.Store, exec: suite.Exec, bouncer: suite.Bouncer, publicDID: &datastore.DID{
+		DID: "did:abc:1234",
+	}}
 }
 
 func TestAdminTestSuite(t *testing.T) {

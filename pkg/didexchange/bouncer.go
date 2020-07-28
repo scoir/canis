@@ -24,6 +24,7 @@ type Bouncer interface {
 	EstablishConnection(invitation *didclient.Invitation, timeout time.Duration) (*didclient.Connection, error)
 	CreateInvitation(name string) (*didclient.Invitation, error)
 	CreateInvitationNotify(name string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error)
+	CreateInvitationWithDIDNotify(name, did string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error)
 	Unregister(ch chan service.StateMsg)
 }
 
@@ -116,6 +117,25 @@ func (r *bouncer) CreateInvitation(name string) (*didclient.Invitation, error) {
 
 func (r *bouncer) CreateInvitationNotify(name string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error) {
 	invitation, err := r.didcl.CreateInvitation(name)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create invitation in bouncer")
+	}
+	r.validInviteIDs[invitation.ID] = true
+
+	go func() {
+		conn, err := r.waitForInvitation(invitation.ID, "completed")
+		if err != nil {
+			nerr(invitation.ID, err)
+			return
+		}
+		success(invitation.ID, conn)
+	}()
+
+	return invitation, nil
+}
+
+func (r *bouncer) CreateInvitationWithDIDNotify(name, did string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error) {
+	invitation, err := r.didcl.CreateInvitationWithDID(name, did)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create invitation in bouncer")
 	}

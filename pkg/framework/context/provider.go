@@ -6,7 +6,7 @@ import (
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
-	"github.com/hyperledger/aries-framework-go/pkg/client/route"
+	"github.com/hyperledger/aries-framework-go/pkg/client/mediator"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -28,7 +28,7 @@ type Provider struct {
 	ctx     *context.Provider
 	didcl   *didexchange.Client
 	credcl  *issuecredential.Client
-	routecl *route.Client
+	routecl *mediator.Client
 }
 
 func NewProvider(vp *viper.Viper) *Provider {
@@ -59,6 +59,7 @@ func (r *Provider) GetStewardConfig() (map[string]interface{}, error) {
 	ex := r.vp.GetStringMap("execution")
 	ds := r.vp.GetStringMap("datastore")
 	ag := r.vp.GetStringMap("agent")
+	gf := r.vp.GetString("genesisFile")
 
 	st := r.vp.Sub("steward")
 	if st == nil {
@@ -67,6 +68,7 @@ func (r *Provider) GetStewardConfig() (map[string]interface{}, error) {
 	st.Set("execution", ex)
 	st.Set("datastore", ds)
 	st.Set("agent", ag)
+	st.Set("genesisFile", gf)
 
 	out := map[string]interface{}{}
 	err := st.Unmarshal(&out)

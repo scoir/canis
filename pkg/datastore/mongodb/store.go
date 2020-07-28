@@ -67,12 +67,12 @@ func (r *Store) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
 
 func (r *Store) SetPublicDID(DID string) error {
 	ctx := context.Background()
-	_, err := r.database.Collection(DIDC).UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"Public": false}})
+	_, err := r.database.Collection(DIDC).UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"public": false}})
 	if err != nil {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
 
-	_, err = r.database.Collection(DIDC).UpdateOne(ctx, bson.M{"PeerDID": DID}, bson.M{"$set": bson.M{"Public": true}})
+	_, err = r.database.Collection(DIDC).UpdateOne(ctx, bson.M{"did": DID}, bson.M{"$set": bson.M{"public": true}})
 	if err != nil {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
@@ -82,7 +82,7 @@ func (r *Store) SetPublicDID(DID string) error {
 
 func (r *Store) GetPublicDID() (*datastore.DID, error) {
 	out := &datastore.DID{}
-	err := r.database.Collection(DIDC).FindOne(context.Background(), bson.M{"Public": true}).Decode(out)
+	err := r.database.Collection(DIDC).FindOne(context.Background(), bson.M{"public": true}).Decode(out)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to find public PeerDID")
 	}

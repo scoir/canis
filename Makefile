@@ -35,7 +35,6 @@ bin/sirius:
 package: canis-docker
 
 build-agent: bin/agent
-build-agency: bin/agency
 build-router: bin/router
 
 agent: bin/agent

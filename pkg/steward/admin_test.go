@@ -613,7 +613,7 @@ func (suite *AdminTestSuite) TestGetInvitationForAgent() {
 	invite := &didexchange.Invitation{}
 
 	suite.Store.On("GetAgent", "123").Return(agent, nil)
-	suite.Bouncer.On("CreateInvitationNotify", agent.Name, mock.AnythingOfType("didexchange.NotifySuccess"),
+	suite.Bouncer.On("CreateInvitationWithDIDNotify", agent.Name, "did:abc:1234", mock.AnythingOfType("didexchange.NotifySuccess"),
 		mock.AnythingOfType("didexchange.NotifyError")).Return(invite, nil)
 
 	resp, err := target.GetInvitationForAgent(context.Background(), req)
@@ -646,7 +646,7 @@ func (suite *AdminTestSuite) TestGetInvitationForAgentInviteError() {
 	}
 
 	suite.Store.On("GetAgent", "123").Return(agent, nil)
-	suite.Bouncer.On("CreateInvitationNotify", agent.Name, mock.AnythingOfType("didexchange.NotifySuccess"),
+	suite.Bouncer.On("CreateInvitationWithDIDNotify", agent.Name, "did:abc:1234", mock.AnythingOfType("didexchange.NotifySuccess"),
 		mock.AnythingOfType("didexchange.NotifyError")).Return(nil, errors.New("BOOM"))
 
 	resp, err := target.GetInvitationForAgent(context.Background(), req)

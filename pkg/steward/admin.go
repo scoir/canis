@@ -357,7 +357,7 @@ func (r *Steward) GetInvitationForAgent(_ context.Context, req *api.AgentInvitia
 		return nil, status.Errorf(codes.InvalidArgument, "Error querying high school for invite: (%v)", err)
 	}
 
-	invite, err := r.bouncer.CreateInvitationNotify(agent.Name, r.handleAgentConnection, r.failedConnectionHandler)
+	invite, err := r.bouncer.CreateInvitationWithDIDNotify(agent.Name, r.publicDID.DID, r.handleAgentConnection, r.failedConnectionHandler)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to create invitation to high school agent: %v", err)
 	}

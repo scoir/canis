@@ -8,28 +8,27 @@ package main
 
 import (
 	"fmt"
-	"net"
+	"log"
+
+	did2 "github.com/scoir/canis/pkg/did"
 )
 
 func main() {
-	port, err := GetFreePort()
-	if err != nil {
-		panic(err)
+
+	//err := indy.ResolveDID("PkygzecB8VwTf9jAMYKDrS")
+	//log.Fatalln(err)
+	didinfo := &did2.MyDIDInfo{
+		DID:        "",
+		Seed:       "",
+		Cid:        true,
+		MethodName: "ioe",
 	}
 
-	fmt.Println(port)
-}
-
-func GetFreePort() (int, error) {
-	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
+	did, keypair, err := did2.CreateMyDid(didinfo)
 	if err != nil {
-		return 0, err
+		log.Fatalln(err)
 	}
 
-	l, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		return 0, err
-	}
-	defer l.Close()
-	return l.Addr().(*net.TCPAddr).Port, nil
+	fmt.Println("DID:", did)
+	fmt.Println("Verkey:", keypair.Verkey())
 }
