@@ -2,7 +2,7 @@
 
 CANIS_ROOT=$(abspath .)
 
-all: clean tools steward agent
+all: clean tools build
 
 commit: cover build
 
@@ -20,16 +20,16 @@ swagger_pack: pkg/static/steward_agent_swagger.go
 pkg/static/steward_agent_swagger.go: steward-pb pkg/steward/api/spec/steward_agent.swagger.json
 	staticfiles -o pkg/static/steward_agent_swagger.go --package static pkg/steward/api/spec
 
-build: bin/steward bin/agent bin/canisctl
+build: bin/steward bin/agency bin/agent bin/sirius
 build-steward: bin/steward
 
 steward: bin/steward
 bin/steward: steward-pb swagger_pack
 	cd cmd/steward && go build -o $(CANIS_ROOT)/bin/steward
 
-canisctl: bin/canisctl
-bin/canisctl:
-	cd cmd/canisctl && go build -o $(CANIS_ROOT)/bin/canisctl
+sirius: bin/sirius
+bin/sirius:
+	cd cmd/sirius && go build -o $(CANIS_ROOT)/bin/sirius
 
 .PHONY: canis-docker
 package: canis-docker

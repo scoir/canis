@@ -25,7 +25,7 @@ var config *viper.Viper
 var ctx *context.Provider
 
 var rootCmd = &cobra.Command{
-	Use:   "canisctl",
+	Use:   "sirius",
 	Short: "The canis CLI controls the Canis Credential Hub.",
 	Long: `The canis CLI controls the Canis Credential Hub.
 
