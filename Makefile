@@ -20,7 +20,7 @@ swagger_pack: pkg/static/steward_agent_swagger.go
 pkg/static/steward_agent_swagger.go: steward-pb pkg/steward/api/spec/steward_agent.swagger.json
 	staticfiles -o pkg/static/steward_agent_swagger.go --package static pkg/steward/api/spec
 
-build: bin/steward bin/agency bin/agent bin/sirius
+build: bin/steward bin/agent bin/sirius
 build-steward: bin/steward
 
 steward: bin/steward
@@ -35,7 +35,6 @@ bin/sirius:
 package: canis-docker
 
 build-agent: bin/agent
-build-agency: bin/agency
 build-router: bin/router
 
 agent: bin/agent
