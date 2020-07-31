@@ -119,7 +119,7 @@ func (p *Provider) CloseStore(name string) error {
 	return nil
 }
 
-// InsertDID todo
+// InsertDID add DID to store
 func (p *postgresDBStore) InsertDID(d *datastore.DID) error {
 
 	_, err := p.pool.Exec(context.Background(), fmt.Sprintf(`INSERT INTO %s (data) VALUES ($1)`, p.tableName), d)
@@ -130,7 +130,7 @@ func (p *postgresDBStore) InsertDID(d *datastore.DID) error {
 	return nil
 }
 
-// ListDIDs todo
+// ListDIDs query DIDs
 func (p *postgresDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
 	if c == nil {
 		c = &datastore.DIDCriteria{
@@ -139,9 +139,14 @@ func (p *postgresDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList
 		}
 	}
 
+	var count int
+	err := p.pool.QueryRow(context.Background(), fmt.Sprintf("SELECT COUNT(*) FROM %s", p.tableName)).Scan(&count)
+	if err != nil {
+		return nil, err
+	}
+
 	var all []*datastore.DID
-	rows, err := p.pool.Query(context.Background(),
-		fmt.Sprintf("SELECT data FROM %s LIMIT %d OFFSET %d", p.tableName, c.PageSize, c.Start))
+	rows, err := p.pool.Query(context.Background(), fmt.Sprintf("SELECT data FROM %s LIMIT %d OFFSET %d", p.tableName, c.PageSize, c.Start))
 	if err != nil {
 		return nil, err
 	}
@@ -163,12 +168,12 @@ func (p *postgresDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList
 	}
 
 	return &datastore.DIDList{
-		Count: len(all),
+		Count: count,
 		DIDs:  all,
 	}, nil
 }
 
-// SetPublicDID todo
+// SetPublicDID update single DID to public, unset remaining
 func (p *postgresDBStore) SetPublicDID(DID string) error {
 
 	_, err := p.pool.Exec(context.Background(),
@@ -187,7 +192,7 @@ func (p *postgresDBStore) SetPublicDID(DID string) error {
 	return nil
 }
 
-// GetPublicDID todo
+// GetPublicDID get public DID
 func (p *postgresDBStore) GetPublicDID() (*datastore.DID, error) {
 
 	did := &datastore.DID{}
@@ -202,7 +207,7 @@ func (p *postgresDBStore) GetPublicDID() (*datastore.DID, error) {
 	return did, nil
 }
 
-// InsertSchema todo
+// InsertSchema add Schema to store
 func (p *postgresDBStore) InsertSchema(s *datastore.Schema) (string, error) {
 	if s.ID == "" {
 		s.ID = uuid.New().String()
@@ -217,13 +222,19 @@ func (p *postgresDBStore) InsertSchema(s *datastore.Schema) (string, error) {
 	return s.ID, nil
 }
 
-// ListSchema todo
+// ListSchema query schemas
 func (p *postgresDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaList, error) {
 	if c == nil {
 		c = &datastore.SchemaCriteria{
 			Start:    0,
 			PageSize: 10,
 		}
+	}
+
+	var count int
+	err := p.pool.QueryRow(context.Background(), fmt.Sprintf("SELECT COUNT(*) FROM %s", p.tableName)).Scan(&count)
+	if err != nil {
+		return nil, err
 	}
 
 	var all []*datastore.Schema
@@ -250,12 +261,12 @@ func (p *postgresDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Sc
 	}
 
 	return &datastore.SchemaList{
-		Count:  len(all),
+		Count:  count,
 		Schema: all,
 	}, nil
 }
 
-// GetSchema todo
+// GetSchema return single Schema
 func (p *postgresDBStore) GetSchema(id string) (*datastore.Schema, error) {
 	s := &datastore.Schema{}
 	err := p.pool.QueryRow(context.Background(),
@@ -268,7 +279,7 @@ func (p *postgresDBStore) GetSchema(id string) (*datastore.Schema, error) {
 	return s, nil
 }
 
-//DeleteSchema todo
+// DeleteSchema delete single schema
 func (p *postgresDBStore) DeleteSchema(id string) error {
 	t, err := p.pool.Exec(context.Background(),
 		fmt.Sprintf(`DELETE FROM %s WHERE data ->> 'ID' = '%s';`, p.tableName, id))
@@ -283,7 +294,7 @@ func (p *postgresDBStore) DeleteSchema(id string) error {
 	return nil
 }
 
-// UpdateSchema todo
+// UpdateSchema update single schema
 func (p *postgresDBStore) UpdateSchema(s *datastore.Schema) error {
 	_, err := p.pool.Exec(context.Background(),
 		fmt.Sprintf(`UPDATE %s SET data = $1 WHERE data ->> 'ID' = '%s';`,
@@ -295,7 +306,7 @@ func (p *postgresDBStore) UpdateSchema(s *datastore.Schema) error {
 	return nil
 }
 
-// InsertAgent todo
+// InsertAgent add agent to store
 func (p *postgresDBStore) InsertAgent(s *datastore.Agent) (string, error) {
 	if s.ID == "" {
 		s.ID = uuid.New().String()
@@ -310,13 +321,19 @@ func (p *postgresDBStore) InsertAgent(s *datastore.Agent) (string, error) {
 	return s.ID, nil
 }
 
-// ListAgent todo
+// ListAgent query agents
 func (p *postgresDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentList, error) {
 	if c == nil {
 		c = &datastore.AgentCriteria{
 			Start:    0,
 			PageSize: 10,
 		}
+	}
+
+	var count int
+	err := p.pool.QueryRow(context.Background(), fmt.Sprintf("SELECT COUNT(*) FROM %s", p.tableName)).Scan(&count)
+	if err != nil {
+		return nil, err
 	}
 
 	var all []*datastore.Agent
@@ -343,12 +360,12 @@ func (p *postgresDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.Agen
 	}
 
 	return &datastore.AgentList{
-		Count:  len(all),
+		Count:  count,
 		Agents: all,
 	}, nil
 }
 
-// GetAgent todo
+// GetAgent return single agent
 func (p *postgresDBStore) GetAgent(id string) (*datastore.Agent, error) {
 	a := &datastore.Agent{}
 	err := p.pool.QueryRow(context.Background(),
@@ -361,7 +378,7 @@ func (p *postgresDBStore) GetAgent(id string) (*datastore.Agent, error) {
 	return a, nil
 }
 
-// GetAgentByInvitation todo
+// GetAgentByInvitation return single agent
 func (p *postgresDBStore) GetAgentByInvitation(invitationID string) (*datastore.Agent, error) {
 	a := &datastore.Agent{}
 	err := p.pool.QueryRow(context.Background(),
@@ -374,7 +391,7 @@ func (p *postgresDBStore) GetAgentByInvitation(invitationID string) (*datastore.
 	return a, nil
 }
 
-// DeleteAgent todo
+// DeleteAgent delete single agent
 func (p *postgresDBStore) DeleteAgent(id string) error {
 	t, err := p.pool.Exec(context.Background(),
 		fmt.Sprintf(`DELETE FROM %s WHERE data ->> 'ID' = '%s';`, p.tableName, id))
@@ -389,7 +406,7 @@ func (p *postgresDBStore) DeleteAgent(id string) error {
 	return nil
 }
 
-// UpdateAgent todo
+// UpdateAgent delete single agent
 func (p *postgresDBStore) UpdateAgent(s *datastore.Agent) error {
 	_, err := p.pool.Exec(context.Background(),
 		fmt.Sprintf(`UPDATE %s SET data = $1 WHERE data ->> 'ID' = '%s';`,

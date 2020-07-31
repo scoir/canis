@@ -26,22 +26,36 @@ type Provider interface {
 
 //go:generate mockery -name=Store
 type Store interface {
-	//InsertDID ..
+	// InsertDID add DID to store
 	InsertDID(d *DID) error
+	// ListDIDs query DIDs
 	ListDIDs(c *DIDCriteria) (*DIDList, error)
+	// SetPublicDID update single DID to public, unset remaining
 	SetPublicDID(DID string) error
+	// GetPublicDID get public DID
 	GetPublicDID() (*DID, error)
 
+	// InsertSchema add Schema to store
 	InsertSchema(s *Schema) (string, error)
+	// ListSchema query schemas
 	ListSchema(c *SchemaCriteria) (*SchemaList, error)
+	// GetSchema return single Schema
 	GetSchema(id string) (*Schema, error)
+	// DeleteSchema delete single schema
 	DeleteSchema(id string) error
+	// UpdateSchema update single schema
 	UpdateSchema(s *Schema) error
 
+	// InsertAgent add agent to store
 	InsertAgent(s *Agent) (string, error)
+	// ListAgent query agents
 	ListAgent(c *AgentCriteria) (*AgentList, error)
+	// GetAgent return single agent
 	GetAgent(id string) (*Agent, error)
+	// GetAgentByInvitation return single agent
 	GetAgentByInvitation(invitationID string) (*Agent, error)
+	// DeleteAgent delete single agent
 	DeleteAgent(id string) error
+	// UpdateAgent delete single agent
 	UpdateAgent(s *Agent) error
 }

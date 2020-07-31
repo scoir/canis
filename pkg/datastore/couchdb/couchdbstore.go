@@ -1,7 +1,14 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package couchdbstore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -17,18 +24,14 @@ import (
 type Provider struct {
 	hostURL       string
 	couchDBClient *kivik.Client
-	dbs           map[string]*CouchDBStore
+	dbs           map[string]*couchDBStore
 	sync.RWMutex
 }
 
 const (
 	blankHostErrMsg           = "hostURL for new CouchDB provider can't be blank"
 	failToCloseProviderErrMsg = "failed to close provider"
-	couchDBNotFoundErr        = "Not Found:"
 )
-
-// Option configures the couchdb provider
-type Option func(opts *Provider)
 
 // NewProvider instantiates Provider
 func NewProvider(hostURL string) (*Provider, error) {
@@ -41,7 +44,7 @@ func NewProvider(hostURL string) (*Provider, error) {
 		return nil, err
 	}
 
-	p := &Provider{hostURL: hostURL, couchDBClient: client, dbs: map[string]*CouchDBStore{}}
+	p := &Provider{hostURL: hostURL, couchDBClient: client, dbs: map[string]*couchDBStore{}}
 	return p, nil
 }
 
@@ -69,7 +72,7 @@ func (p *Provider) OpenStore(name string) (datastore.Store, error) {
 		return nil, db.Err()
 	}
 
-	store := &CouchDBStore{db: db}
+	store := &couchDBStore{db: db}
 
 	p.dbs[name] = store
 
@@ -107,19 +110,20 @@ func (p *Provider) Close() error {
 		return err
 	}
 
-	p.dbs = make(map[string]*CouchDBStore)
+	p.dbs = make(map[string]*couchDBStore)
 
 	return nil
 }
 
-// CouchDBStore represents a CouchDB-backed database.
-type CouchDBStore struct {
+// couchDBStore represents a CouchDB-backed database.
+type couchDBStore struct {
 	db *kivik.DB
 }
 
-func (r *CouchDBStore) InsertDID(d *datastore.DID) error {
+// InsertDID add DID to store
+func (r *couchDBStore) InsertDID(d *datastore.DID) error {
 	if d.DID == "" {
-		return errors.New("wat")
+		return errors.New("malformed DID")
 	}
 
 	_, err := r.db.Put(context.Background(), d.DID, d)
@@ -130,14 +134,29 @@ func (r *CouchDBStore) InsertDID(d *datastore.DID) error {
 	return nil
 }
 
-func (r *CouchDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
-	//todo or fail if no criteria?
-	c = &datastore.DIDCriteria{
-		Start:    0,
-		PageSize: 10,
+// ListDIDs query DIDs
+func (r *couchDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
+	if c == nil {
+		c = &datastore.DIDCriteria{
+			Start:    0,
+			PageSize: 10,
+		}
 	}
 
-	query := map[string]interface{}{}
+	//todo - replace this with a couchdb view
+	ctx := context.Background()
+	docs, err := r.db.AllDocs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for docs.Next() {
+	}
+
+	selector := map[string]interface{}{}
+	query := map[string]interface{}{
+		"selector": selector,
+	}
+
 	if c.Start > 0 {
 		query["skip"] = c.Start
 	}
@@ -146,11 +165,10 @@ func (r *CouchDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 		query["limit"] = c.PageSize
 	}
 
-	ctx := context.Background()
 	var all []*datastore.DID
 	rows, err := r.db.Find(ctx, query)
 	if err != nil {
-		return nil, errors.Wrap(err, "error trying to find DIDs")
+		return nil, errors.Wrap(err, "ListDIDs")
 	}
 
 	var errs bool
@@ -170,22 +188,77 @@ func (r *CouchDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 	}
 
 	out := datastore.DIDList{
-		Count: len(all),
+		Count: int(docs.TotalRows()),
 		DIDs:  all,
 	}
 
 	return &out, nil
 }
 
-func (r *CouchDBStore) SetPublicDID(DID string) error {
-	panic("implement me")
+// SetPublicDID update single DID to public, unset remaining
+func (r *couchDBStore) SetPublicDID(DID string) error {
+	ctx := context.Background()
+	query := map[string]interface{}{
+		"selector": map[string]interface{}{
+		},
+	}
+
+	rows, err := r.db.Find(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	var errs bool
+	dids := []interface{}{}
+	for rows.Next() {
+		d := make(map[string]interface{})
+		err = rows.ScanDoc(&d)
+		if err != nil {
+			errs = true
+			break
+		}
+
+		d["Public"] = d["DID"] == DID
+		dids = append(dids, d)
+	}
+
+	if errs {
+		return errors.New("SetPublicDID failed")
+	}
+
+	_, err = r.db.BulkDocs(ctx, dids)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (r *CouchDBStore) GetPublicDID() (*datastore.DID, error) {
-	panic("implement me")
+// GetPublicDID get public DID
+func (r *couchDBStore) GetPublicDID() (*datastore.DID, error) {
+	ctx := context.Background()
+	query := map[string]interface{}{
+		"selector": map[string]interface{}{
+			"Public": true,
+		},
+		"limit": 1,
+	}
+
+	rows, err := r.db.Find(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "GetPublicDID")
+	}
+
+	did := &datastore.DID{}
+	for rows.Next() {
+		err = rows.ScanDoc(did)
+	}
+
+	return did, err
 }
 
-func (r *CouchDBStore) InsertSchema(s *datastore.Schema) (string, error) {
+// InsertSchema add Schema to store
+func (r *couchDBStore) InsertSchema(s *datastore.Schema) (string, error) {
 	if s.ID == "" {
 		s.ID = uuid.New().String()
 	}
@@ -198,14 +271,30 @@ func (r *CouchDBStore) InsertSchema(s *datastore.Schema) (string, error) {
 	return s.ID, nil
 }
 
-func (r *CouchDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaList, error) {
-	//todo or fail if no criteria?
-	c = &datastore.SchemaCriteria{
-		Start:    0,
-		PageSize: 10,
+// ListSchema query schemas
+func (r *couchDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaList, error) {
+	if c == nil {
+		c = &datastore.SchemaCriteria{
+			Start:    0,
+			PageSize: 10,
+		}
 	}
 
-	query := map[string]interface{}{}
+	//todo - replace this with a couchdb view
+	ctx := context.Background()
+	docs, err := r.db.AllDocs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for docs.Next() {
+	}
+
+	selector := map[string]interface{}{}
+	query := map[string]interface{}{
+		"selector": selector,
+	}
+
 	if c.Start > 0 {
 		query["skip"] = c.Start
 	}
@@ -214,11 +303,10 @@ func (r *CouchDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 		query["limit"] = c.PageSize
 	}
 
-	ctx := context.Background()
 	var all []*datastore.Schema
 	rows, err := r.db.Find(ctx, query)
 	if err != nil {
-		return nil, errors.Wrap(err, "error trying to find DIDs")
+		return nil, errors.Wrap(err, "ListSchema")
 	}
 
 	var errs bool
@@ -227,7 +315,7 @@ func (r *CouchDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 		err := rows.ScanDoc(did)
 		if err != nil {
 			errs = true
-			continue
+			break
 		}
 
 		all = append(all, did)
@@ -238,14 +326,15 @@ func (r *CouchDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 	}
 
 	out := datastore.SchemaList{
-		Count:  len(all),
+		Count:  int(docs.TotalRows()),
 		Schema: all,
 	}
 
 	return &out, nil
 }
 
-func (r *CouchDBStore) GetSchema(id string) (*datastore.Schema, error) {
+// GetSchema return single Schema
+func (r *couchDBStore) GetSchema(id string) (*datastore.Schema, error) {
 	row := r.db.Get(context.Background(), id)
 
 	s := &datastore.Schema{}
@@ -258,15 +347,53 @@ func (r *CouchDBStore) GetSchema(id string) (*datastore.Schema, error) {
 	return s, nil
 }
 
-func (r *CouchDBStore) DeleteSchema(id string) error {
-	panic("implement me")
+// DeleteSchema delete single schema
+func (r *couchDBStore) DeleteSchema(id string) error {
+	row := r.db.Get(context.Background(), id)
+	a := make(map[string]string)
+	err := row.ScanDoc(&a)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Delete(context.Background(), id, a["_rev"])
+	return err
 }
 
-func (r *CouchDBStore) UpdateSchema(s *datastore.Schema) error {
-	panic("implement me")
+// UpdateSchema update single schema
+func (r *couchDBStore) UpdateSchema(s *datastore.Schema) error {
+	row := r.db.Get(context.Background(), s.ID)
+	a := make(map[string]interface{})
+	err := row.ScanDoc(&a)
+
+	if err != nil {
+		return err
+	}
+
+	b, err := json.Marshal(s)
+	if err != nil {
+		return err
+	}
+
+	m := make(map[string]interface{})
+	err = json.Unmarshal(b, &m)
+	if err != nil {
+		return err
+	}
+
+	m["_rev"] = a["_rev"]
+
+	_, err = r.db.Put(context.Background(), s.ID, &m)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (r *CouchDBStore) InsertAgent(a *datastore.Agent) (string, error) {
+// InsertAgent add agent to store
+func (r *couchDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 	if a.ID == "" {
 		a.ID = uuid.New().String()
 	}
@@ -279,14 +406,28 @@ func (r *CouchDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 	return a.ID, nil
 }
 
-func (r *CouchDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentList, error) {
-	//todo or fail if no criteria?
+// ListAgent query agents
+func (r *couchDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentList, error) {
 	c = &datastore.AgentCriteria{
 		Start:    0,
 		PageSize: 10,
 	}
 
-	query := map[string]interface{}{}
+	//todo - replace this with a couchdb view
+	ctx := context.Background()
+	docs, err := r.db.AllDocs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for docs.Next() {
+	}
+
+	selector := map[string]interface{}{}
+	query := map[string]interface{}{
+		"selector": selector,
+	}
+
 	if c.Start > 0 {
 		query["skip"] = c.Start
 	}
@@ -295,11 +436,10 @@ func (r *CouchDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentLi
 		query["limit"] = c.PageSize
 	}
 
-	ctx := context.Background()
 	var all []*datastore.Agent
 	rows, err := r.db.Find(ctx, query)
 	if err != nil {
-		return nil, errors.Wrap(err, "error trying to find DIDs")
+		return nil, errors.Wrap(err, "error trying to find agents")
 	}
 
 	var errs bool
@@ -308,7 +448,7 @@ func (r *CouchDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentLi
 		err := rows.ScanDoc(did)
 		if err != nil {
 			errs = true
-			continue
+			break
 		}
 
 		all = append(all, did)
@@ -319,14 +459,15 @@ func (r *CouchDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentLi
 	}
 
 	out := datastore.AgentList{
-		Count:  len(all),
+		Count:  int(docs.TotalRows()),
 		Agents: all,
 	}
 
 	return &out, nil
 }
 
-func (r *CouchDBStore) GetAgent(id string) (*datastore.Agent, error) {
+// GetAgent return single agent
+func (r *couchDBStore) GetAgent(id string) (*datastore.Agent, error) {
 	row := r.db.Get(context.Background(), id)
 
 	a := &datastore.Agent{}
@@ -339,15 +480,73 @@ func (r *CouchDBStore) GetAgent(id string) (*datastore.Agent, error) {
 	return a, nil
 }
 
-func (r *CouchDBStore) GetAgentByInvitation(invitationID string) (*datastore.Agent, error) {
-	panic("implement me")
+// GetAgentByInvitation return single agent
+func (r *couchDBStore) GetAgentByInvitation(invitationID string) (*datastore.Agent, error) {
+	ctx := context.Background()
+	query := map[string]interface{}{
+		"selector": map[string]interface{}{
+			"InvitationID": invitationID,
+		},
+		"limit": 1,
+	}
+
+	rows, err := r.db.Find(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "GetAgentByInvitation")
+	}
+
+	a := &datastore.Agent{}
+	for rows.Next() {
+		err = rows.ScanDoc(a)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return a, err
 }
 
-func (r *CouchDBStore) DeleteAgent(id string) error {
-	r.db.Delete(context.Background(), id, "")
+// DeleteAgent delete single agent
+func (r *couchDBStore) DeleteAgent(id string) error {
+	row := r.db.Get(context.Background(), id)
+	a := make(map[string]interface{})
+	err := row.ScanDoc(&a)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Delete(context.Background(), id, a["_rev"].(string))
+	return err
+}
+
+// UpdateAgent delete single agent
+func (r *couchDBStore) UpdateAgent(a *datastore.Agent) error {
+	row := r.db.Get(context.Background(), a.ID)
+	t := make(map[string]interface{})
+	err := row.ScanDoc(&t)
+
+	if err != nil {
+		return err
+	}
+
+	b, err := json.Marshal(a)
+	if err != nil {
+		return err
+	}
+
+	m := make(map[string]interface{})
+	err = json.Unmarshal(b, &m)
+	if err != nil {
+		return err
+	}
+
+	m["_rev"] = t["_rev"]
+
+	_, err = r.db.Put(context.Background(), a.ID, &m)
+	if err != nil {
+		return err
+	}
+
 	return nil
-}
-
-func (r *CouchDBStore) UpdateAgent(s *datastore.Agent) error {
-	panic("implement me")
 }

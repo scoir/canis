@@ -94,10 +94,10 @@ func (p *Provider) Close() error {
 
 	p.stores = make(map[string]*mongoDBStore)
 
-	return nil
+	return p.db.Client().Disconnect(context.Background())
 }
 
-// CloseStore closes a previously opened stores
+// CloseStore closes a previously opened store
 func (p *Provider) CloseStore(name string) error {
 	p.Lock()
 	defer p.Unlock()
@@ -109,9 +109,10 @@ func (p *Provider) CloseStore(name string) error {
 
 	delete(p.stores, name)
 
-	return p.db.Client().Disconnect(context.Background())
+	return nil
 }
 
+// InsertDID add DID to store
 func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
 	_, err := r.collection.InsertOne(context.Background(), d)
 	if err != nil {
@@ -121,6 +122,7 @@ func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
 	return nil
 }
 
+// ListDIDs query DIDs
 func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
 	//todo or fail if no criteria?
 	c = &datastore.DIDCriteria{
@@ -154,6 +156,7 @@ func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 	return &out, nil
 }
 
+// SetPublicDID update single DID to public, unset remaining
 func (r *mongoDBStore) SetPublicDID(DID string) error {
 	ctx := context.Background()
 	_, err := r.collection.UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"public": false}})
@@ -169,6 +172,7 @@ func (r *mongoDBStore) SetPublicDID(DID string) error {
 	return nil
 }
 
+// GetPublicDID get public DID
 func (r *mongoDBStore) GetPublicDID() (*datastore.DID, error) {
 	out := &datastore.DID{}
 	err := r.collection.FindOne(context.Background(), bson.M{"public": true}).Decode(out)
@@ -179,6 +183,7 @@ func (r *mongoDBStore) GetPublicDID() (*datastore.DID, error) {
 	return out, nil
 }
 
+// InsertSchema add Schema to store
 func (r *mongoDBStore) InsertSchema(s *datastore.Schema) (string, error) {
 	_, err := r.collection.InsertOne(context.Background(), s)
 	if err != nil {
@@ -187,6 +192,7 @@ func (r *mongoDBStore) InsertSchema(s *datastore.Schema) (string, error) {
 	return s.ID, nil
 }
 
+// ListSchema query schemas
 func (r *mongoDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaList, error) {
 	bc := bson.M{}
 	if c.Name != "" {
@@ -218,6 +224,8 @@ func (r *mongoDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 	return &out, nil
 }
 
+
+// GetSchema return single Schema
 func (r *mongoDBStore) GetSchema(id string) (*datastore.Schema, error) {
 	schema := &datastore.Schema{}
 
@@ -229,6 +237,7 @@ func (r *mongoDBStore) GetSchema(id string) (*datastore.Schema, error) {
 	return schema, nil
 }
 
+// DeleteSchema delete single schema
 func (r *mongoDBStore) DeleteSchema(id string) error {
 	_, err := r.collection.DeleteOne(context.Background(), bson.M{"id": id})
 	if err != nil {
@@ -238,6 +247,7 @@ func (r *mongoDBStore) DeleteSchema(id string) error {
 	return nil
 }
 
+// UpdateSchema update single schema
 func (r *mongoDBStore) UpdateSchema(s *datastore.Schema) error {
 	_, err := r.collection.UpdateOne(context.Background(), bson.M{"id": s.ID}, bson.M{"$set": s})
 	if err != nil {
@@ -247,6 +257,7 @@ func (r *mongoDBStore) UpdateSchema(s *datastore.Schema) error {
 	return nil
 }
 
+// InsertAgent add agent to store
 func (r *mongoDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 	_, err := r.collection.InsertOne(context.Background(), a)
 	if err != nil {
@@ -256,6 +267,7 @@ func (r *mongoDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 
 }
 
+// ListAgent query agents
 func (r *mongoDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentList, error) {
 	if c == nil {
 		c = &datastore.AgentCriteria{
@@ -294,6 +306,7 @@ func (r *mongoDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentLi
 	return &out, nil
 }
 
+// GetAgent return single agent
 func (r *mongoDBStore) GetAgent(id string) (*datastore.Agent, error) {
 	agent := &datastore.Agent{}
 
@@ -306,6 +319,7 @@ func (r *mongoDBStore) GetAgent(id string) (*datastore.Agent, error) {
 
 }
 
+// GetAgentByInvitation return single agent
 func (r *mongoDBStore) GetAgentByInvitation(invitationID string) (*datastore.Agent, error) {
 	agent := &datastore.Agent{}
 
@@ -318,6 +332,7 @@ func (r *mongoDBStore) GetAgentByInvitation(invitationID string) (*datastore.Age
 
 }
 
+// DeleteAgent delete single agent
 func (r *mongoDBStore) DeleteAgent(id string) error {
 	_, err := r.collection.DeleteOne(context.Background(), bson.M{"id": id})
 	if err != nil {
@@ -327,7 +342,8 @@ func (r *mongoDBStore) DeleteAgent(id string) error {
 	return nil
 }
 
-func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
+// UpdateAgent delete single agent
+func (r *mongoDBStore) UpdateAgent (a *datastore.Agent) error {
 	_, err := r.collection.UpdateOne(context.Background(), bson.M{"id": a.ID}, bson.M{"$set": a})
 	if err != nil {
 		return errors.Wrap(err, "unable to update agent")

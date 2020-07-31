@@ -340,9 +340,6 @@ func TestSchemaFailures(t *testing.T) {
 		_, err = store.ListSchema(&datastore.SchemaCriteria{})
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "error trying to find schema")
-
-		err = prov.Close()
-		require.NoError(t, err)
 	})
 }
 
@@ -380,8 +377,5 @@ func TestAgentFailures(t *testing.T) {
 		_, err = store.ListAgent(&datastore.AgentCriteria{})
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "error trying to find agents")
-
-		err = prov.Close()
-		require.NoError(t, err)
 	})
 }
