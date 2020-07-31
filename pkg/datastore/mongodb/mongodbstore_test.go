@@ -75,7 +75,7 @@ func waitForMongoDBToStart() error {
 	for {
 		select {
 		case <-timeout:
-			return fmt.Errorf("timeout: couldn't reach sql db server")
+			return fmt.Errorf("timeout: couldn't reach no sql db server")
 		default:
 			err := db.Client().Ping(context.Background(), nil)
 			if err != nil {

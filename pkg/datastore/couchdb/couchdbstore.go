@@ -33,6 +33,10 @@ const (
 	failToCloseProviderErrMsg = "failed to close provider"
 )
 
+type Config struct {
+	URL string `mapstructure:"url"`
+}
+
 // NewProvider instantiates Provider
 func NewProvider(hostURL string) (*Provider, error) {
 	if hostURL == "" {

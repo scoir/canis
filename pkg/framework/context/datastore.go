@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/datastore/couchdb"
 	"github.com/scoir/canis/pkg/datastore/mongodb"
 	"github.com/scoir/canis/pkg/datastore/postgres"
 )
@@ -19,9 +20,10 @@ const (
 )
 
 type DatastoreConfig struct {
-	Database string           `mapstructure:"database"`
-	Mongo    *mongodb.Config  `mapstructure:"mongo"`
-	Postgres *postgres.Config `mapstructure:"postgres"`
+	Database string               `mapstructure:"database"`
+	Mongo    *mongodb.Config      `mapstructure:"mongo"`
+	Postgres *postgres.Config     `mapstructure:"postgres"`
+	CouchDB  *couchdbstore.Config `mapstructure:"couchdb"`
 }
 
 func (r *Provider) Datastore() (datastore.Provider, error) {
@@ -42,6 +44,8 @@ func (r *Provider) Datastore() (datastore.Provider, error) {
 		r.ds, err = mongodb.NewProvider(dc.Mongo)
 	case "postgres":
 		r.ds, err = postgres.NewProvider(dc.Postgres)
+	case "couchdb":
+		r.ds, err = couchdbstore.NewProvider(dc.CouchDB.URL)
 	default:
 		return nil, errors.New("no datastore configuration was provided")
 	}
