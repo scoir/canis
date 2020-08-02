@@ -76,6 +76,7 @@ func (r *Provider) GetStewardConfig() (map[string]interface{}, error) {
 
 	return out, nil
 }
+
 func (r *Provider) StorageProvider() (datastore.Provider, error) {
 	return r.Datastore()
 }
