@@ -124,10 +124,11 @@ func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
 
 // ListDIDs query DIDs
 func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
-	//todo or fail if no criteria?
-	c = &datastore.DIDCriteria{
-		Start:    0,
-		PageSize: 10,
+	if c == nil {
+		c = &datastore.DIDCriteria{
+			Start:    0,
+			PageSize: 10,
+		}
 	}
 
 	bc := bson.M{}
@@ -223,7 +224,6 @@ func (r *mongoDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 
 	return &out, nil
 }
-
 
 // GetSchema return single Schema
 func (r *mongoDBStore) GetSchema(id string) (*datastore.Schema, error) {
@@ -343,7 +343,7 @@ func (r *mongoDBStore) DeleteAgent(id string) error {
 }
 
 // UpdateAgent delete single agent
-func (r *mongoDBStore) UpdateAgent (a *datastore.Agent) error {
+func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
 	_, err := r.collection.UpdateOne(context.Background(), bson.M{"id": a.ID}, bson.M{"$set": a})
 	if err != nil {
 		return errors.Wrap(err, "unable to update agent")

@@ -62,7 +62,12 @@ func New(ctx provider) (*Steward, error) {
 		return nil, err
 	}
 
-	r.schemaStore, err = storageProvider.OpenStore("Agent")
+	r.agentStore, err = storageProvider.OpenStore("Agent")
+	if err != nil {
+		return nil, err
+	}
+
+	r.didStore, err = storageProvider.OpenStore("DID")
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +114,7 @@ func New(ctx provider) (*Steward, error) {
 func (r *Steward) bootstrap() error {
 	log.Println("Retrieving public did for Steward")
 
-	did, err := r.schemaStore.GetPublicDID()
+	did, err := r.didStore.GetPublicDID()
 	if err != nil {
 		//TODO: This should be done with external tool!
 		//log.Println("No public PeerDID, creating one")

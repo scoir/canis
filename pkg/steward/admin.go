@@ -185,12 +185,12 @@ func (r *Steward) CreateAgent(_ context.Context, req *api.CreateAgentRequest) (*
 	if a.ID == "" || a.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
 	}
-	_, err := r.schemaStore.GetAgent(a.ID)
+	_, err := r.agentStore.GetAgent(a.ID)
 	if err == nil {
 		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("agent with id %s already exists", req.Agent.Id))
 	}
 
-	id, err := r.schemaStore.InsertAgent(a)
+	id, err := r.agentStore.InsertAgent(a)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
 	}

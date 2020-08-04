@@ -1,8 +1,8 @@
 datastore:
-#  database: mongo
-#  mongo:
-#    database: canis
-#    url: mongodb://127.0.0.1:27017
+  database: mongo
+  mongo:
+    database: canis
+    url: mongodb://127.0.0.1:27017
 #  database: postgres
 #  postgres:
 #    database: canis
@@ -11,9 +11,9 @@ datastore:
 #    user: postgres
 #    password: mysecretpassword
 #    sslmode: disable
-  database: couchdb
-  couchdb:
-    url: localhost:5984
+#  database: couchdb
+#    couchdb:
+#      url: localhost:5984
 dbpath: /data/agent
 grpc:
   host: 0.0.0.0
