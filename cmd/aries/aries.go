@@ -13,7 +13,8 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	"github.com/hyperledger/aries-framework-go/pkg/storage/mem"
-	"github.com/hyperledger/aries-framework-go/pkg/vdri/indy"
+
+	"github.com/scoir/canis/pkg/aries/vdri/indy"
 )
 
 func main() {

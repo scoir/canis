@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/pfeairheller/indy-vdr/wrappers/golang/vdr"
+	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
 
 func main() {

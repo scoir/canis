@@ -27,10 +27,10 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/secretlock/local"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage/mem"
-	"github.com/hyperledger/aries-framework-go/pkg/vdri/indy"
 	"github.com/pkg/errors"
 
 	mongodbstore "github.com/scoir/canis/pkg/aries/storage/mongodb/store"
+	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
