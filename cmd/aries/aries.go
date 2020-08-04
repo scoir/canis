@@ -1,7 +1,12 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -31,19 +36,10 @@ func main() {
 
 	registry := ctx.VDRIRegistry()
 
-	//doc, err := registry.Resolve("did:scoir:Xy9dvEi8dkkPif5j342w9q")
-	//if err != nil {
-	//	log.Fatalln("resolve did", err)
-	//}
-	//
-	//d, _ := json.MarshalIndent(doc, " ", " ")
-	//fmt.Println(string(d))
-	//
 	doc, err := registry.Create("scoir", vdri.WithServiceEndpoint("http://69.69.69.69:6969"))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	d, _ := json.MarshalIndent(doc, " ", " ")
-	fmt.Println(string(d))
+	fmt.Println(doc.ID)
 }

@@ -30,8 +30,6 @@ func (r *Steward) RegisterGRPCGateway(mux *runtime.ServeMux, endpoint string, op
 	if err != nil {
 		log.Println("unable to register admin gateway", err)
 	}
-	//TODO:  have to figure out how to register web notifier
-	//r.registerWebNotifier(mux)
 }
 
 func (r *Steward) RegisterGRPCHandler(server *grpc.Server) {

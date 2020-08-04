@@ -165,11 +165,9 @@ func (r *Provider) getOptions() []aries.Option {
 	if r.vp.IsSet("host") && r.vp.IsSet("port") {
 		ep := &framework.Endpoint{}
 		_ = r.vp.Unmarshal(ep)
-		//TODO: submit this to aries-framework-go
 		//out = append(out, aries.WithServiceEndpoint(ep.Address()))
 	}
 
-	//TODO:  do we need configuration options to turn on or off the following 2 options?
 	out = append(out, []aries.Option{
 		aries.WithKMS(p.createKMS),
 		aries.WithMessageServiceProvider(msghandler.NewRegistrar()),

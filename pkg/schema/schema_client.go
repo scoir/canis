@@ -20,7 +20,6 @@ type Client struct {
 }
 
 func New() *Client {
-	//TODO: initialize VDR
 	return &Client{}
 }
 

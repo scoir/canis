@@ -12,7 +12,6 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 )
 
-//TODO:  Reset HighSchool / College that was invited - one fail method for each
 func (r *Steward) failedConnectionHandler(invitationID string, err error) {
 	log.Printf("invitation failed for %s: (%+v)\n", invitationID, err)
 }
@@ -29,10 +28,5 @@ func (r *Steward) handleAgentConnection(invitationID string, conn *didexchange.C
 	agent.ConnectionState = "completed"
 	_ = r.store.UpdateAgent(agent)
 
-	//TODO: OFFER ALL AVAILABLE CREDENTIALS TO AGENT...  how.  Have to be another API call?
-	// err = r.OfferHighSchoolCredential(hs)
-	// if err != nil {
-	// 	log.Printf("error responding to high school connection activation %s: (%+v)\n", hs.HighSchoolID, err)
-	// }
 	log.Printf("Agent %s successfully issued Scoir HS credential\n", agent.PeerDID)
 }
