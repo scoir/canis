@@ -10,6 +10,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-18.04
+    container: scoir/indy-libs:latest
     steps:
 
     - name: Set up Go 1.14
@@ -33,6 +34,7 @@ jobs:
   publish:
     name: Publish Docker Image
     runs-on: ubuntu-18.04
+    container: scoir/indy-libs:latest
     steps:
 
     - name: Set up Go 1.14
