@@ -20,19 +20,17 @@ swagger_pack: pkg/static/steward_agent_swagger.go
 pkg/static/steward_agent_swagger.go: steward-pb pkg/steward/api/spec/steward_agent.swagger.json
 	staticfiles -o pkg/static/steward_agent_swagger.go --package static pkg/steward/api/spec
 
-init:
-	@. ./canis.sh
 
-build: init bin/steward bin/agent bin/sirius
+build: bin/steward bin/agent bin/sirius
 build-steward: bin/steward
 
 steward: bin/steward
 bin/steward: steward-pb swagger_pack
-	cd cmd/steward && go build -o $(CANIS_ROOT)/bin/steward
+	@. ./canis.sh; cd cmd/steward && go build -o $(CANIS_ROOT)/bin/steward
 
 sirius: bin/sirius
 bin/sirius:
-	cd cmd/sirius && go build -o $(CANIS_ROOT)/bin/sirius
+	@. ./canis.sh; cd cmd/sirius && go build -o $(CANIS_ROOT)/bin/sirius
 
 .PHONY: canis-docker
 package: canis-docker
@@ -46,11 +44,11 @@ bin/agent: steward-pb
 
 agency: bin/agency bin/router
 bin/agency:
-	cd cmd/agency && go build -o $(CANIS_ROOT)/bin/agency
+	@. ./canis.sh cd cmd/agency && go build -o $(CANIS_ROOT)/bin/agency
 
 router: bin/router
 bin/router:
-	cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
+	@. ./canis.sh cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
 
 canis-docker: build
 	@echo "Building canis docker image"
