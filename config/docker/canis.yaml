@@ -27,7 +27,6 @@ execution:
 ###############################################################
 steward:
   masterLockKey: "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
-
   wsinbound:
     host: 0.0.0.0
     port: 7777
