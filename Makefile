@@ -20,7 +20,10 @@ swagger_pack: pkg/static/steward_agent_swagger.go
 pkg/static/steward_agent_swagger.go: steward-pb pkg/steward/api/spec/steward_agent.swagger.json
 	staticfiles -o pkg/static/steward_agent_swagger.go --package static pkg/steward/api/spec
 
-build: bin/steward bin/agent bin/sirius
+init:
+	@. ./canis.sh
+
+build: init bin/steward bin/agent bin/sirius
 build-steward: bin/steward
 
 steward: bin/steward
@@ -64,7 +67,7 @@ demo-web:
 
 # Development Local Run Shortcuts
 test: clean tools
-	@./scripts/test.sh
+	@. ./canis.sh; ./scripts/test.sh
 
 cover:
 	go test -coverprofile cover.out ./pkg/...
