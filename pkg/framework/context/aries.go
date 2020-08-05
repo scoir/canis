@@ -7,31 +7,40 @@ SPDX-License-Identifier: Apache-2.0
 package context
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
-	"github.com/hyperledger/aries-framework-go/pkg/client/route"
+	"github.com/hyperledger/aries-framework-go/pkg/client/mediator"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/messaging/msghandler"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
-	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/context"
-	"github.com/hyperledger/aries-framework-go/pkg/kms/legacykms"
+	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock"
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock/local"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
-	"github.com/hyperledger/aries-framework-go/pkg/storage/leveldb"
 	"github.com/hyperledger/aries-framework-go/pkg/storage/mem"
 	"github.com/pkg/errors"
 
+	mongodbstore "github.com/scoir/canis/pkg/aries/storage/mongodb/store"
+	"github.com/scoir/canis/pkg/aries/vdri/indy"
+	"github.com/scoir/canis/pkg/credential"
+	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/schema"
 )
 
 const (
-	dbPathKey    = "dbpath"
-	wsinboundKey = "wsinbound"
+	dbPathKey           = "dbpath"
+	wsinboundKey        = "wsinbound"
+	defaultMasterKeyURI = "local-lock://default/master/key/"
 )
 
 type AgentConfig struct {
@@ -47,25 +56,59 @@ type AgentConfig struct {
 	lock sync.Mutex
 }
 
-type provider struct {
-	sp  storage.Provider
-	kms *legacykms.BaseKMS
+type kmsProvider struct {
+	sp   storage.Provider
+	lock secretlock.Service
+	kms  kms.KeyManager
 }
 
-func newProvider(dbpath string) *provider {
-	r := &provider{
-		sp: leveldb.NewProvider(dbpath),
+func (r *kmsProvider) SecretLock() secretlock.Service {
+	return r.lock
+	// generate a random master key if one does not exist
+	// this needs to be in
+	//keySize := sha256.Size
+	//masterKeyContent := make([]byte, keySize)
+	//rand.Read(masterKeyContent)
+	//
+	//fmt.Println(base64.URLEncoding.EncodeToString(masterKeyContent))
+}
+
+func (r *Provider) newProvider() (*kmsProvider, error) {
+	out := &kmsProvider{}
+
+	dc, _ := r.GetDatastoreConfig()
+	switch dc.Database {
+	case "mongo":
+		out.sp = mongodbstore.NewProvider(dc.Mongo.URL, dc.Mongo.Database)
+	case "postgres":
+		//out.sp = pgstore.NewProvider(dc.Postgres.Connection)
+	default:
+		out.sp = mem.NewProvider()
 	}
 
-	r.kms, _ = legacykms.New(r)
-	return r
+	mlk := r.vp.GetString("masterLockKey")
+	if mlk == "" {
+		mlk = "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
+	}
+
+	var err error
+	out.lock, err = local.NewService(strings.NewReader(mlk), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
+	out.kms, err = localkms.New(defaultMasterKeyURI, out)
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
+
+	return out, nil
 }
 
-func (r *provider) StorageProvider() storage.Provider {
+func (r *kmsProvider) StorageProvider() storage.Provider {
 	return r.sp
 }
 
-func (r *provider) createKMS(_ api.Provider) (api.CloseableKMS, error) {
+func (r *kmsProvider) createKMS(_ kms.Provider) (kms.KeyManager, error) {
 	return r.kms, nil
 }
 
@@ -81,12 +124,12 @@ func (r *Provider) GetAriesContext() *context.Provider {
 }
 
 func (r *Provider) createAriesContext() error {
-	framework, err := aries.New(r.getOptions()...)
+	fwork, err := aries.New(r.getOptions()...)
 	if err != nil {
 		return errors.Wrap(err, "failed to start aries agent rest, failed to initialize framework")
 	}
 
-	ctx, err := framework.Context()
+	ctx, err := fwork.Context()
 	if err != nil {
 		return errors.Wrap(err, "failed to start aries agent rest on port, failed to get aries context")
 	}
@@ -98,11 +141,19 @@ func (r *Provider) createAriesContext() error {
 func (r *Provider) getOptions() []aries.Option {
 	var out []aries.Option
 
-	dbpath := r.vp.GetString(dbPathKey)
-	if dbpath != "" {
-		out = append(out, aries.WithStoreProvider(leveldb.NewProvider(dbpath)))
-	} else {
-		out = append(out, aries.WithStoreProvider(mem.NewProvider()))
+	p, err := r.newProvider()
+	if err != nil {
+		panic(err)
+	}
+	out = append(out, aries.WithStoreProvider(p.StorageProvider()))
+
+	genesisFile := r.vp.GetString("genesisFile")
+	if genesisFile != "" {
+		genesisData := strings.NewReader(genesisFile)
+		indyVDRI, err := indy.New("scr", indy.WithIndyVDRGenesisReader(ioutil.NopCloser(genesisData)))
+		if err == nil {
+			out = append(out, aries.WithVDRI(indyVDRI))
+		}
 	}
 
 	if r.vp.IsSet(wsinboundKey) {
@@ -114,11 +165,11 @@ func (r *Provider) getOptions() []aries.Option {
 	if r.vp.IsSet("host") && r.vp.IsSet("port") {
 		ep := &framework.Endpoint{}
 		_ = r.vp.Unmarshal(ep)
-		out = append(out, aries.WithServiceEndpoint(ep.Address()))
+		//out = append(out, aries.WithServiceEndpoint(ep.Address()))
 	}
 
-	//TODO:  do we need configuration options to turn on or off the following 2 options?
 	out = append(out, []aries.Option{
+		aries.WithKMS(p.createKMS),
 		aries.WithMessageServiceProvider(msghandler.NewRegistrar()),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 	}...)
@@ -161,17 +212,39 @@ func (r *Provider) GetCredentialClient() (*issuecredential.Client, error) {
 	return r.credcl, nil
 }
 
-func (r *Provider) GetRouterClient() (*route.Client, error) {
+func (r *Provider) GetRouterClient() (*mediator.Client, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	if r.routecl != nil {
 		return r.routecl, nil
 	}
 
-	routecl, err := route.New(r.GetAriesContext())
+	routecl, err := mediator.New(r.GetAriesContext())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create route client for college: %v\n")
 	}
 	r.routecl = routecl
 	return r.routecl, nil
+}
+
+func (r *Provider) GetSupervisor(h credential.Handler) (*credential.Supervisor, error) {
+	sup, err := credential.New(r)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create credential supervisor for steward")
+	}
+	err = sup.Start(h)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to start credential supervisor for steward")
+	}
+
+	return sup, nil
+}
+
+func (r *Provider) GetBouncer() (didex.Bouncer, error) {
+	bouncer, err := didex.NewBouncer(r)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create did supervisor for high school agent")
+	}
+
+	return bouncer, nil
 }

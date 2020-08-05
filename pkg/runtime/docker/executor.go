@@ -29,10 +29,11 @@ import (
 )
 
 const (
-	StewardName          = "steward"
-	StewardConfig        = "%s/steward_config.yaml"
-	StewardContainerName = "canis_steward"
-	CanisImage           = "canis/canis:latest"
+	StewardName              = "steward"
+	StewardConfig            = "%s/steward_config.yaml"
+	StewardContainerName     = "canis_steward"
+	StewardInitContainerName = "init_canis_steward"
+	CanisImage               = "canis/canis:latest"
 
 	AgentContainerName = "canis_agent_%s"
 	AgentConfig        = "%s/agent_%s_config.yaml"
@@ -119,6 +120,77 @@ func (r *Executor) PS() []runtime.Process {
 	out = append(out, proc)
 
 	return out
+}
+
+func (r *Executor) InitSteward(seed string, configFileData []byte) (string, error) {
+	ctx := context.Background()
+
+	steward, err := r.getRunningConainer(StewardInitContainerName)
+	if err == nil {
+		state := r.processStatus(steward)
+		if state == datastore.Running {
+			return "", errors.New("Steward is already running")
+		}
+	}
+
+	_ = r.removeContainer(StewardInitContainerName)
+
+	stewardConfigFile := fmt.Sprintf(StewardConfig, r.home)
+	err = ioutil.WriteFile(stewardConfigFile, configFileData, 0644)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to write config for steward")
+	}
+
+	host := &container.HostConfig{
+		AutoRemove:  false,
+		NetworkMode: "host",
+		Mounts: []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: r.home,
+				Target: "/etc/canis",
+			},
+		}}
+
+	nt := &network.NetworkingConfig{}
+
+	conf := &container.Config{
+		Cmd: []string{
+			//"sleep", "3000",
+			"steward", "init", "--seed", seed,
+		},
+		Image: CanisImage,
+	}
+
+	resp, err := r.cli.ContainerCreate(ctx, conf, host, nt, StewardInitContainerName)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to create container for initializing steward")
+	}
+
+	if err := r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+		return "", errors.Wrap(err, "unable to initialize steward")
+	}
+
+	timeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	_, err = r.cli.ContainerWait(timeout, resp.ID)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to wait for steward to initialize")
+	}
+
+	logs, err := r.cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+	})
+	if err != nil {
+		return "", errors.Wrap(err, "unable to wait for steward to initialize")
+	}
+	_ = r.removeContainer(StewardInitContainerName)
+
+	d, _ := ioutil.ReadAll(logs)
+
+	return string(d), nil
 }
 
 func (r *Executor) LaunchSteward(configFileData []byte) (string, error) {

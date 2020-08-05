@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package steward
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
@@ -28,7 +27,6 @@ type Steward struct {
 	didcl     *didexchange.Client
 	bouncer   ndid.Bouncer
 	schemacl  *schema.Client
-	credcl    *issuecredential.Client
 	notifier  *webnotifier.WebNotifier
 	store     datastore.Store
 	exec      runtime.Executor
@@ -42,6 +40,8 @@ type provider interface {
 	GetDIDClient() (*didexchange.Client, error)
 	GetCredentialClient() (*issuecredential.Client, error)
 	GetSchemaClient() (*schema.Client, error)
+	GetSupervisor(h credential.Handler) (*credential.Supervisor, error)
+	GetBouncer() (ndid.Bouncer, error)
 }
 
 func New(ctx provider) (*Steward, error) {
@@ -69,22 +69,12 @@ func New(ctx provider) (*Steward, error) {
 		return nil, errors.Wrap(err, "unable to create didexchange client in steward init")
 	}
 
-	r.credcl, err = ctx.GetCredentialClient()
+	_, err = ctx.GetSupervisor(r)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to create issue credential client in steward init")
+		return nil, err
 	}
 
-	sup, err := credential.New(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to create credential supervisor for steward")
-	}
-	err = sup.Start(r)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to start credential supervisor for steward")
-	}
-
-	fmt.Println("calling bouncer")
-	r.bouncer, err = ndid.NewBouncer(ctx)
+	r.bouncer, err = ctx.GetBouncer()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create did supervisor for high school agent")
 	}
@@ -101,25 +91,10 @@ func (r *Steward) bootstrap() error {
 
 	did, err := r.store.GetPublicDID()
 	if err != nil {
-		//TODO: This should be done with external tool!
-		//log.Println("No public PeerDID, creating one")
-		//
-		//did, verkey, err := r.vdr.CreateNym()
-		//if err != nil {
-		//	return errors.Wrap(err, "creating public nym, steward/bootstrap")
-		//}
-		//
-		//log.Printf("Going to use %s as did and %s as verkey\n", did, verkey)
-		//err = r.ledgerBrowser.RegisterPublicDID(did, verkey, ScoirStewardAlias, ledger.StewardRole)
-		//if err != nil {
-		//	return errors.Wrap(err, "error registering public PeerDID in bootstrap")
-		//}
-		//
-		//log.Println("PeerDID registered on Ledger as Steward and set as public with agent")
-	} else {
-		r.publicDID = did
-		log.Printf("Public did is %s with verkey %s\n", r.publicDID.DID, r.publicDID.Verkey)
+		return errors.New("Steward needs public did")
 	}
 
+	r.publicDID = did
+	log.Printf("Public did is %s with verkey %s\n", r.publicDID.DID, r.publicDID.Verkey)
 	return nil
 }

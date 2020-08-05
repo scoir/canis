@@ -20,16 +20,17 @@ swagger_pack: pkg/static/steward_agent_swagger.go
 pkg/static/steward_agent_swagger.go: steward-pb pkg/steward/api/spec/steward_agent.swagger.json
 	staticfiles -o pkg/static/steward_agent_swagger.go --package static pkg/steward/api/spec
 
+
 build: bin/steward bin/agent bin/sirius
 build-steward: bin/steward
 
 steward: bin/steward
 bin/steward: steward-pb swagger_pack
-	cd cmd/steward && go build -o $(CANIS_ROOT)/bin/steward
+	@. ./canis.sh; cd cmd/steward && go build -o $(CANIS_ROOT)/bin/steward
 
 sirius: bin/sirius
 bin/sirius:
-	cd cmd/sirius && go build -o $(CANIS_ROOT)/bin/sirius
+	@. ./canis.sh; cd cmd/sirius && go build -o $(CANIS_ROOT)/bin/sirius
 
 .PHONY: canis-docker
 package: canis-docker
@@ -39,15 +40,15 @@ build-router: bin/router
 
 agent: bin/agent
 bin/agent: steward-pb
-	cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
+	@. ./canis.sh; cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
 
 agency: bin/agency bin/router
 bin/agency:
-	cd cmd/agency && go build -o $(CANIS_ROOT)/bin/agency
+	@. ./canis.sh; cd cmd/agency && go build -o $(CANIS_ROOT)/bin/agency
 
 router: bin/router
 bin/router:
-	cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
+	@. ./canis.sh; cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
 
 canis-docker: build
 	@echo "Building canis docker image"
@@ -64,7 +65,7 @@ demo-web:
 
 # Development Local Run Shortcuts
 test: clean tools
-	@./scripts/test.sh
+	@. ./canis.sh; ./scripts/test.sh
 
 cover:
 	go test -coverprofile cover.out ./pkg/...

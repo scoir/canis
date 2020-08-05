@@ -38,6 +38,27 @@ func (_m *Executor) Describe() {
 	_m.Called()
 }
 
+// InitSteward provides a mock function with given fields: seed, d
+func (_m *Executor) InitSteward(seed string, d []byte) (string, error) {
+	ret := _m.Called(seed, d)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, []byte) string); ok {
+		r0 = rf(seed, d)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []byte) error); ok {
+		r1 = rf(seed, d)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // LaunchAgent provides a mock function with given fields: agent
 func (_m *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
 	ret := _m.Called(agent)

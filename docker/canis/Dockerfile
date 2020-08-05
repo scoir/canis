@@ -1,4 +1,4 @@
-FROM scoir/libursa:latest
+FROM scoir/indy-libs:latest
 
 RUN apt-get update
 RUN apt-get install -y ca-certificates

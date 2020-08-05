@@ -29,6 +29,10 @@ type Config struct {
 type Executor struct {
 }
 
+func (r *Executor) InitSteward(seed string, d []byte) (string, error) {
+	panic("implement me")
+}
+
 func (r *Executor) ShutdownSteward() error {
 	panic("implement me")
 }

@@ -31,14 +31,12 @@ func (r *Steward) GetServerOpts() []grpc.ServerOption {
 			// Decide on which backend to dial
 			if val, exists := md["college-agent-id"]; exists {
 				// Make sure we use DialContext so the dialing can be cancelled/time out together with the context.
-				// TODO: Should probably do verification that the college is in good standing and has been provisioned
 				conn, err := grpc.DialContext(ctx, fmt.Sprintf("college-agent-%s:7777", val[0]),
 					grpc.WithCodec(proxy.Codec()),
 					grpc.WithInsecure(),
 				)
 				return ctx, conn, err
 			} else if val, exists := md["highschool-agent-id"]; exists {
-				// TODO: Should probably do verification that the high school is in good standing and has been provisioned
 				conn, err := grpc.DialContext(ctx, fmt.Sprintf("highschool-agent-%s:7777", val[0]),
 					grpc.WithCodec(proxy.Codec()),
 					grpc.WithInsecure(),

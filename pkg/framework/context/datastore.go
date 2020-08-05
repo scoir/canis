@@ -41,10 +41,9 @@ func (r *Provider) Datastore() (datastore.Store, error) {
 		return r.ds, nil
 	}
 
-	dc := &DatastoreConfig{}
-	err := r.vp.UnmarshalKey(datastoreKey, dc)
+	dc, err := r.GetDatastoreConfig()
 	if err != nil {
-		return nil, errors.Wrap(err, "execution environment is not correctly configured")
+		return nil, err
 	}
 
 	switch dc.Database {
@@ -57,6 +56,15 @@ func (r *Provider) Datastore() (datastore.Store, error) {
 	}
 
 	return r.ds, errors.Wrap(err, "unable to get datastore from config")
+}
+
+func (r *Provider) GetDatastoreConfig() (*DatastoreConfig, error) {
+	dc := &DatastoreConfig{}
+	err := r.vp.UnmarshalKey(datastoreKey, dc)
+	if err != nil {
+		return nil, errors.Wrap(err, "execution environment is not correctly configured")
+	}
+	return dc, err
 }
 
 func (r *Provider) loadMongo(dsc *Mongo) (datastore.Store, error) {
