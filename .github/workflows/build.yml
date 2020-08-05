@@ -34,7 +34,7 @@ jobs:
   publish:
     name: Publish Docker Image
     runs-on: ubuntu-18.04
-    container: scoir/indy-libs:latest
+    container: scoir/canis-build:latest
     steps:
 
     - name: Set up Go 1.14
