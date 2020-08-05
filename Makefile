@@ -40,7 +40,7 @@ build-router: bin/router
 
 agent: bin/agent
 bin/agent: steward-pb
-	cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
+	@. ./canis.sh cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
 
 agency: bin/agency bin/router
 bin/agency:
