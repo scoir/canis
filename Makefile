@@ -40,15 +40,15 @@ build-router: bin/router
 
 agent: bin/agent
 bin/agent: steward-pb
-	@. ./canis.sh cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
+	@. ./canis.sh; cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
 
 agency: bin/agency bin/router
 bin/agency:
-	@. ./canis.sh cd cmd/agency && go build -o $(CANIS_ROOT)/bin/agency
+	@. ./canis.sh; cd cmd/agency && go build -o $(CANIS_ROOT)/bin/agency
 
 router: bin/router
 bin/router:
-	@. ./canis.sh cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
+	@. ./canis.sh; cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
 
 canis-docker: build
 	@echo "Building canis docker image"
