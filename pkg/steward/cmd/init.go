@@ -51,7 +51,8 @@ func getPublicDID() (string, error) {
 		return "", fmt.Errorf("unable to retrieve datastore: (%w)", err)
 	}
 
-	did, err := ds.GetPublicDID()
+	didds, _ := ds.OpenStore("DID")
+	did, err := didds.GetPublicDID()
 	if err != nil {
 		return "", fmt.Errorf("no public DID set: (%w)", err)
 	}
@@ -85,18 +86,19 @@ func saveExistingPublicDID() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	didds, _ := ds.OpenStore("DID")
 
 	var d = &datastore.DID{
 		DID:      did.String(),
 		Verkey:   did.Verkey,
 		Endpoint: "",
 	}
-	err = ds.InsertDID(d)
+	err = didds.InsertDID(d)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = ds.SetPublicDID(did.String())
+	err = didds.SetPublicDID(did.String())
 	if err != nil {
 		log.Fatalln(err)
 	}

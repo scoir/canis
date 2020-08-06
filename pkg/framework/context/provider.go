@@ -35,6 +35,10 @@ func NewProvider(vp *viper.Viper) *Provider {
 	return &Provider{vp: vp}
 }
 
+func (r *Provider) UnmarshalConfig(dest interface{}) error {
+	return r.vp.Unmarshal(dest)
+}
+
 func (r *Provider) GetAgentConfig(agentID string) (map[string]interface{}, error) {
 	agt := r.vp.Sub(agentKey)
 	if agt == nil {

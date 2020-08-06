@@ -124,6 +124,26 @@ type couchDBStore struct {
 	db *kivik.DB
 }
 
+func (r *couchDBStore) Insert(d datastore.Doc) (string, error) {
+	panic("implement me")
+}
+
+func (r *couchDBStore) List(c datastore.Criteria, gen datastore.DocGen, start, pageSize int) (*datastore.DocList, error) {
+	panic("implement me")
+}
+
+func (r *couchDBStore) Get(id string, gen datastore.DocGen) (datastore.Doc, error) {
+	panic("implement me")
+}
+
+func (r *couchDBStore) Delete(id string) error {
+	panic("implement me")
+}
+
+func (r *couchDBStore) Update(d datastore.Doc) error {
+	panic("implement me")
+}
+
 // InsertDID add DID to store
 func (r *couchDBStore) InsertDID(d *datastore.DID) error {
 	if d.DID == "" {

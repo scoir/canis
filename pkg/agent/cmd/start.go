@@ -16,6 +16,7 @@ import (
 )
 
 var agentID string
+var publicDID bool
 
 var startCmd = &cobra.Command{
 	Use:   "start",
@@ -24,12 +25,17 @@ var startCmd = &cobra.Command{
 	Run:   runStart,
 }
 
+func init() {
+	rootCmd.AddCommand(startCmd)
+	startCmd.Flags().StringVar(&agentID, "id", "", "unique, installation specific ID for this agent")
+	startCmd.Flags().BoolVar(&publicDID, "public", false, "should this agent register a public DID")
+	_ = startCmd.MarkFlagRequired("id")
+	_ = startCmd.MarkFlagRequired("public")
+}
+
 func runStart(_ *cobra.Command, _ []string) {
 
-	if agentID == "" {
-	}
-
-	a, err := agent.NewAgent(agentID, ctx)
+	a, err := agent.NewAgent(ctx, agent.WithAgentID(agentID), agent.WithPublicDID(publicDID))
 	if err != nil {
 		log.Fatalln("error initializing agent", err)
 	}
@@ -46,10 +52,4 @@ func runStart(_ *cobra.Command, _ []string) {
 	}
 
 	log.Println("Shutdown")
-}
-
-func init() {
-	rootCmd.AddCommand(startCmd)
-	startCmd.Flags().StringVar(&agentID, "id", "", "The unique ID of this agent")
-	_ = startCmd.MarkFlagRequired("id")
 }

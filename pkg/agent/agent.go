@@ -7,82 +7,98 @@ SPDX-License-Identifier: Apache-2.0
 package agent
 
 import (
-	"context"
 	"encoding/json"
-	"log"
-	"time"
+	"fmt"
 
-	"github.com/cenkalti/backoff"
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
+	ariesctx "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
 
+	"github.com/scoir/canis/pkg/datastore"
 	ndid "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/steward/api"
-	"github.com/scoir/canis/pkg/util"
 )
 
 type Agent struct {
-	agentID        string
-	stewardPeerDID string
-	steward        api.AdminClient
-	bouncer        ndid.Bouncer
+	self      *Self
+	steward   api.AdminClient
+	bouncer   ndid.Bouncer
+	persister persistence
 }
 
 type provider interface {
+	UnmarshalConfig(dest interface{}) error
+	Datastore() (datastore.Provider, error)
 	GetStewardClient() (api.AdminClient, error)
 	GetDIDClient() (*didexchange.Client, error)
+	GetAriesContext() *ariesctx.Provider
 }
 
-func NewAgent(agentID string, conf provider) (*Agent, error) {
-	r := &Agent{
-		agentID: agentID,
+type Option func(opts *Self)
+
+func NewAgent(p provider, opts ...Option) (*Agent, error) {
+	r := &Agent{self: &Self{}}
+
+	for _, opt := range opts {
+		opt(r.self)
 	}
 
-	var err error
-	r.steward, err = conf.GetStewardClient()
+	d, _ := json.MarshalIndent(r.self, " ", " ")
+	fmt.Println(string(d))
+
+	ds, err := p.Datastore()
+	if err != nil {
+		return nil, errors.Wrap(err, "agent can not load datastore")
+	}
+
+	r.persister, err = newPersistence(ds)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load agent persistence")
+	}
+
+	r.steward, err = p.GetStewardClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting steward client for agent")
 	}
 
-	r.bouncer, err = ndid.NewBouncer(conf)
+	r.bouncer, err = ndid.NewBouncer(p)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create did bouncer for agent")
 	}
 
-	err = r.bootstrap()
+	fmt.Println("getting self")
+	self, err := r.persister.GetSelf(r.self.ID)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to bootstrap agent")
+		self = &Self{}
+		if r.self.HasPublicDID {
+			aries := p.GetAriesContext()
+			did, err := aries.VDRIRegistry().Create("scr")
+			if err != nil {
+				return nil, errors.Wrap(err, "unable to bootstrap agent")
+			}
+			self.PublicDID = did.ID
+		}
+		err = r.persister.SaveSelf(self)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to save agent identity")
+		}
 	}
+
+	r.self = self
 
 	return r, nil
 }
 
-func (r *Agent) bootstrap() error {
-	err := backoff.RetryNotify(r.connectToSteward, backoff.NewExponentialBackOff(), util.Logger)
-	return errors.Wrap(err, "error connecting to steward in bootstrap")
+// WithPublicDID option is for accept did method
+func WithPublicDID(pd bool) Option {
+	return func(opts *Self) {
+		opts.HasPublicDID = pd
+	}
 }
 
-func (r *Agent) connectToSteward() error {
-	log.Println("Beginning to connect to steward")
-	invite, err := r.steward.GetInvitationForAgent(context.Background(), &api.AgentInvitiationRequest{AgentId: r.agentID})
-	if err != nil {
-		return errors.Wrap(err, "unable to get invite from steward")
+// WithAgentID option is for accept did method
+func WithAgentID(id string) Option {
+	return func(opts *Self) {
+		opts.ID = id
 	}
-
-	inv := &didexchange.Invitation{}
-	err = json.Unmarshal([]byte(invite.Body), inv)
-	if err != nil {
-		return errors.Wrap(err, "bad invite from steward")
-	}
-
-	log.Println("trying to accept invitation for steward")
-	conn, err := r.bouncer.EstablishConnection(inv, 10*time.Second)
-	if err != nil {
-		return errors.Wrap(err, "unable to establish connection with steward")
-	}
-
-	log.Printf("Connected to the Steward with %s\n", conn.TheirDID)
-	r.stewardPeerDID = conn.TheirDID
-
-	return nil
 }

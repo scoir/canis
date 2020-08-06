@@ -6,6 +6,19 @@ SPDX-License-Identifier: Apache-2.0
 
 package datastore
 
+type Doc interface {
+	GetID() string
+}
+
+type DocGen func() Doc
+
+type DocList struct {
+	Count int
+	Docs  []Doc
+}
+
+type Criteria map[string]interface{}
+
 type Attribute struct {
 	Name string
 	Type int32

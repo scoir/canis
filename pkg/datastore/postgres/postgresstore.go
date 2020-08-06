@@ -39,6 +39,26 @@ type postgresDBStore struct {
 	tableName string
 }
 
+func (p *postgresDBStore) Insert(d datastore.Doc) (string, error) {
+	panic("implement me")
+}
+
+func (p *postgresDBStore) List(c datastore.Criteria, gen datastore.DocGen, start, pageSize int) (*datastore.DocList, error) {
+	panic("implement me")
+}
+
+func (p *postgresDBStore) Get(id string, gen datastore.DocGen) (datastore.Doc, error) {
+	panic("implement me")
+}
+
+func (p *postgresDBStore) Delete(id string) error {
+	panic("implement me")
+}
+
+func (p *postgresDBStore) Update(d datastore.Doc) error {
+	panic("implement me")
+}
+
 // NewProvider instantiates Provider
 func NewProvider(config *Config) (*Provider, error) {
 	if config == nil {

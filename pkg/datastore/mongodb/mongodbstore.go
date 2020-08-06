@@ -351,3 +351,76 @@ func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
 
 	return nil
 }
+
+func (r *mongoDBStore) Insert(d datastore.Doc) (string, error) {
+	_, err := r.collection.InsertOne(context.Background(), d)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to insert schema")
+	}
+	return d.GetID(), nil
+}
+
+func (r *mongoDBStore) List(c datastore.Criteria, gen datastore.DocGen, start, pageSize int) (*datastore.DocList, error) {
+	bc := bson.M{}
+	if c["Name"] != "" {
+		p := fmt.Sprintf(".*%s.*", c["Name"])
+		bc["name"] = primitive.Regex{Pattern: p, Options: ""}
+	}
+
+	opts := &options.FindOptions{}
+	opts = opts.SetSkip(int64(start)).SetLimit(int64(pageSize))
+
+	ctx := context.Background()
+	count, err := r.collection.CountDocuments(ctx, bc)
+	results, err := r.collection.Find(ctx, bc, opts)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error trying to find docs")
+	}
+
+	out := datastore.DocList{
+		Count: int(count),
+		Docs:  []datastore.Doc{},
+	}
+
+	for results.Next(ctx) {
+		d := gen()
+		err := results.Decode(d)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to decode docs")
+		}
+		out.Docs = append(out.Docs, d)
+	}
+
+	return &out, nil
+}
+
+func (r *mongoDBStore) Get(id string, gen datastore.DocGen) (datastore.Doc, error) {
+	doc := gen()
+	err := r.collection.FindOne(context.Background(), bson.M{"id": id}).Decode(&doc)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load doc")
+	}
+
+	return doc, nil
+}
+
+func (r *mongoDBStore) Delete(id string) error {
+	_, err := r.collection.DeleteOne(context.Background(), bson.M{"id": id})
+	if err != nil {
+		return errors.Wrap(err, "unable to delete doc")
+	}
+
+	return nil
+}
+
+func (r *mongoDBStore) Update(d datastore.Doc) error {
+	fmt.Println("called updateone")
+	_, err := r.collection.UpdateOne(context.Background(), bson.M{"id": d.GetID()}, bson.M{"$set": d})
+	fmt.Println("updateone err", err)
+	if err != nil {
+		return errors.Wrap(err, "unable to update doc")
+	}
+
+	return nil
+}

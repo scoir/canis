@@ -58,4 +58,15 @@ type Store interface {
 	DeleteAgent(id string) error
 	// UpdateAgent delete single agent
 	UpdateAgent(s *Agent) error
+
+	// Insert add Doc to store
+	Insert(d Doc) (string, error)
+	// List query docs
+	List(c Criteria, gen DocGen, start, pageSize int) (*DocList, error)
+	// Get return single Doc
+	Get(id string, gen DocGen) (Doc, error)
+	// Delete delete single doc
+	Delete(id string) error
+	// Update update single doc
+	Update(d Doc) error
 }

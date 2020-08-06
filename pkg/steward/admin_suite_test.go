@@ -38,8 +38,8 @@ func (suite *AdminTestSuite) SetupTest() {
 		didStore:    suite.Store,
 		exec:        suite.Exec,
 		publicDID: &datastore.DID{
-				DID: "did:abc:1234",
-			}
+			DID: "did:abc:1234",
+		},
 	}
 }
 

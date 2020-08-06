@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
+	couchdbstore "github.com/scoir/canis/pkg/datastore/couchdb"
 	"github.com/scoir/canis/pkg/datastore/mongodb"
 	"github.com/scoir/canis/pkg/datastore/postgres"
 )
@@ -32,9 +33,10 @@ func (r *Provider) Datastore() (datastore.Provider, error) {
 		return r.ds, nil
 	}
 
-	dc, err := r.GetDatastoreConfig()
+	dc := &DatastoreConfig{}
+	err := r.vp.UnmarshalKey(datastoreKey, dc)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "execution environment is not correctly configured")
 	}
 
 	switch dc.Database {

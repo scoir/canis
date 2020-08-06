@@ -24,29 +24,6 @@ type Provider struct {
 	mock.Mock
 }
 
-// Datastore provides a mock function with given fields:
-func (_m *Provider) Datastore() (datastore.Store, error) {
-	ret := _m.Called()
-
-	var r0 datastore.Store
-	if rf, ok := ret.Get(0).(func() datastore.Store); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(datastore.Store)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Executor provides a mock function with given fields:
 func (_m *Provider) Executor() (runtime.Executor, error) {
 	ret := _m.Called()
@@ -178,6 +155,29 @@ func (_m *Provider) GetSupervisor(h credential.Handler) (*credential.Supervisor,
 	var r1 error
 	if rf, ok := ret.Get(1).(func(credential.Handler) error); ok {
 		r1 = rf(h)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StorageProvider provides a mock function with given fields:
+func (_m *Provider) StorageProvider() (datastore.Provider, error) {
+	ret := _m.Called()
+
+	var r0 datastore.Provider
+	if rf, ok := ret.Get(0).(func() datastore.Provider); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(datastore.Provider)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}
