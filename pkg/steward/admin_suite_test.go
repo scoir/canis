@@ -31,9 +31,16 @@ func (suite *AdminTestSuite) SetupTest() {
 	suite.Exec = &emocks.Executor{}
 	suite.Bouncer = &dmocks.Bouncer{}
 
-	target = &Steward{store: suite.Store, exec: suite.Exec, bouncer: suite.Bouncer, publicDID: &datastore.DID{
-		DID: "did:abc:1234",
-	}}
+	target = &Steward{
+		bouncer:     suite.Bouncer,
+		agentStore:  suite.Store,
+		schemaStore: suite.Store,
+		didStore:    suite.Store,
+		exec:        suite.Exec,
+		publicDID: &datastore.DID{
+				DID: "did:abc:1234",
+			}
+	}
 }
 
 func TestAdminTestSuite(t *testing.T) {

@@ -23,7 +23,7 @@ type Provider struct {
 	vp *viper.Viper
 
 	lock    sync.Mutex
-	ds      datastore.Store
+	ds      datastore.Provider
 	exec    runtime.Executor
 	ctx     *context.Provider
 	didcl   *didexchange.Client
@@ -77,4 +77,8 @@ func (r *Provider) GetStewardConfig() (map[string]interface{}, error) {
 	}
 
 	return out, nil
+}
+
+func (r *Provider) StorageProvider() (datastore.Provider, error) {
+	return r.Datastore()
 }

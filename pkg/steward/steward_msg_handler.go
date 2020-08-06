@@ -17,7 +17,7 @@ func (r *Steward) failedConnectionHandler(invitationID string, err error) {
 }
 
 func (r *Steward) handleAgentConnection(invitationID string, conn *didexchange.Connection) {
-	agent, err := r.store.GetAgentByInvitation(invitationID)
+	agent, err := r.agentStore.GetAgentByInvitation(invitationID)
 	if err != nil {
 		log.Println(err, "Unable to find for high school %s.", invitationID)
 	}
@@ -26,7 +26,7 @@ func (r *Steward) handleAgentConnection(invitationID string, conn *didexchange.C
 	agent.PeerDID = conn.TheirDID
 
 	agent.ConnectionState = "completed"
-	_ = r.store.UpdateAgent(agent)
+	_ = r.agentStore.UpdateAgent(agent)
 
 	log.Printf("Agent %s successfully issued Scoir HS credential\n", agent.PeerDID)
 }

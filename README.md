@@ -29,7 +29,7 @@ Issuing digital credentials requires an institution or organization to have an a
 This agent must act as a fiduciary on behalf of the organization, must hold cryptographic keys representing its delegated authority, and it must communicate
 via [DIDComm Protocols](https://github.com/hyperledger/indy-hipe/pull/69).  
 
-In addition needing an agent, organizations need a way to instruct this agent how to issue a credential and to whom.  That requires information that is currently stored 
+In addition, needing an agent, organizations need a way to instruct this agent how to issue a credential and to whom.  That requires information that is currently stored 
 in legacy (in ToIP terms) systems.
 
 Canis serves as a platform for creating, launching and empowering agents to participate in a credentialing ecosystem on any organization's behalf.  In addition,

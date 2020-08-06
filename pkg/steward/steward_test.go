@@ -17,6 +17,7 @@ func TestNew(t *testing.T) {
 	t.Run("test init", func(t *testing.T) {
 		p := &mocks.Provider{}
 		ds := &dsstore.Store{}
+
 		p.On("GetSchemaClient").Return(nil, nil)
 		p.On("Datastore").Return(ds, nil)
 		p.On("Executor").Return(nil, nil)

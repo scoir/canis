@@ -24,18 +24,20 @@ import (
 //go:generate wire
 
 type Steward struct {
-	didcl     *didexchange.Client
-	bouncer   ndid.Bouncer
-	schemacl  *schema.Client
-	notifier  *webnotifier.WebNotifier
-	store     datastore.Store
-	exec      runtime.Executor
-	publicDID *datastore.DID
+	didcl       *didexchange.Client
+	bouncer     ndid.Bouncer
+	schemacl    *schema.Client
+	notifier    *webnotifier.WebNotifier
+	agentStore  datastore.Store
+	schemaStore datastore.Store
+	didStore    datastore.Store
+	exec        runtime.Executor
+	publicDID   *datastore.DID
 }
 
 //go:generate mockery -name=provider --structname=Provider
 type provider interface {
-	Datastore() (datastore.Store, error)
+	StorageProvider() (datastore.Provider, error)
 	Executor() (runtime.Executor, error)
 	GetDIDClient() (*didexchange.Client, error)
 	GetCredentialClient() (*issuecredential.Client, error)
@@ -50,12 +52,25 @@ func New(ctx provider) (*Steward, error) {
 	r := &Steward{}
 
 	r.schemacl, _ = ctx.GetSchemaClient()
-	store, err := ctx.Datastore()
+	storageProvider, err := ctx.StorageProvider()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to access datastore")
 	}
 
-	r.store = store
+	r.schemaStore, err = storageProvider.OpenStore("Schema")
+	if err != nil {
+		return nil, err
+	}
+
+	r.agentStore, err = storageProvider.OpenStore("Agent")
+	if err != nil {
+		return nil, err
+	}
+
+	r.didStore, err = storageProvider.OpenStore("DID")
+	if err != nil {
+		return nil, err
+	}
 
 	exec, err := ctx.Executor()
 	if err != nil {
@@ -89,7 +104,7 @@ func New(ctx provider) (*Steward, error) {
 func (r *Steward) bootstrap() error {
 	log.Println("Retrieving public did for Steward")
 
-	did, err := r.store.GetPublicDID()
+	did, err := r.didStore.GetPublicDID()
 	if err != nil {
 		return errors.New("Steward needs public did")
 	}

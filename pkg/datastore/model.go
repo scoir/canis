@@ -6,18 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 
 package datastore
 
-type SchemaList struct {
-	Count  int
-	Schema []*Schema
-}
-
-type Schema struct {
-	ID         string
-	Name       string
-	Version    string
-	Attributes []*Attribute
-}
-
 type Attribute struct {
 	Name string
 	Type int32
@@ -48,11 +36,7 @@ type Agent struct {
 	Status              StatusType
 	PID                 string
 	PublicDID           bool
-}
-
-type SchemaCriteria struct {
-	Start, PageSize int
-	Name            string
+	InvitationID        string
 }
 
 type AgentCriteria struct {
@@ -60,9 +44,30 @@ type AgentCriteria struct {
 	Name            string
 }
 
+type SchemaCriteria struct {
+	Start, PageSize int
+	Name            string
+}
+
+type SchemaList struct {
+	Count  int
+	Schema []*Schema
+}
+
+type Schema struct {
+	ID         string
+	Name       string
+	Version    string
+	Attributes []*Attribute
+}
+
+type Schemas []*Schema
+
 type DIDCriteria struct {
 	Start, PageSize int
 }
+
+type DIDs []*DID
 
 type DID struct {
 	DID, Verkey, Endpoint string
