@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/runtime"
 )
 
@@ -22,13 +23,13 @@ const (
 type Provider struct {
 	vp *viper.Viper
 
-	lock    sync.Mutex
-	ds      datastore.Provider
-	exec    runtime.Executor
-	ctx     *context.Provider
-	didcl   *didexchange.Client
-	credcl  *issuecredential.Client
-	routecl *mediator.Client
+	lock         sync.Mutex
+	datastoreMgr manager.DataProviderManager
+	exec         runtime.Executor
+	ctx          *context.Provider
+	didcl        *didexchange.Client
+	credcl       *issuecredential.Client
+	routecl      *mediator.Client
 }
 
 func NewProvider(vp *viper.Viper) *Provider {

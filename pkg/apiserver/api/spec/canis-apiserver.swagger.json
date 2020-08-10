@@ -181,66 +181,6 @@
         ]
       }
     },
-    "/agents/{id}/launch": {
-      "post": {
-        "operationId": "Admin_LaunchAgent",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiserverLaunchAgentResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Admin"
-        ]
-      }
-    },
-    "/agents/{id}/shutdown": {
-      "post": {
-        "operationId": "Admin_ShutdownAgent",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiserverShutdownAgentResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Admin"
-        ]
-      }
-    },
     "/schema": {
       "get": {
         "operationId": "Admin_ListSchema",
@@ -457,7 +397,27 @@
       }
     },
     "apiserverAgentEvent": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/apiserverAgentEventType"
+        },
+        "Old": {
+          "$ref": "#/definitions/apiserverAgent"
+        },
+        "New": {
+          "$ref": "#/definitions/apiserverAgent"
+        }
+      }
+    },
+    "apiserverAgentEventType": {
+      "type": "string",
+      "enum": [
+        "ADD",
+        "UPDATE",
+        "DELETE"
+      ],
+      "default": "ADD"
     },
     "apiserverAttribute": {
       "type": "object",
@@ -520,14 +480,6 @@
         }
       }
     },
-    "apiserverLaunchAgentResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "$ref": "#/definitions/AgentStatus"
-        }
-      }
-    },
     "apiserverListAgentResponse": {
       "type": "object",
       "properties": {
@@ -577,9 +529,6 @@
           }
         }
       }
-    },
-    "apiserverShutdownAgentResponse": {
-      "type": "object"
     },
     "apiserverUpdateAgentResponse": {
       "type": "object"

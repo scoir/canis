@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/mocks"
 	dmocks "github.com/scoir/canis/pkg/didexchange/mocks"
 	emocks "github.com/scoir/canis/pkg/runtime/mocks"
@@ -32,14 +31,10 @@ func (suite *AdminTestSuite) SetupTest() {
 	suite.Bouncer = &dmocks.Bouncer{}
 
 	target = &APIServer{
-		bouncer:     suite.Bouncer,
 		agentStore:  suite.Store,
 		schemaStore: suite.Store,
 		didStore:    suite.Store,
 		exec:        suite.Exec,
-		publicDID: &datastore.DID{
-			DID: "did:abc:1234",
-		},
 	}
 }
 

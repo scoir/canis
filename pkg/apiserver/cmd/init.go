@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/scoir/canis/pkg/datastore"
-	canisdid "github.com/scoir/canis/pkg/did"
+	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
 
 var seed string
@@ -55,11 +55,11 @@ func getPublicDID() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("no public DID set: (%w)", err)
 	}
-	return did.DID, nil
+	return did.DID.String(), nil
 }
 
 func saveExistingPublicDID() {
-	did, keyPair, err := canisdid.CreateMyDid(&canisdid.MyDIDInfo{
+	did, keyPair, err := identifiers.CreateDID(&identifiers.MyDIDInfo{
 		Seed:       seed,
 		Cid:        true,
 		MethodName: "scr",
@@ -85,10 +85,12 @@ func saveExistingPublicDID() {
 	didds, _ := ds.OpenStore("DID")
 
 	var d = &datastore.DID{
-		DID:      did.String(),
-		Verkey:   did.Verkey,
+		DID: did,
+		KeyPair: &datastore.KeyPair{
+			PublicKey:  keyPair.PublicKey(),
+			PrivateKey: keyPair.PrivateKey(),
+		},
 		Endpoint: "",
-		Priv:     keyPair.Priv(),
 	}
 	err = didds.InsertDID(d)
 	if err != nil {

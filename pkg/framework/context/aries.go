@@ -76,7 +76,7 @@ func (r *kmsProvider) SecretLock() secretlock.Service {
 func (r *Provider) newProvider() (*kmsProvider, error) {
 	out := &kmsProvider{}
 
-	dc := &DatastoreConfig{}
+	dc := &framework.DatastoreConfig{}
 	err := r.vp.UnmarshalKey(datastoreKey, dc)
 	if err != nil {
 		return nil, errors.Wrap(err, "execution environment is not correctly configured")

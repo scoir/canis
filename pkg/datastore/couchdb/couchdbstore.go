@@ -146,11 +146,11 @@ func (r *couchDBStore) Update(d datastore.Doc) error {
 
 // InsertDID add DID to store
 func (r *couchDBStore) InsertDID(d *datastore.DID) error {
-	if d.DID == "" {
+	if d.DID.String() == "" {
 		return errors.New("malformed DID")
 	}
 
-	_, err := r.db.Put(context.Background(), d.DID, d)
+	_, err := r.db.Put(context.Background(), d.DID.String(), d)
 	if err != nil {
 		return err
 	}

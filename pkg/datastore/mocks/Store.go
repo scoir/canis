@@ -12,6 +12,20 @@ type Store struct {
 	mock.Mock
 }
 
+// Delete provides a mock function with given fields: id
+func (_m *Store) Delete(id string) error {
+	ret := _m.Called(id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteAgent provides a mock function with given fields: id
 func (_m *Store) DeleteAgent(id string) error {
 	ret := _m.Called(id)
@@ -38,6 +52,29 @@ func (_m *Store) DeleteSchema(id string) error {
 	}
 
 	return r0
+}
+
+// Get provides a mock function with given fields: id, gen
+func (_m *Store) Get(id string, gen datastore.DocGen) (datastore.Doc, error) {
+	ret := _m.Called(id, gen)
+
+	var r0 datastore.Doc
+	if rf, ok := ret.Get(0).(func(string, datastore.DocGen) datastore.Doc); ok {
+		r0 = rf(id, gen)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(datastore.Doc)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, datastore.DocGen) error); ok {
+		r1 = rf(id, gen)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetAgent provides a mock function with given fields: id
@@ -132,6 +169,27 @@ func (_m *Store) GetSchema(id string) (*datastore.Schema, error) {
 	return r0, r1
 }
 
+// Insert provides a mock function with given fields: d
+func (_m *Store) Insert(d datastore.Doc) (string, error) {
+	ret := _m.Called(d)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(datastore.Doc) string); ok {
+		r0 = rf(d)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(datastore.Doc) error); ok {
+		r1 = rf(d)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // InsertAgent provides a mock function with given fields: s
 func (_m *Store) InsertAgent(s *datastore.Agent) (string, error) {
 	ret := _m.Called(s)
@@ -181,6 +239,29 @@ func (_m *Store) InsertSchema(s *datastore.Schema) (string, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*datastore.Schema) error); ok {
 		r1 = rf(s)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// List provides a mock function with given fields: c, gen, start, pageSize
+func (_m *Store) List(c datastore.Criteria, gen datastore.DocGen, start int, pageSize int) (*datastore.DocList, error) {
+	ret := _m.Called(c, gen, start, pageSize)
+
+	var r0 *datastore.DocList
+	if rf, ok := ret.Get(0).(func(datastore.Criteria, datastore.DocGen, int, int) *datastore.DocList); ok {
+		r0 = rf(c, gen, start, pageSize)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.DocList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(datastore.Criteria, datastore.DocGen, int, int) error); ok {
+		r1 = rf(c, gen, start, pageSize)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -257,13 +338,27 @@ func (_m *Store) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaList,
 	return r0, r1
 }
 
-// SetPublicDID provides a mock function with given fields: PeerDID
+// SetPublicDID provides a mock function with given fields: DID
 func (_m *Store) SetPublicDID(DID string) error {
 	ret := _m.Called(DID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(DID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Update provides a mock function with given fields: d
+func (_m *Store) Update(d datastore.Doc) error {
+	ret := _m.Called(d)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(datastore.Doc) error); ok {
+		r0 = rf(d)
 	} else {
 		r0 = ret.Error(0)
 	}

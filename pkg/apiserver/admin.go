@@ -177,7 +177,7 @@ func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) 
 		Name:                req.Agent.Name,
 		AssignedSchemaId:    req.Agent.AssignedSchemaId,
 		EndorsableSchemaIds: req.Agent.EndorsableSchemaIds,
-		PublicDID:           req.Agent.PublicDid,
+		HasPublicDID:        req.Agent.PublicDid,
 	}
 	//TODO:  how do we get this agents Endpoint??
 
@@ -189,17 +189,22 @@ func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) 
 		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("agent with id %s already exists", req.Agent.Id))
 	}
 
-	id, err := r.agentStore.InsertAgent(a)
-	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
-	}
-
-	if a.PublicDID {
+	if a.HasPublicDID {
 		err = r.createAgentWallet(a)
 		if err != nil {
 			return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to provision agent wallet %s", req.Agent.Id).Error())
 		}
 	}
+
+	id, err := r.agentStore.InsertAgent(a)
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
+	}
+
+	r.fireAgentEvent(&api.AgentEvent{
+		Type: api.AgentEvent_ADD,
+		New:  req.Agent,
+	})
 
 	return &api.CreateAgentResponse{
 		Id: id,
@@ -254,10 +259,28 @@ func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.
 }
 
 func (r *APIServer) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) (*api.DeleteAgentResponse, error) {
-	err := r.agentStore.DeleteAgent(req.Id)
+
+	old, err := r.agentStore.GetAgent(req.Id)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, errors.Wrapf(err, "unable to find agent %s to deleteS", req.Id).Error())
+	}
+
+	err = r.agentStore.DeleteAgent(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to delete agent %s", req.Id).Error())
 	}
+
+	out := &api.Agent{
+		Id:                  old.ID,
+		Name:                old.Name,
+		AssignedSchemaId:    old.AssignedSchemaId,
+		EndorsableSchemaIds: old.EndorsableSchemaIds,
+	}
+
+	r.fireAgentEvent(&api.AgentEvent{
+		Type: api.AgentEvent_DELETE,
+		New:  out,
+	})
 
 	return &api.DeleteAgentResponse{}, nil
 }
@@ -267,19 +290,36 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
 	}
 
-	s, err := r.agentStore.GetAgent(req.Agent.Id)
+	old, err := r.agentStore.GetAgent(req.Agent.Id)
 	if err != nil {
 		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("agent with id %s already exists", req.Agent.Id))
 	}
 
-	s.Name = req.Agent.Name
-	s.AssignedSchemaId = req.Agent.AssignedSchemaId
-	s.EndorsableSchemaIds = req.Agent.EndorsableSchemaIds
+	var upd = *old
+	upd.Name = req.Agent.Name
+	upd.AssignedSchemaId = req.Agent.AssignedSchemaId
+	upd.EndorsableSchemaIds = req.Agent.EndorsableSchemaIds
 
-	err = r.agentStore.UpdateAgent(s)
+	err = r.agentStore.UpdateAgent(&upd)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
 	}
+
+	r.fireAgentEvent(&api.AgentEvent{
+		Type: api.AgentEvent_UPDATE,
+		Old: &api.Agent{
+			Id:                  old.ID,
+			Name:                old.Name,
+			AssignedSchemaId:    old.AssignedSchemaId,
+			EndorsableSchemaIds: old.EndorsableSchemaIds,
+		},
+		New: &api.Agent{
+			Id:                  upd.ID,
+			Name:                upd.Name,
+			AssignedSchemaId:    upd.AssignedSchemaId,
+			EndorsableSchemaIds: upd.EndorsableSchemaIds,
+		},
+	})
 
 	return &api.UpdateAgentResponse{}, nil
 }
@@ -356,7 +396,50 @@ func (r *APIServer) ShutdownAgent(_ context.Context, req *api.ShutdownAgentReque
 	return &api.ShutdownAgentResponse{}, nil
 }
 
-func (r *APIServer) WatchAgents(_ *api.WatchRequest, server api.Admin_WatchAgentsServer) error {
+func (r *APIServer) WatchAgents(_ *api.WatchRequest, stream api.Admin_WatchAgentsServer) error {
+
+	ch := r.registerWatcher()
+	defer r.removeWatcher(ch)
+	for ae := range ch {
+		if err := stream.Send(ae); err != nil {
+			return err
+		}
+	}
 
 	return nil
+}
+
+func (r *APIServer) removeWatcher(ch chan *api.AgentEvent) {
+	r.watcherLock.Lock()
+	defer r.watcherLock.Unlock()
+
+	close(ch)
+
+	for i, watcher := range r.watchers {
+		if watcher == ch {
+			copy(r.watchers[i:], r.watchers[i+1:])
+			r.watchers[len(r.watchers)-1] = nil
+			r.watchers = r.watchers[:len(r.watchers)-1]
+			break
+		}
+	}
+}
+
+func (r *APIServer) registerWatcher() chan *api.AgentEvent {
+	r.watcherLock.Lock()
+	defer r.watcherLock.Unlock()
+
+	ch := make(chan *api.AgentEvent)
+	r.watchers = append(r.watchers, ch)
+
+	return ch
+}
+
+func (r *APIServer) fireAgentEvent(evt *api.AgentEvent) {
+	r.watcherLock.RLock()
+	defer r.watcherLock.RUnlock()
+
+	for _, watcher := range r.watchers {
+		watcher <- evt
+	}
 }

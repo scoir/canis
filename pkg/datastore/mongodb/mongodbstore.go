@@ -114,6 +114,7 @@ func (p *Provider) CloseStore(name string) error {
 
 // InsertDID add DID to store
 func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
+	d.ID = d.DID.String()
 	_, err := r.collection.InsertOne(context.Background(), d)
 	if err != nil {
 		return errors.Wrap(err, "unable to insert DID")
@@ -165,7 +166,7 @@ func (r *mongoDBStore) SetPublicDID(DID string) error {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
 
-	_, err = r.collection.UpdateOne(ctx, bson.M{"did": DID}, bson.M{"$set": bson.M{"public": true}})
+	_, err = r.collection.UpdateOne(ctx, bson.M{"id": DID}, bson.M{"$set": bson.M{"public": true}})
 	if err != nil {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
@@ -176,6 +177,7 @@ func (r *mongoDBStore) SetPublicDID(DID string) error {
 // GetPublicDID get public DID
 func (r *mongoDBStore) GetPublicDID() (*datastore.DID, error) {
 	out := &datastore.DID{}
+
 	err := r.collection.FindOne(context.Background(), bson.M{"public": true}).Decode(out)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to find public PeerDID")

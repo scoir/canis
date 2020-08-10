@@ -6,7 +6,11 @@ SPDX-License-Identifier: Apache-2.0
 
 package datastore
 
-import "crypto/ed25519"
+import (
+	"github.com/mr-tron/base58"
+
+	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
+)
 
 type Doc interface {
 	GetID() string
@@ -50,8 +54,8 @@ type Agent struct {
 	EndorsableSchemaIds []string
 	Status              StatusType
 	PID                 string
-	PublicDID           bool
-	InvitationID        string
+	HasPublicDID        bool
+	PublicDID           *DID
 }
 
 type AgentCriteria struct {
@@ -85,12 +89,29 @@ type DIDCriteria struct {
 type DIDs []*DID
 
 type DID struct {
-	DID, Verkey, Endpoint string
-	Public                bool
-	Priv                  ed25519.PrivateKey
+	ID       string
+	DID      *identifiers.DID
+	KeyPair  *KeyPair
+	Endpoint string
+	Public   bool
 }
 
 type DIDList struct {
 	Count int
 	DIDs  []*DID
+}
+
+type KeyPair struct {
+	PublicKey  string
+	PrivateKey string
+}
+
+func (r *KeyPair) RawPublicKey() []byte {
+	k, _ := base58.Decode(r.PublicKey)
+	return k
+}
+
+func (r *KeyPair) RawPrivateKey() []byte {
+	k, _ := base58.Decode(r.PrivateKey)
+	return k
 }

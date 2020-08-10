@@ -153,7 +153,14 @@ message ShutdownAgentResponse {
 message WatchRequest {}
 
 message AgentEvent {
-
+    enum Type {
+        ADD = 0;
+        UPDATE = 1;
+        DELETE = 2;
+    }
+    Type type = 1;
+    Agent Old = 2;
+    Agent New = 3;
 }
 
 service Admin {
@@ -213,16 +220,5 @@ service Admin {
         };
 
     }
-    rpc LaunchAgent (LaunchAgentRequest) returns (LaunchAgentResponse) {
-        option (google.api.http) = {
-            post: "/agents/{id}/launch"
-        };
-    }
-    rpc ShutdownAgent (ShutdownAgentRequest) returns (ShutdownAgentResponse) {
-        option (google.api.http) = {
-            post: "/agents/{id}/shutdown"
-        };
-    }
-
     rpc WatchAgents (WatchRequest) returns (stream AgentEvent) {}
 }

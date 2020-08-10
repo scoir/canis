@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -19,7 +20,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/datastore/mongodb"
+	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
@@ -46,7 +47,7 @@ var rootCmd = &cobra.Command{
 type Provider struct {
 	vp     *viper.Viper
 	exec   runtime.Executor
-	ds     datastore.Provider
+	dm     *manager.DataProviderManager
 	client *vdr.Client
 }
 
@@ -85,24 +86,25 @@ func initConfig() {
 		os.Exit(1)
 	}
 
-	ctx = &Provider{vp: vp}
+	dc := &framework.DatastoreConfig{}
+	err := vp.UnmarshalKey("datastore", dc)
+	if err != nil {
+		log.Fatalln("invalid datastore key in configuration")
+	}
+
+	dm := manager.NewDataProviderManager(dc)
+	ctx = &Provider{
+		vp: vp,
+		dm: dm,
+	}
+}
+
+func (r *Provider) StorageManager() *manager.DataProviderManager {
+	return r.dm
 }
 
 func (r *Provider) StorageProvider() (datastore.Provider, error) {
-	if r.ds != nil {
-		return r.ds, nil
-	}
-
-	var err error
-	r.ds, err = mongodb.NewProvider(&mongodb.Config{
-		URL:      r.vp.GetString("Datastore.Mongo.URL"),
-		Database: r.vp.GetString("Datastore.Mongo.Database"),
-	})
-	if err != nil {
-		log.Fatalln("unable to create datastore connection")
-	}
-
-	return r.ds, nil
+	return r.dm.DefaultStoreProvider()
 }
 
 func (r *Provider) Executor() (runtime.Executor, error) {
@@ -151,12 +153,33 @@ func (r *Provider) VDR() (*vdr.Client, error) {
 		return nil, errors.Wrap(err, "unable to get indy vdr client")
 	}
 
+	status, err := cl.GetPoolStatus()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get pool status")
+	}
+
+	d, _ := json.MarshalIndent(status, " ", " ")
+	fmt.Println(string(d))
+
 	return cl, nil
 }
 
 func (r *Provider) GetGRPCEndpoint() (*framework.Endpoint, error) {
-	return nil, nil
+	ep := &framework.Endpoint{}
+	err := r.vp.UnmarshalKey("api.grpc", ep)
+	if err != nil {
+		return nil, errors.Wrap(err, "grpc is not properly configured")
+	}
+
+	return ep, nil
 }
+
 func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
-	return nil, nil
+	ep := &framework.Endpoint{}
+	err := r.vp.UnmarshalKey("api.grpcBridge", ep)
+	if err != nil {
+		return nil, errors.Wrap(err, "grpc bridge is not properly configured")
+	}
+
+	return ep, nil
 }

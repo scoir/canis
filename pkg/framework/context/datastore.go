@@ -10,45 +10,19 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
-	couchdbstore "github.com/scoir/canis/pkg/datastore/couchdb"
-	"github.com/scoir/canis/pkg/datastore/mongodb"
-	"github.com/scoir/canis/pkg/datastore/postgres"
+	"github.com/scoir/canis/pkg/framework"
 )
 
 const (
 	datastoreKey = "datastore"
 )
 
-type DatastoreConfig struct {
-	Database string               `mapstructure:"database"`
-	Mongo    *mongodb.Config      `mapstructure:"mongo"`
-	Postgres *postgres.Config     `mapstructure:"postgres"`
-	CouchDB  *couchdbstore.Config `mapstructure:"couchdb"`
-}
-
 func (r *Provider) Datastore() (datastore.Provider, error) {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-	if r.ds != nil {
-		return r.ds, nil
-	}
-
-	dc := &DatastoreConfig{}
+	dc := &framework.DatastoreConfig{}
 	err := r.vp.UnmarshalKey(datastoreKey, dc)
 	if err != nil {
 		return nil, errors.Wrap(err, "execution environment is not correctly configured")
 	}
 
-	switch dc.Database {
-	case "mongo":
-		r.ds, err = mongodb.NewProvider(dc.Mongo)
-	case "postgres":
-		r.ds, err = postgres.NewProvider(dc.Postgres)
-	case "couchdb":
-		r.ds, err = couchdbstore.NewProvider(dc.CouchDB.URL)
-	default:
-		return nil, errors.New("no datastore configuration was provided")
-	}
-
-	return r.ds, errors.Wrap(err, "unable to get datastore from config")
+	return r.datastoreMgr.StorageProvider(dc)
 }
