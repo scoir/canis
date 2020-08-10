@@ -4,7 +4,7 @@ Copyright Scoir Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package steward
+package apiserver
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 	"github.com/scoir/canis/pkg/proxy"
 )
 
-func (r *Steward) GetServerOpts() []grpc.ServerOption {
+func (r *APIServer) GetServerOpts() []grpc.ServerOption {
 	director := func(ctx context.Context, fullMethodName string) (context.Context, *grpc.ClientConn, error) {
 		//// Make sure we never forward internal services.
 		if strings.HasPrefix(fullMethodName, "/steward.") {

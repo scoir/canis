@@ -18,7 +18,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardListAgentResponse"
+              "$ref": "#/definitions/apiserverListAgentResponse"
             }
           },
           "default": {
@@ -60,7 +60,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardCreateAgentResponse"
+              "$ref": "#/definitions/apiserverCreateAgentResponse"
             }
           },
           "default": {
@@ -76,7 +76,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/stewardAgent"
+              "$ref": "#/definitions/apiserverAgent"
             }
           }
         ],
@@ -92,7 +92,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardUpdateAgentResponse"
+              "$ref": "#/definitions/apiserverUpdateAgentResponse"
             }
           },
           "default": {
@@ -114,38 +114,8 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/stewardAgent"
+              "$ref": "#/definitions/apiserverAgent"
             }
-          }
-        ],
-        "tags": [
-          "Admin"
-        ]
-      }
-    },
-    "/agents/{agent_id}/invitation": {
-      "get": {
-        "operationId": "Admin_GetInvitationForAgent",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/stewardAgentInivitationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "agent_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
           }
         ],
         "tags": [
@@ -160,7 +130,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardGetAgentResponse"
+              "$ref": "#/definitions/apiserverGetAgentResponse"
             }
           },
           "default": {
@@ -188,7 +158,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardDeleteAgentResponse"
+              "$ref": "#/definitions/apiserverDeleteAgentResponse"
             }
           },
           "default": {
@@ -218,7 +188,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardLaunchAgentResponse"
+              "$ref": "#/definitions/apiserverLaunchAgentResponse"
             }
           },
           "default": {
@@ -248,7 +218,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardShutdownAgentResponse"
+              "$ref": "#/definitions/apiserverShutdownAgentResponse"
             }
           },
           "default": {
@@ -278,7 +248,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardListSchemaResponse"
+              "$ref": "#/definitions/apiserverListSchemaResponse"
             }
           },
           "default": {
@@ -326,7 +296,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardCreateSchemaResponse"
+              "$ref": "#/definitions/apiserverCreateSchemaResponse"
             }
           },
           "default": {
@@ -342,7 +312,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/stewardSchema"
+              "$ref": "#/definitions/apiserverSchema"
             }
           }
         ],
@@ -358,7 +328,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardGetSchemaResponse"
+              "$ref": "#/definitions/apiserverGetSchemaResponse"
             }
           },
           "default": {
@@ -386,7 +356,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardDeleteSchemaResponse"
+              "$ref": "#/definitions/apiserverDeleteSchemaResponse"
             }
           },
           "default": {
@@ -416,7 +386,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/stewardUpdateSchemaResponse"
+              "$ref": "#/definitions/apiserverUpdateSchemaResponse"
             }
           },
           "default": {
@@ -438,7 +408,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/stewardSchema"
+              "$ref": "#/definitions/apiserverSchema"
             }
           }
         ],
@@ -458,6 +428,164 @@
         "TERMINATED"
       ],
       "default": "STARTING"
+    },
+    "apiserverAgent": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "assigned_schema_id": {
+          "type": "string"
+        },
+        "endorsable_schema_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "$ref": "#/definitions/AgentStatus"
+        },
+        "public_did": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "apiserverAgentEvent": {
+      "type": "object"
+    },
+    "apiserverAttribute": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/apiserverAttributeType"
+        }
+      }
+    },
+    "apiserverAttributeType": {
+      "type": "string",
+      "enum": [
+        "STRING",
+        "NUMBER",
+        "OBJECT",
+        "ARRAY",
+        "BOOL",
+        "NULL"
+      ],
+      "default": "STRING"
+    },
+    "apiserverCreateAgentResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "apiserverCreateSchemaResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "apiserverDeleteAgentResponse": {
+      "type": "object"
+    },
+    "apiserverDeleteSchemaResponse": {
+      "type": "object"
+    },
+    "apiserverGetAgentResponse": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "$ref": "#/definitions/apiserverAgent"
+        }
+      }
+    },
+    "apiserverGetSchemaResponse": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "$ref": "#/definitions/apiserverSchema"
+        }
+      }
+    },
+    "apiserverLaunchAgentResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/AgentStatus"
+        }
+      }
+    },
+    "apiserverListAgentResponse": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiserverAgent"
+          }
+        }
+      }
+    },
+    "apiserverListSchemaResponse": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiserverSchema"
+          }
+        }
+      }
+    },
+    "apiserverSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiserverAttribute"
+          }
+        }
+      }
+    },
+    "apiserverShutdownAgentResponse": {
+      "type": "object"
+    },
+    "apiserverUpdateAgentResponse": {
+      "type": "object"
+    },
+    "apiserverUpdateSchemaResponse": {
+      "type": "object"
     },
     "protobufAny": {
       "type": "object",
@@ -495,164 +623,30 @@
         }
       }
     },
-    "stewardAgent": {
+    "runtimeStreamError": {
       "type": "object",
       "properties": {
-        "id": {
+        "grpc_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "http_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
           "type": "string"
         },
-        "name": {
+        "http_status": {
           "type": "string"
         },
-        "assigned_schema_id": {
-          "type": "string"
-        },
-        "endorsable_schema_ids": {
+        "details": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
-        },
-        "status": {
-          "$ref": "#/definitions/AgentStatus"
-        }
-      }
-    },
-    "stewardAgentInivitationResponse": {
-      "type": "object",
-      "properties": {
-        "body": {
-          "type": "string"
-        }
-      }
-    },
-    "stewardAttribute": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "type": {
-          "$ref": "#/definitions/stewardAttributeType"
-        }
-      }
-    },
-    "stewardAttributeType": {
-      "type": "string",
-      "enum": [
-        "STRING",
-        "NUMBER",
-        "OBJECT",
-        "ARRAY",
-        "BOOL",
-        "NULL"
-      ],
-      "default": "STRING"
-    },
-    "stewardCreateAgentResponse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        }
-      }
-    },
-    "stewardCreateSchemaResponse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        }
-      }
-    },
-    "stewardDeleteAgentResponse": {
-      "type": "object"
-    },
-    "stewardDeleteSchemaResponse": {
-      "type": "object"
-    },
-    "stewardGetAgentResponse": {
-      "type": "object",
-      "properties": {
-        "agent": {
-          "$ref": "#/definitions/stewardAgent"
-        }
-      }
-    },
-    "stewardGetSchemaResponse": {
-      "type": "object",
-      "properties": {
-        "schema": {
-          "$ref": "#/definitions/stewardSchema"
-        }
-      }
-    },
-    "stewardLaunchAgentResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "$ref": "#/definitions/AgentStatus"
-        }
-      }
-    },
-    "stewardListAgentResponse": {
-      "type": "object",
-      "properties": {
-        "count": {
-          "type": "string",
-          "format": "int64"
-        },
-        "agents": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/stewardAgent"
+            "$ref": "#/definitions/protobufAny"
           }
         }
       }
-    },
-    "stewardListSchemaResponse": {
-      "type": "object",
-      "properties": {
-        "count": {
-          "type": "string",
-          "format": "int64"
-        },
-        "schema": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/stewardSchema"
-          }
-        }
-      }
-    },
-    "stewardSchema": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "attributes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/stewardAttribute"
-          }
-        }
-      }
-    },
-    "stewardShutdownAgentResponse": {
-      "type": "object"
-    },
-    "stewardUpdateAgentResponse": {
-      "type": "object"
-    },
-    "stewardUpdateSchemaResponse": {
-      "type": "object"
     }
   }
 }

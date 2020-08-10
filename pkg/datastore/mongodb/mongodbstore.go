@@ -415,9 +415,7 @@ func (r *mongoDBStore) Delete(id string) error {
 }
 
 func (r *mongoDBStore) Update(d datastore.Doc) error {
-	fmt.Println("called updateone")
 	_, err := r.collection.UpdateOne(context.Background(), bson.M{"id": d.GetID()}, bson.M{"$set": d})
-	fmt.Println("updateone err", err)
 	if err != nil {
 		return errors.Wrap(err, "unable to update doc")
 	}

@@ -58,7 +58,7 @@ func (r *Provider) loadDocker(dc *docker.Config) (runtime.Executor, error) {
 	if dc == nil {
 		return nil, errors.New("docker execution environment not properly configured")
 	}
-	d, err := docker.New(r, dc)
+	d, err := docker.New(dc)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create docker execution environment")
 	}

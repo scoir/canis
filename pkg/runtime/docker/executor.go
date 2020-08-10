@@ -53,9 +53,8 @@ type provider interface {
 	GetAgentConfig(agentID string) (map[string]interface{}, error)
 }
 
-func New(ctx provider, conf *Config) (runtime.Executor, error) {
+func New(conf *Config) (runtime.Executor, error) {
 	r := &Executor{
-		ctx:  ctx,
 		home: conf.HomeDir,
 	}
 
@@ -272,6 +271,11 @@ func (r *Executor) ShutdownSteward() error {
 
 }
 
+func (r *Executor) GetAgentConfig(agentID string) (map[string]interface{}, error) {
+	//TODO:  Build Agent config somehow, but not this way
+	return map[string]interface{}{}, nil
+}
+
 func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
 	ctx := context.Background()
 	agentContainerName := fmt.Sprintf(AgentContainerName, agent.ID)
@@ -286,7 +290,7 @@ func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
 
 	_ = r.removeContainer(agentContainerName)
 
-	am, err := r.ctx.GetAgentConfig(agent.ID)
+	am, err := r.GetAgentConfig(agent.ID)
 	if err != nil {
 		return "", errors.Wrap(err, "unexpected error generating agent configuration")
 	}

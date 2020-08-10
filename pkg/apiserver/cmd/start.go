@@ -11,8 +11,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/scoir/canis/pkg/apiserver"
 	"github.com/scoir/canis/pkg/controller"
-	"github.com/scoir/canis/pkg/steward"
 )
 
 var startCmd = &cobra.Command{
@@ -24,15 +24,15 @@ var startCmd = &cobra.Command{
 
 func runStart(cmd *cobra.Command, args []string) {
 
-	agent, err := steward.New(ctx)
+	srv, err := apiserver.New(ctx)
 	if err != nil {
-		log.Fatalln("error initializing steward agent", err)
+		log.Fatalln("error initializing canis-apiserver", err)
 	}
 
-	runner, err := controller.New(ctx, agent)
+	runner, err := controller.New(ctx, srv)
 
 	if err != nil {
-		log.Fatalln("unable to start steward", err)
+		log.Fatalln("unable to start canis-apiserver", err)
 	}
 
 	err = runner.Launch()

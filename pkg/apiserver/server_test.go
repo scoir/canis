@@ -1,4 +1,4 @@
-package steward
+package apiserver
 
 import (
 	"testing"
@@ -22,7 +22,7 @@ func TestNew(t *testing.T) {
 		p.On("Datastore").Return(ds, nil)
 		p.On("Executor").Return(nil, nil)
 		p.On("GetDIDClient").Return(nil, nil)
-		p.On("GetSupervisor", mock.AnythingOfType("*steward.Steward")).Return(nil, nil)
+		p.On("GetSupervisor", mock.AnythingOfType("*steward.APIServer")).Return(nil, nil)
 		p.On("GetBouncer").Return(nil, nil)
 		ds.On("GetPublicDID").Return(&datastore.DID{}, nil)
 
@@ -40,7 +40,7 @@ func TestNew(t *testing.T) {
 		p.On("Datastore").Return(ds, nil)
 		p.On("Executor").Return(nil, nil)
 		p.On("GetDIDClient").Return(nil, nil)
-		p.On("GetSupervisor", mock.AnythingOfType("*steward.Steward")).Return(nil, nil)
+		p.On("GetSupervisor", mock.AnythingOfType("*steward.APIServer")).Return(nil, nil)
 		p.On("GetBouncer").Return(nil, nil)
 		ds.On("GetPublicDID").Return(nil, errors.New("boom"))
 

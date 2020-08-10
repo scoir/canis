@@ -4,11 +4,10 @@ Copyright Scoir Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package steward
+package apiserver
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,27 +19,27 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/static"
-	"github.com/scoir/canis/pkg/steward/api"
 )
 
-func (r *Steward) RegisterGRPCGateway(mux *runtime.ServeMux, endpoint string, opts ...grpc.DialOption) {
+func (r *APIServer) RegisterGRPCGateway(mux *runtime.ServeMux, endpoint string, opts ...grpc.DialOption) {
 	err := api.RegisterAdminHandlerFromEndpoint(context.Background(), mux, endpoint, opts)
 	if err != nil {
 		log.Println("unable to register admin gateway", err)
 	}
 }
 
-func (r *Steward) RegisterGRPCHandler(server *grpc.Server) {
+func (r *APIServer) RegisterGRPCHandler(server *grpc.Server) {
 	api.RegisterAdminServer(server, r)
 }
 
-func (r *Steward) APISpec() (http.HandlerFunc, error) {
+func (r *APIServer) APISpec() (http.HandlerFunc, error) {
 	return static.ServeHTTP, nil
 }
 
-func (r *Steward) CreateSchema(_ context.Context, req *api.CreateSchemaRequest) (*api.CreateSchemaResponse, error) {
+func (r *APIServer) CreateSchema(_ context.Context, req *api.CreateSchemaRequest) (*api.CreateSchemaResponse, error) {
 	s := &datastore.Schema{
 		ID:      req.Schema.Id,
 		Name:    req.Schema.Name,
@@ -74,7 +73,7 @@ func (r *Steward) CreateSchema(_ context.Context, req *api.CreateSchemaRequest) 
 	}, nil
 }
 
-func (r *Steward) ListSchema(_ context.Context, req *api.ListSchemaRequest) (*api.ListSchemaResponse, error) {
+func (r *APIServer) ListSchema(_ context.Context, req *api.ListSchemaRequest) (*api.ListSchemaResponse, error) {
 	critter := &datastore.SchemaCriteria{
 		Start:    int(req.Start),
 		PageSize: int(req.PageSize),
@@ -110,7 +109,7 @@ func (r *Steward) ListSchema(_ context.Context, req *api.ListSchemaRequest) (*ap
 	return out, nil
 }
 
-func (r *Steward) GetSchema(_ context.Context, req *api.GetSchemaRequest) (*api.GetSchemaResponse, error) {
+func (r *APIServer) GetSchema(_ context.Context, req *api.GetSchemaRequest) (*api.GetSchemaResponse, error) {
 	schema, err := r.schemaStore.GetSchema(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to get schema").Error())
@@ -135,7 +134,7 @@ func (r *Steward) GetSchema(_ context.Context, req *api.GetSchemaRequest) (*api.
 	return out, nil
 }
 
-func (r *Steward) DeleteSchema(_ context.Context, req *api.DeleteSchemaRequest) (*api.DeleteSchemaResponse, error) {
+func (r *APIServer) DeleteSchema(_ context.Context, req *api.DeleteSchemaRequest) (*api.DeleteSchemaResponse, error) {
 	err := r.schemaStore.DeleteSchema(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to delete schema %s", req.Id).Error())
@@ -144,7 +143,7 @@ func (r *Steward) DeleteSchema(_ context.Context, req *api.DeleteSchemaRequest) 
 	return &api.DeleteSchemaResponse{}, nil
 }
 
-func (r *Steward) UpdateSchema(_ context.Context, req *api.UpdateSchemaRequest) (*api.UpdateSchemaResponse, error) {
+func (r *APIServer) UpdateSchema(_ context.Context, req *api.UpdateSchemaRequest) (*api.UpdateSchemaResponse, error) {
 	if req.Schema.Id == "" || req.Schema.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
 	}
@@ -172,13 +171,15 @@ func (r *Steward) UpdateSchema(_ context.Context, req *api.UpdateSchemaRequest) 
 	return &api.UpdateSchemaResponse{}, nil
 }
 
-func (r *Steward) CreateAgent(_ context.Context, req *api.CreateAgentRequest) (*api.CreateAgentResponse, error) {
+func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) (*api.CreateAgentResponse, error) {
 	a := &datastore.Agent{
 		ID:                  req.Agent.Id,
 		Name:                req.Agent.Name,
 		AssignedSchemaId:    req.Agent.AssignedSchemaId,
 		EndorsableSchemaIds: req.Agent.EndorsableSchemaIds,
+		PublicDID:           req.Agent.PublicDid,
 	}
+	//TODO:  how do we get this agents Endpoint??
 
 	if a.ID == "" || a.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
@@ -193,12 +194,19 @@ func (r *Steward) CreateAgent(_ context.Context, req *api.CreateAgentRequest) (*
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
 	}
 
+	if a.PublicDID {
+		err = r.createAgentWallet(a)
+		if err != nil {
+			return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to provision agent wallet %s", req.Agent.Id).Error())
+		}
+	}
+
 	return &api.CreateAgentResponse{
 		Id: id,
 	}, nil
 }
 
-func (r *Steward) ListAgent(_ context.Context, req *api.ListAgentRequest) (*api.ListAgentResponse, error) {
+func (r *APIServer) ListAgent(_ context.Context, req *api.ListAgentRequest) (*api.ListAgentResponse, error) {
 	critter := &datastore.AgentCriteria{
 		Start:    int(req.Start),
 		PageSize: int(req.PageSize),
@@ -227,7 +235,7 @@ func (r *Steward) ListAgent(_ context.Context, req *api.ListAgentRequest) (*api.
 	return out, nil
 }
 
-func (r *Steward) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.GetAgentResponse, error) {
+func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.GetAgentResponse, error) {
 	Agent, err := r.agentStore.GetAgent(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to get agent").Error())
@@ -245,7 +253,7 @@ func (r *Steward) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.Ge
 	return out, nil
 }
 
-func (r *Steward) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) (*api.DeleteAgentResponse, error) {
+func (r *APIServer) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) (*api.DeleteAgentResponse, error) {
 	err := r.agentStore.DeleteAgent(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to delete agent %s", req.Id).Error())
@@ -254,7 +262,7 @@ func (r *Steward) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) (*
 	return &api.DeleteAgentResponse{}, nil
 }
 
-func (r *Steward) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*api.UpdateAgentResponse, error) {
+func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*api.UpdateAgentResponse, error) {
 	if req.Agent.Id == "" || req.Agent.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
 	}
@@ -276,7 +284,7 @@ func (r *Steward) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*
 	return &api.UpdateAgentResponse{}, nil
 }
 
-func (r *Steward) LaunchAgent(_ context.Context, req *api.LaunchAgentRequest) (*api.LaunchAgentResponse, error) {
+func (r *APIServer) LaunchAgent(_ context.Context, req *api.LaunchAgentRequest) (*api.LaunchAgentResponse, error) {
 	agent, err := r.agentStore.GetAgent(req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to load agent to launch: %v", err)
@@ -324,7 +332,7 @@ func (r *Steward) LaunchAgent(_ context.Context, req *api.LaunchAgentRequest) (*
 	return out, nil
 }
 
-func (r *Steward) ShutdownAgent(_ context.Context, req *api.ShutdownAgentRequest) (*api.ShutdownAgentResponse, error) {
+func (r *APIServer) ShutdownAgent(_ context.Context, req *api.ShutdownAgentRequest) (*api.ShutdownAgentResponse, error) {
 	agent, err := r.agentStore.GetAgent(req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to load agent to shutdown: %v", err)
@@ -348,18 +356,7 @@ func (r *Steward) ShutdownAgent(_ context.Context, req *api.ShutdownAgentRequest
 	return &api.ShutdownAgentResponse{}, nil
 }
 
-func (r *Steward) GetInvitationForAgent(_ context.Context, req *api.AgentInvitiationRequest) (*api.AgentInivitationResponse, error) {
+func (r *APIServer) WatchAgents(_ *api.WatchRequest, server api.Admin_WatchAgentsServer) error {
 
-	agent, err := r.agentStore.GetAgent(req.AgentId)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Error querying high school for invite: (%v)", err)
-	}
-
-	invite, err := r.bouncer.CreateInvitationWithDIDNotify(agent.Name, r.publicDID.DID, r.handleAgentConnection, r.failedConnectionHandler)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to create invitation to high school agent: %v", err)
-	}
-
-	d, _ := json.Marshal(invite)
-	return &api.AgentInivitationResponse{Body: string(d)}, nil
+	return nil
 }

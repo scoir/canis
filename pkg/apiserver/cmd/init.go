@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/spf13/cobra"
 
 	"github.com/scoir/canis/pkg/datastore"
@@ -46,7 +45,7 @@ func initCluster(_ *cobra.Command, _ []string) {
 }
 
 func getPublicDID() (string, error) {
-	ds, err := ctx.Datastore()
+	ds, err := ctx.StorageProvider()
 	if err != nil {
 		return "", fmt.Errorf("unable to retrieve datastore: (%w)", err)
 	}
@@ -60,8 +59,6 @@ func getPublicDID() (string, error) {
 }
 
 func saveExistingPublicDID() {
-	aries := ctx.GetAriesContext()
-
 	did, keyPair, err := canisdid.CreateMyDid(&canisdid.MyDIDInfo{
 		Seed:       seed,
 		Cid:        true,
@@ -71,18 +68,17 @@ func saveExistingPublicDID() {
 		log.Fatalln(err)
 	}
 
-	_, err = aries.VDRIRegistry().Resolve(did.String())
+	vdr, err := ctx.VDR()
+	if err != nil {
+		log.Fatalln("unable to get VDR", err)
+	}
+
+	_, err = vdr.GetNym(did.String())
 	if err != nil {
 		log.Fatalln("DID must be registered to be public", err)
 	}
 
-	akms := aries.KMS()
-	_, _, err = akms.ImportPrivateKey(keyPair.Priv(), kms.ED25519Type, kms.WithKeyID(did.String()))
-	if err != nil {
-		log.Fatalln("unable to store key in aries kms", err)
-	}
-
-	ds, err := ctx.Datastore()
+	ds, err := ctx.StorageProvider()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -92,6 +88,7 @@ func saveExistingPublicDID() {
 		DID:      did.String(),
 		Verkey:   did.Verkey,
 		Endpoint: "",
+		Priv:     keyPair.Priv(),
 	}
 	err = didds.InsertDID(d)
 	if err != nil {

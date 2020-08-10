@@ -4,7 +4,7 @@ Copyright Scoir Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package steward
+package apiserver
 
 import (
 	"testing"
@@ -17,7 +17,7 @@ import (
 	emocks "github.com/scoir/canis/pkg/runtime/mocks"
 )
 
-var target *Steward
+var target *APIServer
 
 type AdminTestSuite struct {
 	suite.Suite
@@ -31,7 +31,7 @@ func (suite *AdminTestSuite) SetupTest() {
 	suite.Exec = &emocks.Executor{}
 	suite.Bouncer = &dmocks.Bouncer{}
 
-	target = &Steward{
+	target = &APIServer{
 		bouncer:     suite.Bouncer,
 		agentStore:  suite.Store,
 		schemaStore: suite.Store,

@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
+	api "github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/framework"
-	api "github.com/scoir/canis/pkg/steward/api"
 )
 
 const (

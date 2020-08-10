@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 
 package datastore
 
+import "crypto/ed25519"
+
 type Doc interface {
 	GetID() string
 }
@@ -85,6 +87,7 @@ type DIDs []*DID
 type DID struct {
 	DID, Verkey, Endpoint string
 	Public                bool
+	Priv                  ed25519.PrivateKey
 }
 
 type DIDList struct {

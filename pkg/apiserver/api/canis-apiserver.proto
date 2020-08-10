@@ -1,10 +1,10 @@
 syntax = "proto3";
-package steward;
+package apiserver;
 
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
-option go_package = "steward/api";
+option go_package = "apiserver/api";
 
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
@@ -94,6 +94,7 @@ message Agent {
         TERMINATED = 3;
     }
     Status status = 5;
+    bool public_did = 6;
 }
 
 message CreateAgentRequest {
@@ -149,12 +150,10 @@ message ShutdownAgentRequest {
 message ShutdownAgentResponse {
 }
 
-message AgentInvitiationRequest {
-    string agent_id = 1;
-}
+message WatchRequest {}
 
-message AgentInivitationResponse {
-    string body = 1;
+message AgentEvent {
+
 }
 
 service Admin {
@@ -224,9 +223,6 @@ service Admin {
             post: "/agents/{id}/shutdown"
         };
     }
-    rpc GetInvitationForAgent (AgentInvitiationRequest) returns (AgentInivitationResponse) {
-        option (google.api.http) = {
-            get: "/agents/{agent_id}/invitation"
-        };
-    }
+
+    rpc WatchAgents (WatchRequest) returns (stream AgentEvent) {}
 }

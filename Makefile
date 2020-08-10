@@ -16,17 +16,17 @@ tools:
 	go get golang.org/x/tools/cmd/cover
 	go get -u github.com/golang/protobuf/protoc-gen-go
 
-swagger_pack: pkg/static/steward_agent_swagger.go
-pkg/static/steward_agent_swagger.go: steward-pb pkg/steward/api/spec/steward_agent.swagger.json
-	staticfiles -o pkg/static/steward_agent_swagger.go --package static pkg/steward/api/spec
+swagger_pack: pkg/static/canis-apiserver_swagger.go
+pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec/canis-apiserver.swagger.json
+	staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
 
 
-build: bin/steward bin/agent bin/sirius
-build-steward: bin/steward
+build: bin/canis-apiserver bin/agent bin/sirius
+build-canis-apiserver: bin/canis-apiserver
 
-steward: bin/steward
-bin/steward: steward-pb swagger_pack
-	@. ./canis.sh; cd cmd/steward && go build -o $(CANIS_ROOT)/bin/steward
+canis-apiserver: bin/canis-apiserver
+bin/canis-apiserver: canis-apiserver-pb swagger_pack
+	@. ./canis.sh; cd cmd/canis-apiserver && go build -o $(CANIS_ROOT)/bin/canis-apiserver
 
 sirius: bin/sirius
 bin/sirius:
@@ -39,7 +39,7 @@ build-agent: bin/agent
 build-router: bin/router
 
 agent: bin/agent
-bin/agent: steward-pb
+bin/agent: canis-apiserver-pb
 	@. ./canis.sh; cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
 
 agency: bin/agency bin/router
@@ -54,12 +54,12 @@ canis-docker: build
 	@echo "Building canis docker image"
 	@docker build -f ./docker/canis/Dockerfile --no-cache -t canis/canis:latest .
 
-steward-pb: pkg/steward/api/steward_agent.pb.go
-pkg/steward/api/steward_agent.pb.go:pkg/steward/api/steward_agent.proto
-	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I steward/api/ steward/api/steward_agent.proto --go_out=plugins=grpc:.
-	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I steward/api/ steward/api/steward_agent.proto --grpc-gateway_out=logtostderr=true:.
-	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I steward/api/ steward/api/steward_agent.proto --swagger_out=logtostderr=true:.
-	mv pkg/steward/api/steward_agent.swagger.json pkg/steward/api/spec
+canis-apiserver-pb: pkg/apiserver/api/canis-apiserver.pb.go
+pkg/apiserver/api/canis-apiserver.pb.go:pkg/apiserver/api/canis-apiserver.proto
+	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I apiserver/api/ apiserver/api/canis-apiserver.proto --go_out=plugins=grpc:.
+	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I apiserver/api/ apiserver/api/canis-apiserver.proto --grpc-gateway_out=logtostderr=true:.
+	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I apiserver/api/ apiserver/api/canis-apiserver.proto --swagger_out=logtostderr=true:.
+	mv pkg/apiserver/api/canis-apiserver.swagger.json pkg/apiserver/api/spec
 demo-web:
 	cd demo && npm run build
 
@@ -86,7 +86,7 @@ uninstall:
 	@helm uninstall canis && ([ $$? -eq 0 ] && echo "") || echo "nothing to uninstall!"
 
 expose:
-	minikube service -n hyades steward-loadbalancer --url
+	minikube service -n hyades canis-apiserver-loadbalancer --url
 
 von-ip:
 	@docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' von_webserver_1
