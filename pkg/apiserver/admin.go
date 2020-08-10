@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
@@ -322,78 +321,6 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 	})
 
 	return &api.UpdateAgentResponse{}, nil
-}
-
-func (r *APIServer) LaunchAgent(_ context.Context, req *api.LaunchAgentRequest) (*api.LaunchAgentResponse, error) {
-	agent, err := r.agentStore.GetAgent(req.Id)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to load agent to launch: %v", err)
-	}
-
-	pID, err := r.exec.LaunchAgent(agent)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to launch agent: %v", err)
-	}
-	agent.PID = pID
-
-	err = r.agentStore.UpdateAgent(agent)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to save agent: %v", err)
-	}
-
-	out := &api.LaunchAgentResponse{
-		Status: api.Agent_STARTING,
-	}
-	if req.Wait {
-		w, err := r.exec.Watch(agent.PID)
-		if err != nil {
-			log.Println("error watching agent")
-		}
-		stopper := time.AfterFunc(time.Minute, func() {
-			w.Stop()
-		})
-		defer stopper.Stop()
-
-		for event := range w.ResultChan() {
-			switch event.RuntimeContext.Status() {
-			case datastore.Running:
-				out.Status = api.Agent_RUNNING
-				return out, nil
-			case datastore.Error:
-				out.Status = api.Agent_ERROR
-				return out, nil
-			case datastore.Completed:
-				out.Status = api.Agent_TERMINATED
-				return out, nil
-			}
-		}
-	}
-
-	return out, nil
-}
-
-func (r *APIServer) ShutdownAgent(_ context.Context, req *api.ShutdownAgentRequest) (*api.ShutdownAgentResponse, error) {
-	agent, err := r.agentStore.GetAgent(req.Id)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to load agent to shutdown: %v", err)
-	}
-
-	if agent.PID == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "agent with ID %s is not currently running", req.Id)
-	}
-
-	err = r.exec.ShutdownAgent(agent.PID)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to shutdown agent: %v", err)
-	}
-
-	agent.PID = ""
-	err = r.agentStore.UpdateAgent(agent)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to save agent after shutdown: %v", err)
-	}
-
-	return &api.ShutdownAgentResponse{}, nil
 }
 
 func (r *APIServer) WatchAgents(_ *api.WatchRequest, stream api.Admin_WatchAgentsServer) error {

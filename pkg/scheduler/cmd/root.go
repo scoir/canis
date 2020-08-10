@@ -7,23 +7,21 @@ SPDX-License-Identifier: Apache-2.0
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 
+	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	"github.com/scoir/canis/pkg/runtime"
 	"github.com/scoir/canis/pkg/runtime/docker"
 )
@@ -37,18 +35,17 @@ var cfgFile string
 var ctx *Provider
 
 var rootCmd = &cobra.Command{
-	Use:   "canis-apiserver",
-	Short: "The canis steward orchestration service.",
-	Long: `"The canis steward orchestration service.".
+	Use:   "canis-scheduler",
+	Short: "The canis orchestration service.",
+	Long: `"The canis orchestration service.".
 
  Find more information at: https://canis.io/docs/reference/canis/overview`,
 }
 
 type Provider struct {
-	vp     *viper.Viper
-	exec   runtime.Executor
-	dm     *manager.DataProviderManager
-	client *vdr.Client
+	vp   *viper.Viper
+	exec runtime.Executor
+	dm   *manager.DataProviderManager
 }
 
 func Execute() {
@@ -60,7 +57,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/canis/canis-apiserver-config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/canis/canis-scheduler-config.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -74,7 +71,7 @@ func initConfig() {
 		vp.SetConfigType("yaml")
 		vp.AddConfigPath("/etc/canis/")
 		vp.AddConfigPath("./config/docker/")
-		vp.SetConfigName("canis-apiserver-config")
+		vp.SetConfigName("canis-scheduler-config")
 	}
 
 	vp.AutomaticEnv() // read in environment variables that match
@@ -145,25 +142,6 @@ func (r *Provider) loadDocker(dc *docker.Config) (runtime.Executor, error) {
 	return d, nil
 }
 
-func (r *Provider) VDR() (*vdr.Client, error) {
-	genesisFile := r.vp.GetString("genesisFile")
-	re := strings.NewReader(genesisFile)
-	cl, err := vdr.New(ioutil.NopCloser(re))
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get indy vdr client")
-	}
-
-	status, err := cl.GetPoolStatus()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get pool status")
-	}
-
-	d, _ := json.MarshalIndent(status, " ", " ")
-	fmt.Println(string(d))
-
-	return cl, nil
-}
-
 func (r *Provider) GetGRPCEndpoint() (*framework.Endpoint, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("api.grpc", ep)
@@ -182,4 +160,23 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	}
 
 	return ep, nil
+}
+
+func (r *Provider) AdminClient() (api.AdminClient, error) {
+	if !r.vp.IsSet("api.grpc") {
+		return nil, errors.New("api client is not properly configured")
+	}
+
+	ep := &framework.Endpoint{}
+	err := r.vp.UnmarshalKey("api.grpc", ep)
+	if err != nil {
+		return nil, errors.Wrap(err, "api client is not properly configured")
+	}
+
+	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to dial grpc for api client")
+	}
+	cl := api.NewAdminClient(cc)
+	return cl, nil
 }

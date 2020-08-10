@@ -15,16 +15,13 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
-	"github.com/scoir/canis/pkg/runtime"
 )
 
-//go:generate wire
 type APIServer struct {
 	agentStore   datastore.Store
 	schemaStore  datastore.Store
 	didStore     datastore.Store
 	storeManager *manager.DataProviderManager
-	exec         runtime.Executor
 	client       *vdr.Client
 
 	watcherLock sync.RWMutex
@@ -35,7 +32,6 @@ type APIServer struct {
 type provider interface {
 	StorageManager() *manager.DataProviderManager
 	StorageProvider() (datastore.Provider, error)
-	Executor() (runtime.Executor, error)
 	VDR() (*vdr.Client, error)
 }
 
@@ -72,13 +68,6 @@ func New(ctx provider) (*APIServer, error) {
 	}
 
 	r.storeManager = ctx.StorageManager()
-
-	exec, err := ctx.Executor()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to access runtime executor")
-	}
-
-	r.exec = exec
 
 	return r, nil
 }

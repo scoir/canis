@@ -21,12 +21,17 @@ pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec
 	staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
 
 
-build: bin/canis-apiserver bin/agent bin/sirius
+build: bin/canis-apiserver bin/canis-scheduler bin/agent bin/sirius
 build-canis-apiserver: bin/canis-apiserver
+build-canis-scheduler: bin/canis-scheduler
 
 canis-apiserver: bin/canis-apiserver
 bin/canis-apiserver: canis-apiserver-pb swagger_pack
 	@. ./canis.sh; cd cmd/canis-apiserver && go build -o $(CANIS_ROOT)/bin/canis-apiserver
+
+canis-scheduler: bin/canis-scheduler
+bin/canis-scheduler: canis-apiserver-pb
+	@. ./canis.sh; cd cmd/canis-scheduler && go build -o $(CANIS_ROOT)/bin/canis-scheduler
 
 sirius: bin/sirius
 bin/sirius:
