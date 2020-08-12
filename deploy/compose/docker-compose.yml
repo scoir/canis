@@ -26,6 +26,10 @@ services:
     secrets:
       - source: canis-scheduler-config
         target: /etc/canis/canis-scheduler-config.yml
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
     deploy:
       replicas: 1
       update_config:

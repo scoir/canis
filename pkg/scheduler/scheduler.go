@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/client/canis"
@@ -90,7 +88,7 @@ func (r *Server) Run(stopCh chan struct{}) {
 func (r *Server) launchAgent(agent *api.Agent) (api.Agent_Status, error) {
 	pID, err := r.exec.LaunchAgent(agent.Id)
 	if err != nil {
-		return api.Agent_ERROR, status.Errorf(codes.Internal, "unable to launch agent: %v", err)
+		return api.Agent_ERROR, errors.Wrap(err, "unable to launch agent")
 	}
 
 	out := &api.LaunchAgentResponse{
@@ -126,22 +124,22 @@ func (r *Server) launchAgent(agent *api.Agent) (api.Agent_Status, error) {
 func (r *Server) shutdownAgent(a *api.Agent) error {
 	agent, err := r.agentStore.GetAgent(a.Id)
 	if err != nil {
-		return status.Errorf(codes.Internal, "unable to load agent to shutdown: %v", err)
+		return errors.Wrap(err, "unable to load agent to shutdown")
 	}
 
 	if agent.PID == "" {
-		return status.Errorf(codes.InvalidArgument, "agent with ID %s is not currently running", a.Id)
+		return errors.Wrapf(err, "agent with ID %s is not currently running", a.Id)
 	}
 
 	err = r.exec.ShutdownAgent(agent.PID)
 	if err != nil {
-		return status.Errorf(codes.Internal, "unable to shutdown agent: %v", err)
+		return errors.Wrap(err, "unable to shutdown agent")
 	}
 
 	agent.PID = ""
 	err = r.agentStore.UpdateAgent(agent)
 	if err != nil {
-		return status.Errorf(codes.Internal, "unable to save agent after shutdown: %v", err)
+		return errors.Wrap(err, "unable to save agent after shutdown")
 	}
 
 	return nil

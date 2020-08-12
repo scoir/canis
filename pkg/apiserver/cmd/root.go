@@ -22,19 +22,14 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
-	"github.com/scoir/canis/pkg/framework/context"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	"github.com/scoir/canis/pkg/runtime"
-	"github.com/scoir/canis/pkg/runtime/docker"
 )
 
-const (
-	executionKey = "execution"
+var (
+	cfgFile string
+	ctx     *Provider
 )
-
-var cfgFile string
-
-var ctx *Provider
 
 var rootCmd = &cobra.Command{
 	Use:   "canis-apiserver",
@@ -106,44 +101,6 @@ func (r *Provider) StorageManager() *manager.DataProviderManager {
 
 func (r *Provider) StorageProvider() (datastore.Provider, error) {
 	return r.dm.DefaultStoreProvider()
-}
-
-func (r *Provider) Executor() (runtime.Executor, error) {
-	if r.exec != nil {
-		return r.exec, nil
-	}
-
-	rtc := &context.RuntimeConfig{}
-	err := r.vp.UnmarshalKey(executionKey, rtc)
-	if err != nil {
-		return nil, errors.Wrap(err, "execution environment is not correctly configured")
-	}
-	switch rtc.Runtime {
-	case "kubernetes":
-		r.exec, err = r.loadK8s()
-	case "docker":
-		r.exec, err = r.loadDocker(rtc.Docker)
-	default:
-		return nil, errors.New("no known execution environment is configured")
-	}
-
-	return r.exec, errors.Wrap(err, "unable to launch runtime from config")
-
-}
-
-func (r *Provider) loadK8s() (runtime.Executor, error) {
-	return nil, errors.New("not implemented")
-}
-
-func (r *Provider) loadDocker(dc *docker.Config) (runtime.Executor, error) {
-	if dc == nil {
-		return nil, errors.New("docker execution environment not properly configured")
-	}
-	d, err := docker.New(dc)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to create docker execution environment")
-	}
-	return d, nil
 }
 
 func (r *Provider) VDR() (*vdr.Client, error) {
