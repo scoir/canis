@@ -1,0 +1,47 @@
+version: "3.3"
+services:
+  canis-apiserver:
+    image: canis/canis
+    command: "canis-apiserver start"
+    ports:
+      - "7778:7778"
+      - "7779:7779"
+    networks:
+      - backend
+    secrets:
+      - source: canis-apiserver-config
+        target: /etc/canis/canis-apiserver-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  canis-scheduler:
+    image: canis/canis
+    command: "canis-scheduler start"
+    networks:
+      - backend
+    secrets:
+      - source: canis-scheduler-config
+        target: /etc/canis/canis-scheduler-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+secrets:
+  canis-apiserver-config:
+    file: ./canis-apiserver.yaml
+  canis-scheduler-config:
+    file: ./canis-scheduler.yaml
+
+networks:
+  backend:
+
+volumes:
+  canis_data:

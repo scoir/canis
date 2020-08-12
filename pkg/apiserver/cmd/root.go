@@ -77,6 +77,7 @@ func initConfig() {
 		vp.SetConfigName("canis-apiserver-config")
 	}
 
+	vp.SetEnvPrefix("CANIS")
 	vp.AutomaticEnv() // read in environment variables that match
 	_ = vp.BindPFlags(pflag.CommandLine)
 

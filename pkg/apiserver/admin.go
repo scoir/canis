@@ -20,6 +20,7 @@ import (
 
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 	"github.com/scoir/canis/pkg/static"
 )
 
@@ -278,7 +279,7 @@ func (r *APIServer) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) 
 
 	r.fireAgentEvent(&api.AgentEvent{
 		Type: api.AgentEvent_DELETE,
-		New:  out,
+		Old:  out,
 	})
 
 	return &api.DeleteAgentResponse{}, nil
@@ -369,4 +370,46 @@ func (r *APIServer) fireAgentEvent(evt *api.AgentEvent) {
 	for _, watcher := range r.watchers {
 		watcher <- evt
 	}
+}
+
+func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeePublicDIDRequest) (*api.SeedPublicDIDResponse, error) {
+	_, err := r.didStore.GetPublicDID()
+	if err == nil {
+		return nil, status.Error(codes.FailedPrecondition, "public DID already exists")
+	}
+
+	did, keyPair, err := identifiers.CreateDID(&identifiers.MyDIDInfo{
+		Seed:       req.Seed,
+		Cid:        true,
+		MethodName: "scr",
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create new DID for apiserver PublicDID").Error())
+	}
+
+	_, err = r.client.GetNym(did.String())
+	if err != nil {
+		log.Fatalln("DID must be registered to be public", err)
+	}
+
+	var d = &datastore.DID{
+		DID: did,
+		KeyPair: &datastore.KeyPair{
+			PublicKey:  keyPair.PublicKey(),
+			PrivateKey: keyPair.PrivateKey(),
+		},
+		Endpoint: "",
+	}
+	err = r.didStore.InsertDID(d)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = r.didStore.SetPublicDID(did.String())
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return &api.SeedPublicDIDResponse{}, nil
 }

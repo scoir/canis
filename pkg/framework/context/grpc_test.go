@@ -67,7 +67,7 @@ func TestProvider_GetStewardClient(t *testing.T) {
 		vp := viper.New()
 		p := NewProvider(vp)
 
-		ep, err := p.GetStewardClient()
+		ep, err := p.GetAPIAdminClient()
 		assert.NotNil(t, err)
 		assert.Nil(t, ep)
 		assert.Equal(t, "steward client is not properly configured", err.Error())
@@ -80,7 +80,7 @@ func TestProvider_GetStewardClient(t *testing.T) {
 		assert.Nil(t, err)
 		p := NewProvider(vp)
 
-		client, err := p.GetStewardClient()
+		client, err := p.GetAPIAdminClient()
 		assert.Nil(t, err)
 		assert.NotNil(t, client)
 	})

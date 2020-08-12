@@ -15,9 +15,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 
-	"github.com/scoir/canis/pkg/apiserver/api"
+	"github.com/scoir/canis/pkg/client/canis"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
@@ -162,7 +161,7 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	return ep, nil
 }
 
-func (r *Provider) AdminClient() (api.AdminClient, error) {
+func (r *Provider) CanisClient() (*canis.Client, error) {
 	if !r.vp.IsSet("api.grpc") {
 		return nil, errors.New("api client is not properly configured")
 	}
@@ -173,10 +172,6 @@ func (r *Provider) AdminClient() (api.AdminClient, error) {
 		return nil, errors.Wrap(err, "api client is not properly configured")
 	}
 
-	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to dial grpc for api client")
-	}
-	cl := api.NewAdminClient(cc)
-	return cl, nil
+	client := canis.New(ep.Address())
+	return client, nil
 }

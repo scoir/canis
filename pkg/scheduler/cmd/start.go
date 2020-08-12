@@ -8,6 +8,8 @@ package cmd
 
 import (
 	"log"
+	"os"
+	"os/signal"
 
 	"github.com/spf13/cobra"
 
@@ -27,8 +29,18 @@ func runStart(_ *cobra.Command, _ []string) {
 	if err != nil {
 		log.Fatalln("error initializing canis-apiserver", err)
 	}
+	stop := make(chan struct{})
 
-	srv.Run()
+	go func() {
+		sig := make(chan os.Signal)
+		signal.Notify(sig, os.Kill, os.Interrupt)
+		<-sig
+
+		log.Println("cleaning up")
+		stop <- struct{}{}
+	}()
+
+	srv.Run(stop)
 	log.Println("Shutdown")
 }
 

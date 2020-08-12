@@ -12,14 +12,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
-	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
+	"github.com/scoir/canis/pkg/client/canis"
+	"github.com/scoir/canis/pkg/client/informer"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
-	"github.com/scoir/canis/pkg/util"
 )
 
 type scheduler struct {
@@ -45,27 +47,41 @@ func main() {
 	fmt.Println("DID:", did.String())
 	fmt.Println("Verkey:", did.AbbreviateVerkey())
 
-	cc, err := grpc.Dial("127.0.0.1:7778", grpc.WithInsecure())
-	if err != nil {
-		log.Fatalln("can't connect", err)
-	}
-	s := &scheduler{
-		client: api.NewAdminClient(cc),
-	}
+	client := canis.New("127.0.0.1:7778")
+	client.AgentInformer().AddEventHandler(informer.ResourceEventHandlerFuncs{
+		AddFunc: func(n interface{}) {
+			log.Println("*** ADDED ***")
+			d, _ := json.MarshalIndent(n, " ", " ")
+			fmt.Println(string(d))
+		},
+		DeleteFunc: func(n interface{}) {
+			log.Println("*** DELETED ***")
+			d, _ := json.MarshalIndent(n, " ", " ")
+			fmt.Println(string(d))
+		},
+	})
 
-	err = backoff.RetryNotify(s.watchAgents, backoff.NewExponentialBackOff(), util.Logger)
+	ch := make(chan bool)
+	<-ch
 }
 
 func (r *scheduler) watchAgents() error {
 	log.Println("trying agent watch")
-	stream, err := r.client.WatchAgents(context.Background(), &api.WatchRequest{})
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	stream, err := r.client.WatchAgents(ctx, &api.WatchRequest{})
 	if err != nil {
 		return errors.Wrap(err, "unable to connect")
 	}
 
+	go func() {
+		time.Sleep(8 * time.Second)
+		cancelFunc()
+	}()
+
 	for {
 		evt, err := stream.Recv()
-		if err == io.EOF {
+		fmt.Println(status.Code(err))
+		if err == io.EOF || status.Code(err) == codes.Canceled {
 			return nil
 		}
 

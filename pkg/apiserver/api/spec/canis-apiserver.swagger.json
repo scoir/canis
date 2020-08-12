@@ -530,6 +530,9 @@
         }
       }
     },
+    "apiserverSeedPublicDIDResponse": {
+      "type": "object"
+    },
     "apiserverUpdateAgentResponse": {
       "type": "object"
     },

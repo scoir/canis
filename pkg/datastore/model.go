@@ -48,9 +48,6 @@ type Agent struct {
 	ID                  string
 	Name                string
 	AssignedSchemaId    string
-	ConnectionID        string
-	ConnectionState     string
-	PeerDID             string
 	EndorsableSchemaIds []string
 	Status              StatusType
 	PID                 string

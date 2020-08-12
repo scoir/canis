@@ -29,11 +29,11 @@ import (
 )
 
 const (
-	StewardName              = "steward"
-	StewardConfig            = "%s/steward_config.yaml"
-	StewardContainerName     = "canis_steward"
-	StewardInitContainerName = "init_canis_steward"
-	CanisImage               = "canis/canis:latest"
+	APIServerName              = "canis-apiserver"
+	APIServerConfig            = "%s/steward_config.yaml"
+	APIServerContainerName     = "canis-apiserver"
+	APIServerInitContainerName = "init-canis-apiserver"
+	CanisImage                 = "canis/canis:latest"
 
 	AgentContainerName = "canis_agent_%s"
 	AgentConfig        = "%s/agent_%s_config.yaml"
@@ -44,9 +44,9 @@ type Config struct {
 }
 
 type Executor struct {
-	home string
-	ctx  provider
-	cli  *client.Client
+	home     string
+	ctx      provider
+	dockercl *client.Client
 }
 
 type provider interface {
@@ -62,7 +62,7 @@ func New(conf *Config) (runtime.Executor, error) {
 	if r.home == "" {
 		r.home = "/tmp"
 	}
-	r.cli, err = client.NewEnvClient()
+	r.dockercl, err = client.NewEnvClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to launch docker")
 	}
@@ -104,12 +104,12 @@ func (r *Executor) AgentPS() []runtime.Process {
 
 func (r *Executor) PS() []runtime.Process {
 	out := make([]runtime.Process, 0)
-	stewardConfigFile := fmt.Sprintf(StewardConfig, r.home)
+	stewardConfigFile := fmt.Sprintf(APIServerConfig, r.home)
 	proc := &dockerProc{
-		name:   StewardName,
+		name:   APIServerName,
 		config: stewardConfigFile,
 	}
-	steward, err := r.getRunningConainer(StewardContainerName)
+	steward, err := r.getRunningConainer(APIServerContainerName)
 	if err == nil {
 		proc.pid = steward.ID[:12]
 		proc.status = r.processStatus(steward)
@@ -121,168 +121,18 @@ func (r *Executor) PS() []runtime.Process {
 	return out
 }
 
-func (r *Executor) InitSteward(seed string, configFileData []byte) (string, error) {
-	ctx := context.Background()
-
-	steward, err := r.getRunningConainer(StewardInitContainerName)
-	if err == nil {
-		state := r.processStatus(steward)
-		if state == datastore.Running {
-			return "", errors.New("Steward is already running")
-		}
-	}
-
-	_ = r.removeContainer(StewardInitContainerName)
-
-	stewardConfigFile := fmt.Sprintf(StewardConfig, r.home)
-	err = ioutil.WriteFile(stewardConfigFile, configFileData, 0644)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to write config for steward")
-	}
-
-	host := &container.HostConfig{
-		AutoRemove:  false,
-		NetworkMode: "host",
-		Mounts: []mount.Mount{
-			{
-				Type:   mount.TypeBind,
-				Source: r.home,
-				Target: "/etc/canis",
-			},
-		}}
-
-	nt := &network.NetworkingConfig{}
-
-	conf := &container.Config{
-		Cmd: []string{
-			//"sleep", "3000",
-			"steward", "init", "--seed", seed,
-		},
-		Image: CanisImage,
-	}
-
-	resp, err := r.cli.ContainerCreate(ctx, conf, host, nt, StewardInitContainerName)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to create container for initializing steward")
-	}
-
-	if err := r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-		return "", errors.Wrap(err, "unable to initialize steward")
-	}
-
-	timeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
-
-	_, err = r.cli.ContainerWait(timeout, resp.ID)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to wait for steward to initialize")
-	}
-
-	logs, err := r.cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
-	})
-	if err != nil {
-		return "", errors.Wrap(err, "unable to wait for steward to initialize")
-	}
-	_ = r.removeContainer(StewardInitContainerName)
-
-	d, _ := ioutil.ReadAll(logs)
-
-	return string(d), nil
-}
-
-func (r *Executor) LaunchSteward(configFileData []byte) (string, error) {
-	ctx := context.Background()
-
-	steward, err := r.getRunningConainer(StewardContainerName)
-	if err == nil {
-		state := r.processStatus(steward)
-		if state == datastore.Running {
-			return "", errors.New("Steward is already running")
-		}
-	}
-
-	_ = r.removeContainer(StewardContainerName)
-
-	stewardConfigFile := fmt.Sprintf(StewardConfig, r.home)
-	err = ioutil.WriteFile(stewardConfigFile, configFileData, 0644)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to write config for steward")
-	}
-
-	host := &container.HostConfig{
-		PortBindings: nat.PortMap{
-			"7778/tcp": []nat.PortBinding{{"0.0.0.0", "7778"}},
-			"7779/tcp": []nat.PortBinding{{"0.0.0.0", "7779"}},
-		},
-		AutoRemove: false,
-		Mounts: []mount.Mount{
-			{
-				Type:   mount.TypeBind,
-				Source: r.home,
-				Target: "/etc/canis",
-			},
-			{
-				Type:   mount.TypeBind,
-				Source: "/var/run/docker.sock",
-				Target: "/var/run/docker.sock",
-			},
-		}}
-
-	net := &network.NetworkingConfig{}
-
-	conf := &container.Config{
-		ExposedPorts: nat.PortSet{
-			"7778/tcp": struct{}{},
-			"7779/tcp": struct{}{},
-		},
-		Cmd: []string{
-			"steward", "start",
-		},
-		Image: CanisImage,
-	}
-
-	resp, err := r.cli.ContainerCreate(ctx, conf, host, net, StewardContainerName)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to create container for steward")
-	}
-
-	if err := r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-		return "", errors.Wrap(err, "unable to start steward")
-	}
-
-	return resp.ID[:12], nil
-}
-
-func (r *Executor) ShutdownSteward() error {
-
-	steward, err := r.getRunningConainer(StewardContainerName)
-	if err == nil {
-		ctx := context.Background()
-		var timeout = time.Minute
-		err := r.cli.ContainerStop(ctx, steward.ID, &timeout)
-		if err != nil {
-			return errors.Wrap(err, "unable to stop steward")
-		}
-	}
-	_ = r.removeContainer(StewardContainerName)
-	return nil
-
-}
-
-func (r *Executor) GetAgentConfig(agentID string) (map[string]interface{}, error) {
+func (r *Executor) GetAgentConfig(_ string) (map[string]interface{}, error) {
 	//TODO:  Build Agent config somehow, but not this way
 	return map[string]interface{}{}, nil
 }
 
-func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
+func (r *Executor) LaunchAgent(agentID string) (string, error) {
 	ctx := context.Background()
-	agentContainerName := fmt.Sprintf(AgentContainerName, agent.ID)
+	agentContainerName := fmt.Sprintf(AgentContainerName, agentID)
 
-	steward, err := r.getRunningConainer(agentContainerName)
+	agent, err := r.getRunningConainer(agentContainerName)
 	if err == nil {
-		state := r.processStatus(steward)
+		state := r.processStatus(agent)
 		if state == datastore.Running {
 			return "", errors.Errorf("Agent %s is already running", agentContainerName)
 		}
@@ -290,7 +140,7 @@ func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
 
 	_ = r.removeContainer(agentContainerName)
 
-	am, err := r.GetAgentConfig(agent.ID)
+	am, err := r.GetAgentConfig(agentID)
 	if err != nil {
 		return "", errors.Wrap(err, "unexpected error generating agent configuration")
 	}
@@ -298,7 +148,7 @@ func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "unexpected yaml marshal error")
 	}
-	agentConfigFile := fmt.Sprintf(AgentConfig, "/etc/canis", agent.ID)
+	agentConfigFile := fmt.Sprintf(AgentConfig, "/etc/canis", agentID)
 	err = ioutil.WriteFile(agentConfigFile, agentConfigFileData, 0644)
 	if err != nil {
 		return "", errors.Wrap(err, "unable to write config for agent")
@@ -327,7 +177,7 @@ func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
 		Cmd: []string{
 			"agent", "start",
 			"--config", agentConfigFile,
-			"--id", agent.ID,
+			"--id", agentID,
 		},
 
 		ExposedPorts: nat.PortSet{
@@ -336,12 +186,12 @@ func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
 		},
 	}
 
-	resp, err := r.cli.ContainerCreate(ctx, conf, host, nt, agentContainerName)
+	resp, err := r.dockercl.ContainerCreate(ctx, conf, host, nt, agentContainerName)
 	if err != nil {
 		return "", errors.Wrap(err, "unable to create container for agenta")
 	}
 
-	if err := r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+	if err := r.dockercl.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
 		return "", errors.Wrap(err, "unable to start agent")
 	}
 
@@ -352,7 +202,7 @@ func (r *Executor) Status(pID string) (runtime.Process, error) {
 	panic("implement me")
 }
 
-func (r *Executor) ShutdownAgent(pID string) error {
+func (r *Executor) ShutdownAgent(agentID string) error {
 	panic("implement me")
 }
 
@@ -371,7 +221,7 @@ func (r *Executor) Describe() {
 func (r *Executor) getRunningConainer(name string) (*types.Container, error) {
 	args := filters.NewArgs()
 	args.Add("name", name)
-	containers, err := r.cli.ContainerList(context.Background(), types.ContainerListOptions{Filters: args})
+	containers, err := r.dockercl.ContainerList(context.Background(), types.ContainerListOptions{Filters: args})
 	if err != nil || len(containers) == 0 {
 		return nil, errors.New("running container not found")
 	}
@@ -397,12 +247,12 @@ func (r *Executor) removeContainer(name string) error {
 	ctx := context.Background()
 	args := filters.NewArgs()
 	args.Add("name", name)
-	containers, err := r.cli.ContainerList(ctx, types.ContainerListOptions{Filters: args, All: true})
+	containers, err := r.dockercl.ContainerList(ctx, types.ContainerListOptions{Filters: args, All: true})
 	if err != nil || len(containers) == 0 {
 		return nil
 	}
 
-	err = r.cli.ContainerRemove(ctx, containers[0].ID, types.ContainerRemoveOptions{})
+	err = r.dockercl.ContainerRemove(ctx, containers[0].ID, types.ContainerRemoveOptions{})
 	return errors.Wrap(err, "unexpected error trying to remove container")
 }
 

@@ -150,6 +150,13 @@ message ShutdownAgentRequest {
 message ShutdownAgentResponse {
 }
 
+message SeePublicDIDRequest {
+    string seed = 1;
+}
+
+message SeedPublicDIDResponse {
+}
+
 message WatchRequest {}
 
 message AgentEvent {
@@ -221,4 +228,5 @@ service Admin {
 
     }
     rpc WatchAgents (WatchRequest) returns (stream AgentEvent) {}
+    rpc SeedPublicDID(SeePublicDIDRequest) returns (SeedPublicDIDResponse) {}
 }

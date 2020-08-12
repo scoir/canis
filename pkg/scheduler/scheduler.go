@@ -1,7 +1,6 @@
 package scheduler
 
 import (
-	"context"
 	"log"
 	"time"
 
@@ -10,6 +9,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
+	"github.com/scoir/canis/pkg/client/canis"
+	"github.com/scoir/canis/pkg/client/informer"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/runtime"
@@ -17,7 +18,7 @@ import (
 
 type Server struct {
 	exec   runtime.Executor
-	client api.AdminClient
+	client *canis.Client
 
 	storeManager *manager.DataProviderManager
 	agentStore   datastore.Store
@@ -28,7 +29,7 @@ type provider interface {
 	StorageManager() *manager.DataProviderManager
 	StorageProvider() (datastore.Provider, error)
 	Executor() (runtime.Executor, error)
-	AdminClient() (api.AdminClient, error)
+	CanisClient() (*canis.Client, error)
 }
 
 func New(ctx provider) (*Server, error) {
@@ -50,86 +51,98 @@ func New(ctx provider) (*Server, error) {
 		return nil, err
 	}
 
-	r.client, err = ctx.AdminClient()
+	r.client, err = ctx.CanisClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to start scheduler")
 	}
 
+	//TODO: self heal:
+	//      - scan for agents not running that should be and start them
+	//      - shutdown any agents that no longer exist
+
 	return r, nil
 }
 
-func (r *Server) Run() {
+func (r *Server) Run(stopCh chan struct{}) {
+	inf := r.client.AgentInformer()
+	inf.AddEventHandler(informer.ResourceEventHandlerFuncs{
+		AddFunc: func(n interface{}) {
+			log.Println("starting agent")
+			a := n.(*api.Agent)
+			sts, err := r.launchAgent(a)
+			if err != nil {
+				log.Println(errors.Wrapf(err, "launch agent failed with status: %d", sts))
+			}
+		},
+		DeleteFunc: func(n interface{}) {
+			log.Println("starting agent")
+			a := n.(*api.Agent)
+			err := r.shutdownAgent(a)
+			if err != nil {
+				log.Printf("shutdown agent failed: %v", err)
+			}
+		},
+	})
 
+	inf.Run(stopCh)
 }
 
-func (r *Server) launchAgent(_ context.Context, req *api.LaunchAgentRequest) (*api.LaunchAgentResponse, error) {
-	agent, err := r.agentStore.GetAgent(req.Id)
+func (r *Server) launchAgent(agent *api.Agent) (api.Agent_Status, error) {
+	pID, err := r.exec.LaunchAgent(agent.Id)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to load agent to launch: %v", err)
-	}
-
-	pID, err := r.exec.LaunchAgent(agent)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to launch agent: %v", err)
-	}
-	agent.PID = pID
-
-	err = r.agentStore.UpdateAgent(agent)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to save agent: %v", err)
+		return api.Agent_ERROR, status.Errorf(codes.Internal, "unable to launch agent: %v", err)
 	}
 
 	out := &api.LaunchAgentResponse{
 		Status: api.Agent_STARTING,
 	}
-	if req.Wait {
-		w, err := r.exec.Watch(agent.PID)
-		if err != nil {
-			log.Println("error watching agent")
-		}
-		stopper := time.AfterFunc(time.Minute, func() {
-			w.Stop()
-		})
-		defer stopper.Stop()
 
-		for event := range w.ResultChan() {
-			switch event.RuntimeContext.Status() {
-			case datastore.Running:
-				out.Status = api.Agent_RUNNING
-				return out, nil
-			case datastore.Error:
-				out.Status = api.Agent_ERROR
-				return out, nil
-			case datastore.Completed:
-				out.Status = api.Agent_TERMINATED
-				return out, nil
-			}
+	w, err := r.exec.Watch(pID)
+	if err != nil {
+		log.Println("error watching agent")
+	}
+	stopper := time.AfterFunc(time.Minute, func() {
+		w.Stop()
+	})
+	defer stopper.Stop()
+
+	for event := range w.ResultChan() {
+		switch event.RuntimeContext.Status() {
+		case datastore.Running:
+			out.Status = api.Agent_RUNNING
+			return out.Status, nil
+		case datastore.Error:
+			out.Status = api.Agent_ERROR
+			return out.Status, errors.New(out.String())
+		case datastore.Completed:
+			out.Status = api.Agent_TERMINATED
+			return out.Status, nil
 		}
 	}
 
-	return out, nil
+	return out.Status, nil
 }
 
-func (r *Server) shutdownAgent(_ context.Context, req *api.ShutdownAgentRequest) (*api.ShutdownAgentResponse, error) {
-	agent, err := r.agentStore.GetAgent(req.Id)
+func (r *Server) shutdownAgent(a *api.Agent) error {
+	agent, err := r.agentStore.GetAgent(a.Id)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to load agent to shutdown: %v", err)
+		return status.Errorf(codes.Internal, "unable to load agent to shutdown: %v", err)
 	}
 
 	if agent.PID == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "agent with ID %s is not currently running", req.Id)
+		return status.Errorf(codes.InvalidArgument, "agent with ID %s is not currently running", a.Id)
 	}
 
 	err = r.exec.ShutdownAgent(agent.PID)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to shutdown agent: %v", err)
+		return status.Errorf(codes.Internal, "unable to shutdown agent: %v", err)
 	}
 
 	agent.PID = ""
 	err = r.agentStore.UpdateAgent(agent)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to save agent after shutdown: %v", err)
+		return status.Errorf(codes.Internal, "unable to save agent after shutdown: %v", err)
 	}
 
-	return &api.ShutdownAgentResponse{}, nil
+	return nil
 }

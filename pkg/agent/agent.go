@@ -29,7 +29,7 @@ type Agent struct {
 type provider interface {
 	UnmarshalConfig(dest interface{}) error
 	Datastore() (datastore.Provider, error)
-	GetStewardClient() (api.AdminClient, error)
+	GetAPIAdminClient() (api.AdminClient, error)
 	GetDIDClient() (*didexchange.Client, error)
 	GetAriesContext() *ariesctx.Provider
 }
@@ -44,7 +44,7 @@ func NewAgent(p provider, opts ...Option) (*Agent, error) {
 	}
 
 	var err error
-	r.steward, err = p.GetStewardClient()
+	r.steward, err = p.GetAPIAdminClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting steward client for agent")
 	}

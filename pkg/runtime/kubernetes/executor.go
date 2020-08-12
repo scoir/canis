@@ -14,7 +14,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/runtime"
 )
@@ -29,14 +28,6 @@ type Config struct {
 type Executor struct {
 }
 
-func (r *Executor) InitSteward(seed string, d []byte) (string, error) {
-	panic("implement me")
-}
-
-func (r *Executor) ShutdownSteward() error {
-	panic("implement me")
-}
-
 func (r *Executor) AgentPS() []runtime.Process {
 	panic("implement me")
 }
@@ -49,11 +40,7 @@ func New(conf *Config) runtime.Executor {
 	return &Executor{}
 }
 
-func (r *Executor) LaunchSteward(conf []byte) (string, error) {
-	panic("implement me")
-}
-
-func (r *Executor) LaunchAgent(agent *datastore.Agent) (string, error) {
+func (r *Executor) LaunchAgent(agentID string) (string, error) {
 	panic("implement me")
 }
 
