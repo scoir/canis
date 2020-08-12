@@ -21,6 +21,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
 
 const (
@@ -96,7 +97,11 @@ func TestInsertListDID(t *testing.T) {
 		require.NoError(t, err)
 
 		err = store.InsertDID(&datastore.DID{
-			DID:    "a did",
+			DID: &identifiers.DID{
+				DIDVal: identifiers.DIDValue{
+					DID: "a did",
+				},
+			},
 			Public: true,
 		})
 		require.NoError(t, err)
@@ -106,8 +111,8 @@ func TestInsertListDID(t *testing.T) {
 
 		require.Equal(t, didlist.Count, 1)
 
-		did := didlist.DIDs[0]
-		require.Equal(t, "a did", did.DID)
+		did := didlist.DIDs[0].DID.DIDVal.DID
+		require.Equal(t, "a did", did)
 
 		err = prov.CloseStore("test_list")
 		require.NoError(t, err)
@@ -125,18 +130,26 @@ func TestSetGetPublicDID(t *testing.T) {
 		store, err := prov.OpenStore("test_dids")
 		require.NoError(t, err)
 
-		err = store.InsertDID(&datastore.DID{DID: "did to be public", Public: false})
+		err = store.InsertDID(&datastore.DID{DID: &identifiers.DID{
+			DIDVal: identifiers.DIDValue{
+				DID: "did to be public",
+			},
+		}, Public: false})
 		require.NoError(t, err)
-		err = store.InsertDID(&datastore.DID{DID: "didtobepublic", Public: true})
+		err = store.InsertDID(&datastore.DID{DID: &identifiers.DID{
+			DIDVal: identifiers.DIDValue{
+				DID: "didtobepublic",
+			},
+		}, Public: true})
 		require.NoError(t, err)
 
-		err = store.SetPublicDID("did to be public")
+		err = store.SetPublicDID("did:did to be public")
 		require.NoError(t, err)
 
 		public, err := store.GetPublicDID()
 		require.NoError(t, err)
 
-		require.Equal(t, "did to be public", public.DID)
+		require.Equal(t, "did to be public", public.DID.DIDVal.DID)
 
 		err = prov.CloseStore("test_dids")
 		require.NoError(t, err)
@@ -197,7 +210,7 @@ func TestAgent(t *testing.T) {
 		_, err = store.InsertAgent(&datastore.Agent{ID: "agent id", Name: "an agent"})
 		require.NoError(t, err)
 
-		_, err = store.InsertAgent(&datastore.Agent{ID: "agent id 2", Name: "another agent", InvitationID: "abc123"})
+		_, err = store.InsertAgent(&datastore.Agent{ID: "agent id 2", Name: "another agent"})
 		require.NoError(t, err)
 
 		list, err := store.ListAgent(nil)
@@ -210,10 +223,6 @@ func TestAgent(t *testing.T) {
 		updated, err := store.GetAgent("agent id")
 		require.NoError(t, err)
 		require.Equal(t, "an different agent", updated.Name)
-
-		invited, err := store.GetAgentByInvitation("abc123")
-		require.NoError(t, err)
-		require.Equal(t, "another agent", invited.Name)
 
 		err = store.DeleteAgent("agent id")
 		require.NoError(t, err)
@@ -294,7 +303,7 @@ func TestDIDFailures(t *testing.T) {
 
 		err = store.InsertDID(&datastore.DID{})
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "unable to insert DID")
+		require.Contains(t, err.Error(), "did is required")
 
 		_, err = store.ListDIDs(nil)
 		require.Error(t, err)

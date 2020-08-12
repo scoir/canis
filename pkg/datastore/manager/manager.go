@@ -60,7 +60,9 @@ func (r *DataProviderManager) StorageProvider(dc *framework.DatastoreConfig) (da
 		return nil, errors.Wrap(err, "unable to create datastore based on config")
 	}
 
-	r.ds[key] = ds
+	if r.ds != nil {
+		r.ds[key] = ds
+	}
 
 	return ds, nil
 

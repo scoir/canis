@@ -203,7 +203,7 @@ func (p *postgresDBStore) SetPublicDID(DID string) error {
 	}
 
 	_, err = p.pool.Exec(context.Background(),
-		fmt.Sprintf(`UPDATE %s SET data = jsonb_set(data, '{"Public"}', 'true', true) WHERE data ->> 'DID' = '%s';`,
+		fmt.Sprintf(`UPDATE %s SET data = jsonb_set(data, '{"Public"}', 'true', true) WHERE data -> 'DID' -> 'DIDVal' ->> 'DID' = '%s';`,
 			p.tableName, DID))
 	if err != nil {
 		return err

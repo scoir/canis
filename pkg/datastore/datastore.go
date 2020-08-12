@@ -13,6 +13,7 @@ const (
 )
 
 // Provider storage provider interface
+//go:generate mockery -name=Provider
 type Provider interface {
 	// OpenStore opens a store with given name space and returns the handle
 	OpenStore(name string) (Store, error)

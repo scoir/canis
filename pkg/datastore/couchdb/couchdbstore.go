@@ -146,7 +146,7 @@ func (r *couchDBStore) Update(d datastore.Doc) error {
 
 // InsertDID add DID to store
 func (r *couchDBStore) InsertDID(d *datastore.DID) error {
-	if d.DID.String() == "" {
+	if d.DID == nil || d.DID.String() == "" {
 		return errors.New("malformed DID")
 	}
 
@@ -223,35 +223,39 @@ func (r *couchDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 func (r *couchDBStore) SetPublicDID(DID string) error {
 	ctx := context.Background()
 	query := map[string]interface{}{
-		"selector": map[string]interface{}{},
+		"selector": map[string]interface{}{
+			"Public": true,
+		},
+		"limit": 1,
 	}
 
 	rows, err := r.db.Find(ctx, query)
-	if err != nil {
-		return err
-	}
-
-	var errs bool
-	dids := []interface{}{}
-	for rows.Next() {
-		d := make(map[string]interface{})
-		err = rows.ScanDoc(&d)
-		if err != nil {
-			errs = true
-			break
+	if err == nil && rows.Next() {
+		m := map[string]interface{}{}
+		err = rows.ScanDoc(&m)
+		if err == nil {
+			m["Public"] = false
+			id, _ := m["_id"].(string)
+			r.db.Put(ctx, id, m)
 		}
-
-		d["Public"] = d["DID"] == DID
-		dids = append(dids, d)
 	}
 
-	if errs {
-		return errors.New("SetPublicDID failed")
+	row := r.db.Get(ctx, DID)
+
+	if row.Err != nil {
+		return errors.Wrap(row.Err, "unable to find DID to set at public")
 	}
 
-	_, err = r.db.BulkDocs(ctx, dids)
+	did := map[string]interface{}{}
+	err = row.ScanDoc(&did)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "unable to scan DID to set as public")
+	}
+
+	did["Public"] = true
+	_, err = r.db.Put(ctx, DID, did)
+	if err != nil {
+		return errors.Wrap(err, "unable to save new public DID")
 	}
 
 	return nil

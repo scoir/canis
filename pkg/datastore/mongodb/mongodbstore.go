@@ -114,6 +114,9 @@ func (p *Provider) CloseStore(name string) error {
 
 // InsertDID add DID to store
 func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
+	if d.DID == nil {
+		return errors.New("did is required")
+	}
 	d.ID = d.DID.String()
 	_, err := r.collection.InsertOne(context.Background(), d)
 	if err != nil {
