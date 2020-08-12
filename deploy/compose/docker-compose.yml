@@ -30,6 +30,9 @@ services:
       - type: bind
         source: /var/run/docker.sock
         target: /var/run/docker.sock
+      - type: volume
+        source: etc
+        target: /etc/canis
     deploy:
       replicas: 1
       update_config:
@@ -49,3 +52,9 @@ networks:
 
 volumes:
   canis_data:
+  etc:
+    driver: local
+    driver_opts:
+      type: local
+      device: /data/canis
+      o: bind

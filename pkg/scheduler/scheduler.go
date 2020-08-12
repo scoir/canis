@@ -73,7 +73,7 @@ func (r *Server) Run(stopCh chan struct{}) {
 			}
 		},
 		DeleteFunc: func(n interface{}) {
-			log.Println("starting agent")
+			log.Println("shutting down agent")
 			a := n.(*api.Agent)
 			err := r.shutdownAgent(a)
 			if err != nil {
@@ -97,7 +97,7 @@ func (r *Server) launchAgent(agent *api.Agent) (api.Agent_Status, error) {
 
 	w, err := r.exec.Watch(pID)
 	if err != nil {
-		log.Println("error watching agent")
+		return api.Agent_ERROR, errors.Wrap(err, "error watching agent")
 	}
 	stopper := time.AfterFunc(time.Minute, func() {
 		w.Stop()

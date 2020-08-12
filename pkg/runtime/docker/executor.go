@@ -8,6 +8,7 @@ package docker
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -109,7 +110,7 @@ func (r *Executor) PS() []runtime.Process {
 		name:   APIServerName,
 		config: stewardConfigFile,
 	}
-	steward, err := r.getRunningConainer(APIServerContainerName)
+	steward, err := r.getRunningContainer(APIServerContainerName)
 	if err == nil {
 		proc.pid = steward.ID[:12]
 		proc.status = r.processStatus(steward)
@@ -130,7 +131,7 @@ func (r *Executor) LaunchAgent(agentID string) (string, error) {
 	ctx := context.Background()
 	agentContainerName := fmt.Sprintf(AgentContainerName, agentID)
 
-	agent, err := r.getRunningConainer(agentContainerName)
+	agent, err := r.getRunningContainer(agentContainerName)
 	if err == nil {
 		state := r.processStatus(agent)
 		if state == datastore.Running {
@@ -206,8 +207,34 @@ func (r *Executor) ShutdownAgent(agentID string) error {
 	panic("implement me")
 }
 
-func (r *Executor) Watch(pID string) (runtime.Watcher, error) {
-	panic("implement me")
+func (r *Executor) Watch(agentID string) (runtime.Watcher, error) {
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	agentContainerName := fmt.Sprintf(AgentContainerName, agentID)
+
+	args := filters.NewArgs()
+	args.Add("name", agentContainerName)
+	eventStream, errStream := r.dockercl.Events(ctx, types.EventsOptions{
+		Filters: args,
+	})
+
+	go func() {
+		timeout := time.After(2 * time.Minute)
+		for {
+			select {
+			case evt := <-eventStream:
+				fmt.Println("event:")
+				d, _ := json.MarshalIndent(evt, " ", " ")
+				fmt.Println(string(d))
+			case err := <-errStream:
+				fmt.Println("error", err)
+			case <-timeout:
+				cancelFunc()
+				return
+			}
+		}
+	}()
+
+	return nil, errors.New("not implemented yet")
 }
 
 func (r *Executor) StreamLogs(pID string) (io.ReadCloser, error) {
@@ -218,7 +245,7 @@ func (r *Executor) Describe() {
 	panic("implement me")
 }
 
-func (r *Executor) getRunningConainer(name string) (*types.Container, error) {
+func (r *Executor) getRunningContainer(name string) (*types.Container, error) {
 	args := filters.NewArgs()
 	args.Add("name", name)
 	containers, err := r.dockercl.ContainerList(context.Background(), types.ContainerListOptions{Filters: args})
