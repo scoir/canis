@@ -8,14 +8,12 @@ package apiserver
 
 import (
 	"context"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/runtime"
 )
 
 func (suite *AdminTestSuite) TestCreateAgent() {
@@ -156,7 +154,8 @@ func (suite *AdminTestSuite) TestDeleteAgent() {
 	request := &api.DeleteAgentRequest{
 		Id: "123",
 	}
-
+	agent := &datastore.Agent{ID: "123"}
+	suite.Store.On("GetAgent", "123").Return(agent, nil)
 	suite.Store.On("DeleteAgent", "123").Return(nil)
 
 	resp, err := target.DeleteAgent(context.Background(), request)
@@ -169,6 +168,8 @@ func (suite *AdminTestSuite) TestDeleteAgentErr() {
 		Id: "123",
 	}
 
+	agent := &datastore.Agent{ID: "123"}
+	suite.Store.On("GetAgent", "123").Return(agent, nil)
 	suite.Store.On("DeleteAgent", "123").Return(errors.New("BOOM"))
 
 	resp, err := target.DeleteAgent(context.Background(), request)
@@ -445,153 +446,4 @@ func (suite *AdminTestSuite) TestUpdateSchemaDataMissing() {
 	resp, err := target.UpdateSchema(context.Background(), request)
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), resp)
-}
-
-func (suite *AdminTestSuite) TestLaunchAgent() {
-	agent := &datastore.Agent{
-		ID:                  "123",
-		Name:                "Test Agent",
-		AssignedSchemaId:    "",
-		EndorsableSchemaIds: nil,
-	}
-
-	req := &api.LaunchAgentRequest{
-		Id:   "123",
-		Wait: false,
-	}
-
-	suite.Store.On("GetAgent", "123").Return(agent, nil)
-	suite.Exec.On("LaunchAgent", agent).Return("ABC", nil)
-	suite.Store.On("UpdateAgent", agent).Return(nil)
-
-	resp, err := target.LaunchAgent(context.Background(), req)
-	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), resp)
-	assert.Equal(suite.T(), api.Agent_STARTING, resp.Status)
-}
-
-func (suite *AdminTestSuite) TestLaunchAgentError() {
-	agent := &datastore.Agent{
-		ID:                  "123",
-		Name:                "Test Agent",
-		AssignedSchemaId:    "",
-		EndorsableSchemaIds: nil,
-	}
-
-	req := &api.LaunchAgentRequest{
-		Id:   "123",
-		Wait: false,
-	}
-
-	suite.Store.On("GetAgent", "123").Return(agent, nil)
-	suite.Exec.On("LaunchAgent", agent).Return("", errors.New("BOOM"))
-
-	resp, err := target.LaunchAgent(context.Background(), req)
-	assert.NotNil(suite.T(), err)
-	assert.Nil(suite.T(), resp)
-	assert.Equal(suite.T(), "rpc error: code = Internal desc = unable to launch agent: BOOM", err.Error())
-}
-
-type watch struct {
-	ch <-chan runtime.AgentEvent
-}
-
-func (r *watch) Stop() {
-}
-
-func (r *watch) ResultChan() <-chan runtime.AgentEvent {
-	return r.ch
-}
-
-type process struct{ status datastore.StatusType }
-
-func (r *process) Name() string {
-	panic("implement me")
-}
-
-func (r *process) ID() string {
-	panic("implement me")
-}
-
-func (r *process) Config() string {
-	panic("implement me")
-}
-
-func (r *process) Status() datastore.StatusType {
-	return r.status
-}
-
-func (r *process) Time() time.Duration {
-	return time.Minute
-}
-
-func (suite *AdminTestSuite) TestLaunchAgentWait() {
-	agent := &datastore.Agent{
-		ID:                  "123",
-		Name:                "Test Agent",
-		AssignedSchemaId:    "",
-		EndorsableSchemaIds: nil,
-	}
-
-	req := &api.LaunchAgentRequest{
-		Id:   "123",
-		Wait: true,
-	}
-
-	ch := make(chan runtime.AgentEvent, 1)
-	suite.Store.On("GetAgent", "123").Return(agent, nil)
-	suite.Exec.On("LaunchAgent", agent).Return("ABC", nil)
-	suite.Store.On("UpdateAgent", agent).Return(nil)
-	suite.Exec.On("Watch", "ABC").Return(&watch{ch: ch}, nil)
-	ch <- runtime.AgentEvent{
-		RuntimeContext: &process{status: datastore.Running},
-	}
-
-	resp, err := target.LaunchAgent(context.Background(), req)
-	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), resp)
-	assert.Equal(suite.T(), api.Agent_RUNNING, resp.Status)
-}
-
-func (suite *AdminTestSuite) TestShutdown() {
-	agent := &datastore.Agent{
-		ID:                  "123",
-		Name:                "Test Agent",
-		AssignedSchemaId:    "",
-		PID:                 "ABC",
-		EndorsableSchemaIds: nil,
-	}
-
-	req := &api.ShutdownAgentRequest{
-		Id: "123",
-	}
-
-	suite.Store.On("GetAgent", "123").Return(agent, nil)
-	suite.Exec.On("ShutdownAgent", "ABC").Return(nil)
-	suite.Store.On("UpdateAgent", agent).Return(nil)
-
-	resp, err := target.ShutdownAgent(context.Background(), req)
-	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), resp)
-}
-
-func (suite *AdminTestSuite) TestShutdownNotRunning() {
-	agent := &datastore.Agent{
-		ID:                  "123",
-		Name:                "Test Agent",
-		AssignedSchemaId:    "",
-		PID:                 "",
-		EndorsableSchemaIds: nil,
-	}
-
-	req := &api.ShutdownAgentRequest{
-		Id: "123",
-	}
-
-	suite.Store.On("GetAgent", "123").Return(agent, nil)
-
-	resp, err := target.ShutdownAgent(context.Background(), req)
-	assert.Nil(suite.T(), resp)
-	assert.NotNil(suite.T(), err)
-	assert.Equal(suite.T(), "rpc error: code = InvalidArgument desc = agent with ID 123 is not currently running", err.Error())
 }

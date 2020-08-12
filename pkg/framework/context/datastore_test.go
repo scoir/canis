@@ -19,20 +19,6 @@ func TestProvider_Datastore(t *testing.T) {
 		},
 	}
 
-	t.Run("test existing store", func(t *testing.T) {
-		s := &mongodb.Config{
-			URL:      "mongodb://172.17.0.1:27017",
-			Database: "canis",
-		}
-		mp, err := mongodb.NewProvider(s)
-		require.NoError(t, err)
-
-		p := &Provider{ds: mp}
-		ds, err := p.Datastore()
-		require.NoError(t, err)
-		require.NotNil(t, ds)
-	})
-
 	t.Run("test mongo config", func(t *testing.T) {
 		vp := viper.New()
 		err := vp.MergeConfigMap(map[string]interface{}{

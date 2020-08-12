@@ -75,7 +75,9 @@ func TestProvider_GetStewardClient(t *testing.T) {
 	t.Run("test with key", func(t *testing.T) {
 		vp := viper.New()
 		err := vp.MergeConfigMap(map[string]interface{}{
-			"stewardEndpoint": endpoint,
+			"api": map[string]interface{}{
+				"grpc": endpoint,
+			},
 		})
 		assert.Nil(t, err)
 		p := NewProvider(vp)

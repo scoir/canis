@@ -7,7 +7,7 @@ import (
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
-	"github.com/hyperledger/aries-framework-go/pkg/client/route"
+	"github.com/hyperledger/aries-framework-go/pkg/client/mediator"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -151,7 +151,7 @@ func TestProvider_GetAgentConfig1(t *testing.T) {
 		ctx     *context.Provider
 		didcl   *didexchange.Client
 		credcl  *issuecredential.Client
-		routecl *route.Client
+		routecl *mediator.Client
 	}
 	type args struct {
 		agentID string
@@ -170,7 +170,6 @@ func TestProvider_GetAgentConfig1(t *testing.T) {
 			r := &Provider{
 				vp:      tt.fields.vp,
 				lock:    tt.fields.lock,
-				ds:      tt.fields.ds,
 				exec:    tt.fields.exec,
 				ctx:     tt.fields.ctx,
 				didcl:   tt.fields.didcl,
@@ -198,7 +197,7 @@ func TestProvider_GetStewardConfig1(t *testing.T) {
 		ctx     *context.Provider
 		didcl   *didexchange.Client
 		credcl  *issuecredential.Client
-		routecl *route.Client
+		routecl *mediator.Client
 	}
 	tests := []struct {
 		name    string
@@ -213,7 +212,6 @@ func TestProvider_GetStewardConfig1(t *testing.T) {
 			r := &Provider{
 				vp:      tt.fields.vp,
 				lock:    tt.fields.lock,
-				ds:      tt.fields.ds,
 				exec:    tt.fields.exec,
 				ctx:     tt.fields.ctx,
 				didcl:   tt.fields.didcl,
@@ -241,7 +239,7 @@ func TestProvider_StorageProvider(t *testing.T) {
 		ctx     *context.Provider
 		didcl   *didexchange.Client
 		credcl  *issuecredential.Client
-		routecl *route.Client
+		routecl *mediator.Client
 	}
 	tests := []struct {
 		name    string
@@ -256,7 +254,6 @@ func TestProvider_StorageProvider(t *testing.T) {
 			r := &Provider{
 				vp:      tt.fields.vp,
 				lock:    tt.fields.lock,
-				ds:      tt.fields.ds,
 				exec:    tt.fields.exec,
 				ctx:     tt.fields.ctx,
 				didcl:   tt.fields.didcl,
