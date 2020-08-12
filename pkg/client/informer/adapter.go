@@ -41,6 +41,7 @@ func NewAgentStreamAdapter(s api.AdminClient) StreamAdapter {
 		delCh:  make(chan interface{}),
 	}
 	go func() {
+		log.Print("watching agent events...")
 		err := backoff.RetryNotify(out.watch, backoff.NewExponentialBackOff(), util.Logger)
 		log.Println(err)
 	}()
@@ -74,6 +75,7 @@ func (r *agentStreamAdapter) watch() error {
 
 	r.cancel = cancelFunc
 
+	log.Println("stream successfully created")
 	for {
 		evt, err := stream.Recv()
 		if err == io.EOF || status.Code(err) == codes.Canceled {
