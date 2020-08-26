@@ -1,12 +1,15 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package credential
 
 import (
 	"encoding/json"
 
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
-	"github.com/pkg/errors"
-
-	"github.com/scoir/canis/pkg/framework"
 )
 
 type Client struct {
@@ -19,14 +22,14 @@ type credKeys struct {
 	SchemaID            string
 }
 
-func NewClient(conf *framework.Config) (*Client, error) {
-	provider := conf.GetAriesContext()
-	store, err := provider.StorageProvider().OpenStore("cred-defs")
-	if err != nil {
-		return nil, errors.Wrap(err, "can't get storage for credential client")
-	}
+func NewClient() (*Client, error) {
+	//provider := conf.GetAriesContext()
+	//store, err := provider.StorageProvider().OpenStore("cred-defs")
+	//if err != nil {
+	//	return nil, errors.Wrap(err, "can't get storage for credential client")
+	//}
 	return &Client{
-		store: store,
+		store: nil,
 	}, nil
 }
 

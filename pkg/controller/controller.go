@@ -1,3 +1,9 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package controller
 
 import (
@@ -8,9 +14,11 @@ import (
 	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/hyperledger/aries-framework-go/pkg/framework/context"
+	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
+
+	"github.com/scoir/canis/pkg/framework"
 )
 
 type AgentController interface {
@@ -21,21 +29,33 @@ type AgentController interface {
 }
 
 type Runner struct {
-	ctx                      *context.Provider
 	ac                       AgentController
 	grpcBridgeHost, grpcHost string
 	grpcBridgePort, grpcPort int
 	debug                    bool
 }
 
-func New(ctx *context.Provider, grpcHost string, grpcPort int, grpcBridgeHost string, grpcBridgePort int, ac AgentController) (*Runner, error) {
+type provider interface {
+	GetGRPCEndpoint() (*framework.Endpoint, error)
+	GetBridgeEndpoint() (*framework.Endpoint, error)
+}
+
+func New(ctx provider, ac AgentController) (*Runner, error) {
+	grpce, err := ctx.GetGRPCEndpoint()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create controller")
+	}
+	bridge, err := ctx.GetBridgeEndpoint()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create controller")
+	}
+
 	r := &Runner{
-		ctx:            ctx,
 		ac:             ac,
-		grpcHost:       grpcHost,
-		grpcPort:       grpcPort,
-		grpcBridgeHost: grpcBridgeHost,
-		grpcBridgePort: grpcBridgePort,
+		grpcHost:       grpce.Host,
+		grpcPort:       grpce.Port,
+		grpcBridgeHost: bridge.Host,
+		grpcBridgePort: bridge.Port,
 		debug:          false,
 	}
 

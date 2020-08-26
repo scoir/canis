@@ -257,7 +257,7 @@ func (_m *Store) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaList,
 	return r0, r1
 }
 
-// SetPublicDID provides a mock function with given fields: DID
+// SetPublicDID provides a mock function with given fields: PeerDID
 func (_m *Store) SetPublicDID(DID string) error {
 	ret := _m.Called(DID)
 

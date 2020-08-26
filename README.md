@@ -14,8 +14,9 @@ identity standards including [W3C decentralized identifiers](https://w3c.github.
 
 - [**Architecture**](#Architecture)
 - [**Why Canis?**](#why-canis)
-- [**Features**](#Features)
+- [**Features**](#features)
 - [**Building Canis**](#building-canis)
+- [**Development**](#development)
 - [**License**](#license)
 
 ## Architecture

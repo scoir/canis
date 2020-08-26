@@ -2,7 +2,7 @@
 
 CANIS_ROOT=$(abspath .)
 
-all: clean tools wire steward
+all: clean tools build
 
 commit: cover build
 
@@ -10,14 +10,8 @@ commit: cover build
 clean:
 	rm -f bin/*
 
-wire: wire-steward
-
-wire-steward:
-	@. ./canis.sh; cd pkg/steward && wire
-
 tools:
 	go get bou.ke/staticfiles
-	go get github.com/google/wire/cmd/wire
 	go get github.com/vektra/mockery/.../
 	go get golang.org/x/tools/cmd/cover
 	go get -u github.com/golang/protobuf/protoc-gen-go
@@ -26,48 +20,39 @@ swagger_pack: pkg/static/steward_agent_swagger.go
 pkg/static/steward_agent_swagger.go: steward-pb pkg/steward/api/spec/steward_agent.swagger.json
 	staticfiles -o pkg/static/steward_agent_swagger.go --package static pkg/steward/api/spec
 
-build: bin/steward bin/agency bin/router
+
+build: bin/steward bin/agent bin/sirius
 build-steward: bin/steward
 
 steward: bin/steward
-bin/steward: steward-pb swagger_pack wire-steward
-	cd cmd/steward && go build -o $(CANIS_ROOT)/bin/steward
+bin/steward: steward-pb swagger_pack
+	@. ./canis.sh; cd cmd/steward && go build -o $(CANIS_ROOT)/bin/steward
 
-.PHONY: steward-docker agency-docker router-docker
-package: steward-docker agency-docker router-docker
+sirius: bin/sirius
+bin/sirius:
+	@. ./canis.sh; cd cmd/sirius && go build -o $(CANIS_ROOT)/bin/sirius
 
-steward-docker: bin/steward
-	@echo "Building steward agent docker image"
-	@docker build -f ./docker/steward/Dockerfile -t scoir/steward:latest .
+.PHONY: canis-docker
+package: canis-docker
 
-build-agency: bin/agency
+build-agent: bin/agent
 build-router: bin/router
 
-wire-agency:
-	cd pkg/agency && wire
+agent: bin/agent
+bin/agent: steward-pb
+	@. ./canis.sh; cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
 
 agency: bin/agency bin/router
-bin/agency: wire-agency
-	cd cmd/agency && go build -o $(CANIS_ROOT)/bin/agency
-
-wire-router:
-	cd pkg/router && wire
+bin/agency:
+	@. ./canis.sh; cd cmd/agency && go build -o $(CANIS_ROOT)/bin/agency
 
 router: bin/router
-bin/router: wire-router
-	cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
-
-agency-docker: bin/agency
-	@echo "Building agency docker image"
-	@docker build -f ./docker/agency/Dockerfile --no-cache -t scoir/agency:latest .
-
-router-docker: bin/router
-	@echo "Building router docker image"
-	@docker build -f ./docker/router/Dockerfile --no-cache -t scoir/router:latest .
+bin/router:
+	@. ./canis.sh; cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
 
 canis-docker: build
 	@echo "Building canis docker image"
-	@docker build -f ./docker/canis/Dockerfile --no-cache -t scoir/canis:latest .
+	@docker build -f ./docker/canis/Dockerfile --no-cache -t canis/canis:latest .
 
 steward-pb: pkg/steward/api/steward_agent.pb.go
 pkg/steward/api/steward_agent.pb.go:pkg/steward/api/steward_agent.proto
@@ -79,12 +64,8 @@ demo-web:
 	cd demo && npm run build
 
 # Development Local Run Shortcuts
-urn: run
-run: bin/steward
-	@bin/scoir-agent
-
 test: clean tools
-	go test ./pkg/...
+	@. ./canis.sh; ./scripts/test.sh
 
 cover:
 	go test -coverprofile cover.out ./pkg/...
