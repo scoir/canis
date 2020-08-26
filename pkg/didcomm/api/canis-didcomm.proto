@@ -1,0 +1,26 @@
+syntax = "proto3";
+package didcomm;
+
+option go_package = "didcomm/api";
+
+message CredentialAttribute {
+  string name = 1;
+  string value = 2;
+}
+
+message OfferCredentialRequest {
+  string connectionID = 1;
+  string schemaName = 2;
+  repeated CredentialAttribute attributes = 3;
+  string comment = 4;
+  //todo: <gh-???> support attachments
+}
+
+message OfferCredentialResponse {
+  string threadID = 1;
+}
+
+service Issuer {
+  rpc OfferCredential (OfferCredentialRequest) returns (OfferCredentialResponse) {
+  }
+}

@@ -39,13 +39,15 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/vektra/mockery v1.1.2 // indirect
 	go.mongodb.org/mongo-driver v1.3.4
-	goji.io v2.0.2+incompatible
-	golang.org/x/net v0.0.0-20200625001655-4c5254603344
-	golang.org/x/tools v0.0.0-20200811215021-48a8ffc5b207 // indirect
-	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
-	google.golang.org/grpc v1.29.1
+	goji.io v2.0.2+incompatible // indirect
+	golang.org/x/net v0.0.0-20200813134508-3edf25e44fcc
+	golang.org/x/sys v0.0.0-20200812155832-6a926be9bd1d // indirect
+	golang.org/x/tools v0.0.0-20200803225502-5a22b632c5de // indirect
+	google.golang.org/genproto v0.0.0-20200814021100-8c09557e8a18
+	google.golang.org/grpc v1.31.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v0.0.0-20200813212649-1dbe29f66992 // indirect
 	google.golang.org/protobuf v1.25.0
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v0.17.0
 	k8s.io/utils v0.0.0-20200603063816-c1c6865ac451 // indirect
