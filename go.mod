@@ -2,6 +2,8 @@ module github.com/scoir/canis
 
 go 1.14
 
+replace github.com/hyperledger/aries-framework-go => ../aries-framework-go
+
 require (
 	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
@@ -30,18 +32,20 @@ require (
 	github.com/mwitkow/grpc-proxy v0.0.0-20181017164139-0f1106ef9c76
 	github.com/onsi/ginkgo v1.11.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
+	github.com/piprate/json-gold v0.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.4.0
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/syndtr/goleveldb v1.0.0
+	github.com/unidoc/unipdf/v3 v3.9.0
 	github.com/vektra/mockery v1.1.2 // indirect
 	go.mongodb.org/mongo-driver v1.3.4
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20200625001655-4c5254603344
-	golang.org/x/tools v0.0.0-20200811215021-48a8ffc5b207 // indirect
+	golang.org/x/tools v0.0.0-20200817023811-d00afeaade8f // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.25.0

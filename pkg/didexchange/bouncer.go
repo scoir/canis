@@ -78,7 +78,6 @@ func (r *bouncer) InvitationMsg(e didservice.DIDCommAction, invite *didexchange.
 func (r *bouncer) RequestMsg(e didservice.DIDCommAction, request *didexchange.Request) {
 	iID := e.Message.ParentThreadID()
 	if r.validInviteIDs[iID] {
-
 		log.Println("received valid request from", request.Connection.DID)
 		e.Continue(didservice.Empty{})
 		delete(r.validInviteIDs, iID)
