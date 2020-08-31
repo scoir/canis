@@ -10,14 +10,68 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
+	docutil "github.com/hyperledger/aries-framework-go/pkg/doc/util"
 	"github.com/piprate/json-gold/ld"
 
+	"github.com/scoir/canis/pkg/clr"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
 
 func main() {
-	fromRDF()
+	canon()
+}
+
+func canon() {
+	var issued = time.Date(2010, time.January, 1, 19, 23, 24, 0, time.UTC)
+	record := &clr.CLR{
+		Context: []string{
+			"https://purl.imsglobal.org/spec/clr/v1p0/context/clr_v1p0.jsonld",
+		},
+		ID:   "did:scoir:abc123",
+		Type: "Clr",
+		Learner: &clr.Profile{
+			ID:    "did:scoir:hss123",
+			Type:  "Profile",
+			Email: "student1@highschool.k12.edu",
+		},
+		Publisher: &clr.Profile{
+			ID:    "did:scoir:highschool",
+			Type:  "Profile",
+			Email: "counselor@highschool.k12.edu",
+		},
+		Assertions: []*clr.Assertion{
+			{
+				ID:   "did:scoir:assert123",
+				Type: "Assertion",
+				Achievement: &clr.Achievement{
+					ID:              "did:scoir:achieve123",
+					AchievementType: "Achievement",
+					Name:            "Mathmatics - Algebra Level 1",
+				},
+				IssuedOn: docutil.NewTime(issued),
+			},
+		},
+		Achievements: nil,
+		IssuedOn:     docutil.NewTime(issued),
+	}
+
+	d, _ := json.MarshalIndent(record, " ", " ")
+	out := map[string]interface{}{}
+	json.Unmarshal(d, &out)
+
+	proc := ld.NewJsonLdProcessor()
+	options := ld.NewJsonLdOptions("")
+
+	doc3, err := proc.Expand(out, options)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	d, _ = json.MarshalIndent(doc3, " ", " ")
+	fmt.Println(string(d))
+
 }
 
 func fromRDF() {
@@ -64,13 +118,15 @@ func fromRDF() {
 	d, _ = json.MarshalIndent(doc4, " ", " ")
 	fmt.Println(string(d))
 
-	doc5, err := proc.Compact(doc, nil, options)
+	doc5, err := proc.ToRDF(doc, options)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	d, _ = json.MarshalIndent(doc5, " ", " ")
-	fmt.Println(string(d))
+	fmt.Println(doc5)
+
+	//d, _ = json.MarshalIndent(doc5, " ", " ")
+	//fmt.Println(string(d))
 
 }
 

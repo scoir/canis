@@ -26,12 +26,10 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/suite"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/suite/ed25519signature2018"
 	docutil "github.com/hyperledger/aries-framework-go/pkg/doc/util"
-	"github.com/hyperledger/aries-framework-go/pkg/doc/util/signature"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
-	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/pkg/errors"
 	goji "goji.io"
 	"goji.io/pat"
@@ -260,13 +258,6 @@ func signCred(vc *verifiable.Credential) {
 
 }
 
-func newCryptoSignerX(keyType kms.KeyType) (signature.Signer, error) {
-	localKMS := ctx.KMS()
-	tinkCrypto := ctx.Crypto()
-
-	return signature.NewCryptoSigner(tinkCrypto, localKMS, keyType)
-}
-
 func newCryptoSigner(kid string) (*subtle.ED25519Signer, error) {
 	priv, err := ctx.KMS().Get(kid)
 	if err != nil {
@@ -275,16 +266,11 @@ func newCryptoSigner(kid string) (*subtle.ED25519Signer, error) {
 
 	kh := priv.(*keyset.Handle)
 	prim, err := kh.Primitives()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load signer primitives")
+	}
 	return prim.Primary.Primitive.(*subtle.ED25519Signer), nil
 
-	//pubKeyBytes, err := ctx.KMS().ExportPubKeyBytes(kid)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//sig := signature.GetEd25519Signer(, pubKeyBytes)
-	//
-	//return sig, nil
 }
 
 type credHandler struct{}
@@ -335,6 +321,8 @@ func (c *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 					{Data: decorator.AttachmentData{JSON: generateCredential()}},
 				},
 			}
+
+			//TODO:  Shouldn't this be built into the Supervisor??
 			log.Println("setting up monitoring for", thid)
 			mon := credential.NewMonitor(credsup)
 			mon.WatchThread(thid, TranscriptAccepted(id), CredentialError)
