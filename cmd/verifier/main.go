@@ -109,7 +109,7 @@ func createAriesContext() {
 
 	ar, err := aries.New(
 		aries.WithStoreProvider(store.NewProvider("mongodb://172.17.0.1:27017", "verifier")),
-		defaults.WithInboundWSAddr(wsinbound, wsinbound, "", ""),
+		defaults.WithInboundWSAddr(wsinbound, fmt.Sprintf("ws://%s", wsinbound), "", ""),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 	)
 	if err != nil {

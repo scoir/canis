@@ -25,7 +25,6 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/suite/ed25519signature2018"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
-	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	vstore "github.com/hyperledger/aries-framework-go/pkg/store/verifiable"
 	"github.com/pkg/errors"
@@ -33,6 +32,7 @@ import (
 	"goji.io/pat"
 
 	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
+	"github.com/scoir/canis/pkg/aries/transport/amqp"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
@@ -133,11 +133,13 @@ func connectToVerifier(w http.ResponseWriter, _ *http.Request) {
 }
 
 func createAriesContext() {
-	wsinbound := "0.0.0.0:3001"
+	wsinbound := "localhost:5672"
+
+	amqpInbound, err := amqp.NewInbound(wsinbound, "ws://0.0.0.0:3001", "", "")
 
 	ar, err := aries.New(
 		aries.WithStoreProvider(store.NewProvider("mongodb://172.17.0.1:27017", "subject")),
-		defaults.WithInboundWSAddr(wsinbound, wsinbound, "", ""),
+		aries.WithInboundTransport(amqpInbound),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 	)
 	if err != nil {
