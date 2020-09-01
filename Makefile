@@ -21,9 +21,11 @@ pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec
 	staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
 
 
-build: bin/canis-apiserver bin/canis-scheduler bin/agent bin/sirius
+build: bin/canis-apiserver bin/canis-scheduler bin/agent bin/sirius bin/canis-didcomm bin/canis-didcomm-lb
 build-canis-apiserver: bin/canis-apiserver
 build-canis-scheduler: bin/canis-scheduler
+build-canis-didcomm: bin/canis-didcomm
+build-canis-didcomm-lb: bin/canis-didcomm-lb
 
 canis-apiserver: bin/canis-apiserver
 bin/canis-apiserver: canis-apiserver-pb swagger_pack
@@ -32,6 +34,14 @@ bin/canis-apiserver: canis-apiserver-pb swagger_pack
 canis-scheduler: bin/canis-scheduler
 bin/canis-scheduler: canis-apiserver-pb
 	@. ./canis.sh; cd cmd/canis-scheduler && go build -o $(CANIS_ROOT)/bin/canis-scheduler
+
+canis-didcomm: bin/canis-didcomm
+bin/canis-didcomm:
+	@. ./canis.sh; cd cmd/canis-didcomm && go build -o $(CANIS_ROOT)/bin/canis-didcomm
+
+canis-didcomm-lb: bin/canis-didcomm-lb
+bin/canis-didcomm-lb:
+	@. ./canis.sh; cd cmd/canis-didcomm-lb && go build -o $(CANIS_ROOT)/bin/canis-didcomm-lb
 
 sirius: bin/sirius
 bin/sirius:
@@ -76,14 +86,6 @@ cover:
 	go test -coverprofile cover.out ./pkg/...
 	go tool cover -html=cover.out
 
-dev-setup:
-	@./scripts/dev-setup.sh
-
-initialize:
-	@minikube delete
-	@minikube start --vm-driver virtualbox --insecure-registry registry.hyades.svc.cluster.local:5000
-	@./scripts/minikube-setup.sh
-
 install:
 	@helm install canis ./canis-chart --values ./k8s/config/local/values.yaml --kubeconfig ./k8s/config/local/kubeconfig.yaml
 
@@ -95,9 +97,6 @@ expose:
 
 von-ip:
 	@docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' von_webserver_1
-
-cycle: clean build test
-	@./scripts/cycle.sh
 
 ledger:
 	@helm upgrade --install ledger ./ledger-chart --values ./k8s/config/local/values.yaml --kubeconfig ./k8s/config/local/kubeconfig.yaml

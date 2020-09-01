@@ -22,13 +22,30 @@ services:
     image: canis/canis
     command: "canis-didcomm start"
     ports:
-      - "????:????"
-      - "????:????"
+      - "7776:7776"
+      - "7777:7777"
     networks:
       - backend
     secrets:
       - source: canis-didcomm-config
         target: /etc/canis/canis-didcomm-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  canis-didcomm-lb:
+    image: canis/canis
+    command: "canis-didcomm-lb start"
+    ports:
+      - "7979:7979"
+    networks:
+      - backend
+    secrets:
+      - source: canis-didcomm-lb-config
+        target: /etc/canis/canis-didcomm-lb-config.yml
     deploy:
       replicas: 1
       update_config:
@@ -58,12 +75,22 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
 
 secrets:
   canis-apiserver-config:
     file: ./canis-apiserver.yaml
   canis-scheduler-config:
     file: ./canis-scheduler.yaml
+  canis-didcomm-config:
+    file: ./canis-didcomm.yaml
+  canis-didcomm-lb-config:
+    file: ./canis-didcomm-lb.yaml
 
 networks:
   backend:

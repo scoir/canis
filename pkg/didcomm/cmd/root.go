@@ -37,6 +37,13 @@ type Provider struct {
 	vp *viper.Viper
 }
 
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/canis/canis-didcomm-config.yaml)")
@@ -52,8 +59,8 @@ func initConfig() {
 		// Find home directory.
 		vp.SetConfigType("yaml")
 		vp.AddConfigPath("/etc/canis/")
-		vp.AddConfigPath("./config/docker/")
-		vp.SetConfigName("canis-didcomm-config")
+		vp.AddConfigPath("./deploy/compose/")
+		vp.SetConfigName("canis-didcomm")
 	}
 
 	vp.SetEnvPrefix("CANIS")

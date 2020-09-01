@@ -35,14 +35,15 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.4.0
+	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.5.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/vektra/mockery v1.1.2 // indirect
 	go.mongodb.org/mongo-driver v1.3.4
 	goji.io v2.0.2+incompatible // indirect
-	golang.org/x/net v0.0.0-20200813134508-3edf25e44fcc
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/sys v0.0.0-20200812155832-6a926be9bd1d // indirect
-	golang.org/x/tools v0.0.0-20200803225502-5a22b632c5de // indirect
+	golang.org/x/tools v0.0.0-20200901173145-80e1b0398e67 // indirect
 	google.golang.org/genproto v0.0.0-20200814021100-8c09557e8a18
 	google.golang.org/grpc v1.31.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v0.0.0-20200813212649-1dbe29f66992 // indirect
