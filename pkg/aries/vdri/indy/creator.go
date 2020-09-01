@@ -28,7 +28,7 @@ func (r *VDRI) Build(pubKey *vdriapi.PubKey, opts ...vdriapi.DocOpts) (*diddoc.D
 		opt(docOpts)
 	}
 
-	pubKeyValue := base58.Decode(pubKey.Value)
+	pubKeyValue := base58.Decode(string(pubKey.Value))
 	methodID := base58.Encode(pubKeyValue[0:16])
 	didKey := fmt.Sprintf("did:%s:%s", r.methodName, methodID)
 	keyID := fmt.Sprintf("%s#%s", didKey, methodID)
@@ -43,7 +43,7 @@ func (r *VDRI) Build(pubKey *vdriapi.PubKey, opts ...vdriapi.DocOpts) (*diddoc.D
 		}
 
 		if docOpts.ServiceType == vdriapi.DIDCommServiceType {
-			s.RecipientKeys = []string{pubKey.Value}
+			s.RecipientKeys = []string{string(pubKey.Value)}
 			s.Priority = 0
 		}
 

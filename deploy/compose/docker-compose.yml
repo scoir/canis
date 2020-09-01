@@ -18,6 +18,24 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
+  canis-didcomm:
+    image: canis/canis
+    command: "canis-didcomm start"
+    ports:
+      - "????:????"
+      - "????:????"
+    networks:
+      - backend
+    secrets:
+      - source: canis-didcomm-config
+        target: /etc/canis/canis-didcomm-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
   canis-scheduler:
     image: canis/canis
     command: "canis-scheduler start"
