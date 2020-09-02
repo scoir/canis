@@ -162,7 +162,7 @@ func (r *Provider) getOptions() []aries.Option {
 	if r.vp.IsSet(wsinboundKey) {
 		wsinbound := &framework.Endpoint{}
 		_ = r.vp.UnmarshalKey(wsinboundKey, wsinbound)
-		out = append(out, defaults.WithInboundWSAddr(wsinbound.Address(), wsinbound.Address(), "", ""))
+		out = append(out, defaults.WithInboundWSAddr(wsinbound.Address(), wsinbound.Address()))
 	}
 
 	if r.vp.IsSet("host") && r.vp.IsSet("port") {
