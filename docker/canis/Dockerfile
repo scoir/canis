@@ -6,6 +6,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
 
 COPY ./bin/canis-apiserver /usr/local/bin/canis-apiserver
 COPY ./bin/canis-scheduler /usr/local/bin/canis-scheduler
+COPY ./bin/canis-scheduler /usr/local/bin/canis-didcomm
+COPY ./bin/canis-scheduler /usr/local/bin/canis-didcomm-lb
 COPY ./bin/agent /usr/local/bin/agent
 COPY ./bin/sirius /usr/local/bin/sirius
 

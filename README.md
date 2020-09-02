@@ -12,14 +12,22 @@ identity standards including [W3C decentralized identifiers](https://w3c.github.
 
 ## Summary
 
+- [**Architecture**](#Architecture)
 - [**Why Canis?**](#why-canis)
 - [**Features**](#features)
 - [**Building Canis**](#building-canis)
+- [**Development**](#development)
 - [**License**](#license)
 
 ## Architecture
 
-![Architecture](/static/V1.png?raw=true "Canis Architecture")
+![Architecture](/static/V2.png?raw=true "Canis Architecture")
+
+Canis concerns itself levels one, two and three of the ToIP technical stack, it uses Aries to accomplish that although
+we plan to support others, at level one Canis uses Indy Node. Your third party application should be level four.
+
+Canis concerns itself levels one, two and three of the ToIP technical stack, it uses Aries to accomplish that although
+we plan to support others, at level one Canis uses Indy Node. Your third party application should be level four.
 
 Canis concerns itself levels one, two and three of the ToIP technical stack, it uses Aries to accomplish that although
 we plan to support others, at level one Canis uses Indy Node. Your third party application should be level four.
