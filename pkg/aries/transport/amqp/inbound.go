@@ -64,7 +64,6 @@ func (i *Inbound) Start(prov transport.Provider) error {
 	}
 
 	var err error
-	//TODO:  Use DialTLS if certFile and keyFile are not blank
 	var conn *amqp.Connection
 	if i.certFile != "" && i.keyFile != "" {
 		config := &tls.Config{}
@@ -126,17 +125,14 @@ func (i *Inbound) listenAndServe() error {
 
 	for d := range msgs {
 		message := d.Body
-		fmt.Println("DEQUEUED MSG")
-		fmt.Println(string(message))
-		fmt.Println("**********************************************")
 		unpackMsg, err := i.packager.UnpackMessage(message)
 
 		if err != nil {
 			logger.Errorf("failed to unpack msg: %v", err)
-
 			continue
 		}
 
+		fmt.Println("DEQUEUED MSG FROM:", unpackMsg.FromDID)
 		trans := &decorator.Transport{}
 
 		err = json.Unmarshal(unpackMsg.Message, trans)

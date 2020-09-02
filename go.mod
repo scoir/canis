@@ -2,6 +2,8 @@ module github.com/scoir/canis
 
 go 1.14
 
+replace github.com/hyperledger/aries-framework-go => ../aries-framework-go
+
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/btcsuite/btcutil v1.0.1
@@ -16,7 +18,7 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/google/gofuzz v1.1.0 // indirect
-	github.com/google/tink/go v1.4.0-rc2.0.20200525085439-8bdaed4f41ed
+	github.com/google/tink/go v1.4.0-rc2.0.20200807212851-52ae9c6679b2
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
@@ -51,5 +53,6 @@ require (
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v0.17.0
 	k8s.io/utils v0.0.0-20200603063816-c1c6865ac451 // indirect
+	nhooyr.io/websocket v1.8.3
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
