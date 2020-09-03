@@ -18,9 +18,9 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
-  canis-didcomm:
+  canis-didcomm-issuer:
     image: canis/canis
-    command: "canis-didcomm start"
+    command: "canis-didcomm-issuer start"
     ports:
       - "7776:7776"
       - "7777:7777"
@@ -53,34 +53,12 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
-  canis-scheduler:
-    image: canis/canis
-    command: "canis-scheduler start"
-    networks:
-      - backend
-    secrets:
-      - source: canis-scheduler-config
-        target: /etc/canis/canis-scheduler-config.yml
-    volumes:
-      - type: bind
-        source: /var/run/docker.sock
-        target: /var/run/docker.sock
-      - type: volume
-        source: etc
-        target: /etc/canis
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - 5672:5672
-      - 15672:15672
+#  rabbitmq:
+#    image: rabbitmq:3-management
+#    container_name: rabbitmq
+#    ports:
+#      - 5672:5672
+#      - 15672:15672
 
 secrets:
   canis-apiserver-config:

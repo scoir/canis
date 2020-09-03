@@ -4,7 +4,7 @@ Copyright Scoir Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package didcomm
+package issuer
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 
-	"github.com/scoir/canis/pkg/didcomm/api"
+	"github.com/scoir/canis/pkg/didcomm/issuer/api"
 )
 
 type didexchanceProvider interface {

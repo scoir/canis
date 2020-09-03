@@ -1,6 +1,8 @@
 .PHONY := clean test tools agency
 
 CANIS_ROOT=$(abspath .)
+DIDCOMM_LB_FILES = $(wildcard pkg/didcomm/loadbalancer/*.go pkg/didcomm/loadbalancer/**/*.go cmd/canis-didcomm-lb/*.go)
+DIDCOMM_ISSUER_FILES = $(wildcard pkg/didcomm/issuer/*.go pkg/didcomm/issuer/**/*.go cmd/canis-didcomm-issuer/*.go)
 
 all: clean tools build
 
@@ -21,26 +23,22 @@ pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec
 	staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
 
 
-build: bin/canis-apiserver bin/canis-scheduler bin/agent bin/sirius bin/canis-didcomm bin/canis-didcomm-lb
+build: bin/canis-apiserver bin/agent bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-lb
 build-canis-apiserver: bin/canis-apiserver
 build-canis-scheduler: bin/canis-scheduler
-build-canis-didcomm: bin/canis-didcomm
+build-canis-didcomm-issuer: bin/canis-didcomm-issuer
 build-canis-didcomm-lb: bin/canis-didcomm-lb
 
 canis-apiserver: bin/canis-apiserver
 bin/canis-apiserver: canis-apiserver-pb swagger_pack
 	@. ./canis.sh; cd cmd/canis-apiserver && go build -o $(CANIS_ROOT)/bin/canis-apiserver
 
-canis-scheduler: bin/canis-scheduler
-bin/canis-scheduler: canis-apiserver-pb
-	@. ./canis.sh; cd cmd/canis-scheduler && go build -o $(CANIS_ROOT)/bin/canis-scheduler
-
-canis-didcomm: bin/canis-didcomm
-bin/canis-didcomm:
-	@. ./canis.sh; cd cmd/canis-didcomm && go build -o $(CANIS_ROOT)/bin/canis-didcomm
+canis-didcomm-issuer: bin/canis-didcomm-issuer
+bin/canis-didcomm-issuer: $(DIDCOMM_ISSUER_FILES)
+	@. ./canis.sh; cd cmd/canis-didcomm-issuer && go build -o $(CANIS_ROOT)/bin/canis-didcomm-issuer
 
 canis-didcomm-lb: bin/canis-didcomm-lb
-bin/canis-didcomm-lb:
+bin/canis-didcomm-lb: $(DIDCOMM_LB_FILES)
 	@. ./canis.sh; cd cmd/canis-didcomm-lb && go build -o $(CANIS_ROOT)/bin/canis-didcomm-lb
 
 sirius: bin/sirius

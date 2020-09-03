@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	lb "github.com/scoir/canis/pkg/didcomm-lb"
+	lb "github.com/scoir/canis/pkg/didcomm/loadbalancer"
 )
 
 var startCmd = &cobra.Command{
@@ -27,16 +27,18 @@ func runStart(_ *cobra.Command, _ []string) {
 	amqpPwd := ctx.vp.GetString("amqp.password")
 	amqpHost := ctx.vp.GetString("amqp.host")
 	amqpPort := ctx.vp.GetInt("amqp.port")
-	amqpAddr := fmt.Sprintf("amqp://%s:%s@%s:%d/", amqpUser, amqpPwd, amqpHost, amqpPort)
+	amqpVHost := ctx.vp.GetString("amqp.vhost")
+	amqpAddr := fmt.Sprintf("amqp://%s:%s@%s:%d/%s", amqpUser, amqpPwd, amqpHost, amqpPort, amqpVHost)
 	host := ctx.vp.GetString("inbound.host")
 	httpPort := ctx.vp.GetInt("inbound.httpport")
 	wsPort := ctx.vp.GetInt("inbound.wsport")
 
 	wait := make(chan bool)
 
+	log.Println("starting didcomm loadbalancer")
 	srv, err := lb.New(amqpAddr, host, httpPort, wsPort)
 	if err != nil {
-		log.Fatalln("unable to launch DIDComm Loadbalancer")
+		log.Fatalln("unable to launch didcomm loadbalancer ")
 	}
 
 	srv.Start()

@@ -4,7 +4,7 @@ Copyright Scoir Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package didcomm
+package issuer
 
 import (
 	"net/http"
@@ -17,7 +17,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"google.golang.org/grpc"
 
-	"github.com/scoir/canis/pkg/didcomm/api"
+	"github.com/scoir/canis/pkg/didcomm/issuer/api"
 )
 
 type Server struct {

@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"github.com/scoir/canis/pkg/didcomm-lb/cmd"
+	"github.com/scoir/canis/pkg/didcomm/loadbalancer/cmd"
 )
 
 func main() {

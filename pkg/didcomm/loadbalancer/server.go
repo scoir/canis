@@ -1,4 +1,4 @@
-package lb
+package loadbalancer
 
 import (
 	"context"

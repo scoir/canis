@@ -60,7 +60,7 @@ func initConfig() {
 		vp.SetConfigType("yaml")
 		vp.AddConfigPath("/etc/canis/")
 		vp.AddConfigPath("./deploy/compose/")
-		vp.SetConfigName("canis-didcomm")
+		vp.SetConfigName("canis-didcomm-config")
 	}
 
 	vp.SetEnvPrefix("CANIS")

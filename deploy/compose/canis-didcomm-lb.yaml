@@ -14,7 +14,8 @@ inbound:
 #
 ###############################################################
 amqp:
-  user: guest
-  password: guest
-  host: localhost
+  user: canis
+  password: canis
+  host: 172.17.0.1
   port: 5672
+  vhost: canis

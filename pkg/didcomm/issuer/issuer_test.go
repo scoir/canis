@@ -4,7 +4,7 @@ Copyright Scoir Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package didcomm
+package issuer
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/store/connection"
 	"github.com/stretchr/testify/require"
 
-	"github.com/scoir/canis/pkg/didcomm/api"
+	"github.com/scoir/canis/pkg/didcomm/issuer/api"
 )
 
 func TestOfferCredential(t *testing.T) {
