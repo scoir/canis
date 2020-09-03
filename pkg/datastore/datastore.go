@@ -6,6 +6,10 @@ SPDX-License-Identifier: Apache-2.0
 
 package datastore
 
+import (
+	"github.com/hyperledger/aries-framework-go/pkg/storage"
+)
+
 const (
 	SchemaC = "Schema"
 	AgentC  = "Agent"
@@ -23,6 +27,9 @@ type Provider interface {
 
 	// Close closes all stores created under this store provider
 	Close() error
+
+	// GetAriesProvider returns a pre-configured storage provider for use in an Aries context
+	GetAriesProvider() (storage.Provider, error)
 }
 
 //go:generate mockery -name=Store

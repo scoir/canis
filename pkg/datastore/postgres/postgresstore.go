@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/scoir/canis/pkg/datastore"
@@ -32,6 +33,10 @@ type Provider struct {
 	adminURL string
 	conns    map[string]*postgresDBStore
 	sync.RWMutex
+}
+
+func (p *Provider) GetAriesProvider() (storage.Provider, error) {
+	panic("implement me")
 }
 
 type postgresDBStore struct {

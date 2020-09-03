@@ -9,6 +9,7 @@ package issuer
 import (
 	"testing"
 
+	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/stretchr/testify/require"
 
@@ -26,6 +27,10 @@ func TestProviderFailures(t *testing.T) {
 type MockProvider struct {
 	didErr   error
 	issueErr error
+}
+
+func (r *MockProvider) GetAriesContext() (*ariescontext.Provider, error) {
+	panic("implement me")
 }
 
 func (r *MockProvider) GetStorageProvider() (storage.Provider, error) {

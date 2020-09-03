@@ -10,6 +10,25 @@ api:
   grpcBridge:
     host: 0.0.0.0
     port: 7777
+inbound:
+  external: ws://0.0.0.0:3001
+  amqp:
+    user: canis
+    password: canis
+    host: 172.17.0.1
+    port: 5672
+    vhost: canis
 protocol:
   store: couchdb
   url: "localhost:5984"
+
+###############################################################
+#
+#  Datastore configuration
+#
+###############################################################
+datastore:
+  database: mongo
+  mongo:
+     url: "mongodb://172.17.0.1:27017"
+     database: "canis"

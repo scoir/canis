@@ -15,6 +15,8 @@ import (
 	_ "github.com/go-kivik/couchdb" // The CouchDB driver
 	"github.com/go-kivik/kivik"
 	"github.com/google/uuid"
+	"github.com/hyperledger/aries-framework-go/pkg/storage"
+	couchdbstore "github.com/hyperledger/aries-framework-go/pkg/storage/couchdb"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
@@ -81,6 +83,10 @@ func (p *Provider) OpenStore(name string) (datastore.Store, error) {
 	p.dbs[name] = store
 
 	return store, nil
+}
+
+func (p *Provider) GetAriesProvider() (storage.Provider, error) {
+	return couchdbstore.NewProvider(p.hostURL)
 }
 
 // CloseStore closes a previously opened store.

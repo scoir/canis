@@ -53,3 +53,15 @@ func (r *DatastoreConfig) SetName(n string) {
 		r.CouchDB.URL = n
 	}
 }
+
+type AMQPConfig struct {
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	VHost    string `yaml:"vhost"`
+}
+
+func (r *AMQPConfig) Endpoint() string {
+	return fmt.Sprintf("amqp://%s:%s@%s:%d/%s", r.User, r.Password, r.Host, r.Port, r.VHost)
+}

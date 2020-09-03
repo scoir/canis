@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
@@ -19,6 +20,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
 	"github.com/scoir/canis/pkg/datastore"
 )
 
@@ -63,6 +65,7 @@ func NewProvider(config *Config) (*Provider, error) {
 	db := mongoClient.Database(config.Database)
 
 	p := &Provider{
+		dbURL:  config.URL,
 		db:     db,
 		stores: map[string]*mongoDBStore{}}
 
@@ -70,44 +73,48 @@ func NewProvider(config *Config) (*Provider, error) {
 }
 
 // OpenStore opens and returns the collection for given name space.
-func (p *Provider) OpenStore(name string) (datastore.Store, error) {
-	p.Lock()
-	defer p.Unlock()
+func (r *Provider) OpenStore(name string) (datastore.Store, error) {
+	r.Lock()
+	defer r.Unlock()
 
 	if name == "" {
 		return nil, errors.New("store name is required")
 	}
 
 	store := &mongoDBStore{
-		collection: p.db.Collection(name),
+		collection: r.db.Collection(name),
 	}
 
-	p.stores[name] = store
+	r.stores[name] = store
 
 	return store, nil
 }
 
+func (r *Provider) GetAriesProvider() (storage.Provider, error) {
+	return store.NewProvider(r.dbURL, r.db.Name()), nil
+}
+
 // Close closes the provider.
-func (p *Provider) Close() error {
-	p.Lock()
-	defer p.Unlock()
+func (r *Provider) Close() error {
+	r.Lock()
+	defer r.Unlock()
 
-	p.stores = make(map[string]*mongoDBStore)
+	r.stores = make(map[string]*mongoDBStore)
 
-	return p.db.Client().Disconnect(context.Background())
+	return r.db.Client().Disconnect(context.Background())
 }
 
 // CloseStore closes a previously opened store
-func (p *Provider) CloseStore(name string) error {
-	p.Lock()
-	defer p.Unlock()
+func (r *Provider) CloseStore(name string) error {
+	r.Lock()
+	defer r.Unlock()
 
-	_, exists := p.stores[name]
+	_, exists := r.stores[name]
 	if !exists {
 		return nil
 	}
 
-	delete(p.stores, name)
+	delete(r.stores, name)
 
 	return nil
 }

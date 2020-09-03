@@ -44,9 +44,9 @@ import (
 
 var ctx *ariescontext.Provider
 var bouncer didex.Bouncer
+var credsup *credential.Supervisor
 var subject *didexchange.Connection
 var credcl *issuecredential.Client
-var credsup *credential.Supervisor
 var offerID string
 
 func main() {

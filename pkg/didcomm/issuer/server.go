@@ -7,80 +7,76 @@ SPDX-License-Identifier: Apache-2.0
 package issuer
 
 import (
+	"errors"
+	"log"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
-	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
-	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
-	"github.com/hyperledger/aries-framework-go/pkg/storage"
+	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"google.golang.org/grpc"
 
+	"github.com/scoir/canis/pkg/credential"
 	"github.com/scoir/canis/pkg/didcomm/issuer/api"
+	didex "github.com/scoir/canis/pkg/didexchange"
+	"github.com/scoir/canis/pkg/framework"
 )
 
 type Server struct {
-	didcl  *didexchange.Client
-	credcl *issuecredential.Client
+	credcl      *issuecredential.Client
+	ctx         *ariescontext.Provider
+	bouncer     didex.Bouncer
+	credsup     *credential.Supervisor
+	credHandler *credHandler
 }
 
 type provider interface {
-	GetStorageProvider() (storage.Provider, error)
+	GetAriesContext() (*ariescontext.Provider, error)
 }
 
 func New(ctx provider) (*Server, error) {
 
-	sp, err := ctx.GetStorageProvider()
+	actx, err := ctx.GetAriesContext()
+	prov := framework.NewSimpleProvider(actx)
+	bouncer, _ := didex.NewBouncer(prov)
+	credcl, _ := prov.GetCredentialClient()
+
+	credsup, err := credential.New(prov)
 	if err != nil {
-		return nil, err
+		log.Fatalln("unable to create new credential supervisor", err)
 	}
 
-	f, err := aries.New(
-		aries.WithTransportReturnRoute("all"),
-		aries.WithOutboundTransports(ws.NewOutbound()),
-		aries.WithStoreProvider(sp),
-	)
-
-	if err != nil {
-		return nil, err
+	handler := &credHandler{
+		ctx:     actx,
+		credsup: credsup,
 	}
-
-	fctx, err := f.Context()
+	err = credsup.Start(handler)
 	if err != nil {
-		return nil, err
-	}
-
-	didcl, err := didexchange.New(fctx)
-	if err != nil {
-		return nil, err
-	}
-
-	credcl, err := issuecredential.New(fctx)
-	if err != nil {
-		return nil, err
+		log.Fatalln("unable to start credential supervisor", err)
 	}
 
 	r := &Server{
-		didcl:  didcl,
-		credcl: credcl,
+		credcl:      credcl,
+		bouncer:     bouncer,
+		credsup:     credsup,
+		credHandler: handler,
 	}
 
 	return r, nil
 }
 
-func (s Server) RegisterGRPCHandler(server *grpc.Server) {
-	api.RegisterIssuerServer(server, NewIssuer(s.didcl, s.credcl))
+func (r *Server) RegisterGRPCHandler(server *grpc.Server) {
+	api.RegisterIssuerServer(server, NewIssuer(r.credHandler, r.credcl))
 }
 
-func (s Server) GetServerOpts() []grpc.ServerOption {
+func (r *Server) GetServerOpts() []grpc.ServerOption {
 	return []grpc.ServerOption{}
 }
 
-func (s Server) RegisterGRPCGateway(mux *runtime.ServeMux, endpoint string, opts ...grpc.DialOption) {
-	panic("implement me")
+func (r *Server) RegisterGRPCGateway(_ *runtime.ServeMux, _ /*endpoint*/ string, _ ...grpc.DialOption) {
+	//NO-OP
 }
 
-func (s Server) APISpec() (http.HandlerFunc, error) {
-	panic("implement me")
+func (r *Server) APISpec() (http.HandlerFunc, error) {
+	return nil, errors.New("not implemented")
 }

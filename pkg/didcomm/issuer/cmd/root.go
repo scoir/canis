@@ -8,15 +8,20 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
+	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
+	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
-	couchdbstore "github.com/hyperledger/aries-framework-go/pkg/storage/couchdb"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/scoir/canis/pkg/aries/transport/amqp"
+	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
 )
 
@@ -34,7 +39,9 @@ var rootCmd = &cobra.Command{
 }
 
 type Provider struct {
-	vp *viper.Viper
+	vp                   *viper.Viper
+	dm                   *manager.DataProviderManager
+	ariesStorageProvider storage.Provider
 }
 
 func Execute() {
@@ -73,25 +80,30 @@ func initConfig() {
 		os.Exit(1)
 	}
 
+	dc := &framework.DatastoreConfig{}
+	err := vp.UnmarshalKey("datastore", dc)
+	if err != nil {
+		log.Fatalln("invalid datastore key in configuration")
+	}
+
+	dm := manager.NewDataProviderManager(dc)
+	sp, err := dm.DefaultStoreProvider()
+	if err != nil {
+		log.Fatalln("unable to retrieve default storage provider", err)
+	}
+
+	asp, err := sp.GetAriesProvider()
+
 	ctx = &Provider{
-		vp: vp,
+		vp:                   vp,
+		dm:                   dm,
+		ariesStorageProvider: asp,
 	}
 }
 
 // GetStorageProvider todo
-func (r *Provider) GetStorageProvider() (storage.Provider, error) {
-	store := r.vp.GetString("protocol.store")
-	if store != "couchdb" {
-		return nil, fmt.Errorf("unsupported store: %s", store)
-	}
-
-	url := r.vp.GetString("protocol.url")
-	cdb, err := couchdbstore.NewProvider(fmt.Sprintf("http://%s:5984/", url))
-	if err != nil {
-		return nil, err
-	}
-
-	return cdb, nil
+func (r *Provider) GetStorageProvider() storage.Provider {
+	return r.ariesStorageProvider
 }
 
 // GetGRPCEndpoint todo
@@ -114,4 +126,27 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	}
 
 	return ep, nil
+}
+
+func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
+	external := r.vp.GetString("inbound.external")
+	config := &framework.AMQPConfig{}
+	err := r.vp.UnmarshalKey("inbound.amqp", config)
+
+	amqpInbound, err := amqp.NewInbound(config.Endpoint(), external, "", "")
+	ar, err := aries.New(
+		aries.WithStoreProvider(r.ariesStorageProvider),
+		aries.WithInboundTransport(amqpInbound),
+		aries.WithOutboundTransports(ws.NewOutbound()),
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create aries defaults")
+	}
+
+	actx, err := ar.Context()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get aries context")
+	}
+
+	return actx, err
 }

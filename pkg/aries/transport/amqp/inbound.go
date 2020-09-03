@@ -69,12 +69,12 @@ func (i *Inbound) Start(prov transport.Provider) error {
 		config := &tls.Config{}
 		config.Certificates = make([]tls.Certificate, 1)
 		config.Certificates[0], err = tls.LoadX509KeyPair(i.certFile, i.keyFile)
-		conn, err = amqp.DialTLS(fmt.Sprintf("amqp://guest:guest@%s/", i.internalAddr), config)
+		conn, err = amqp.DialTLS(i.internalAddr, config)
 		if err != nil {
 			return errors.Wrap(err, "unable to connect to RabbitMQ")
 		}
 	} else {
-		conn, err = amqp.Dial(fmt.Sprintf("amqp://guest:guest@%s/", i.internalAddr))
+		conn, err = amqp.Dial(i.internalAddr)
 		if err != nil {
 			return errors.Wrap(err, "unable to connect to RabbitMQ")
 		}

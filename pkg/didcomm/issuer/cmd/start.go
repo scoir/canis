@@ -10,7 +10,9 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/streadway/amqp"
+
+	"github.com/scoir/canis/pkg/controller"
+	"github.com/scoir/canis/pkg/didcomm/issuer"
 )
 
 var startCmd = &cobra.Command{
@@ -20,67 +22,22 @@ var startCmd = &cobra.Command{
 	Run:   runStart,
 }
 
-func runStart(cmd *cobra.Command, args []string) {
-
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+func runStart(_ *cobra.Command, _ []string) {
+	i, err := issuer.New(ctx)
 	if err != nil {
-		return
-	}
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
-	ch, err := conn.Channel()
-	if err != nil {
-		return
-	}
-	defer func() {
-		err := ch.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
-	q, err := ch.QueueDeclare(
-		"lb-q", // name
-		false,  // durable
-		false,  // delete when unused
-		false,  // exclusive
-		false,  // no-wait
-		nil,    // arguments
-	)
-	if err != nil {
-		return
+		log.Fatalln("unable to initialize issuer", err)
 	}
 
-	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
-	)
+	runner, err := controller.New(ctx, i)
 	if err != nil {
-		return
+		log.Fatalln("unable to start didcomm-issuer", err)
 	}
 
-	forever := make(chan bool)
+	err = runner.Launch()
+	if err != nil {
+		log.Fatalln("launch errored with", err)
+	}
 
-	go func() {
-		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
-
-			//make aries go
-		}
-	}()
-
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	<-forever
 }
 
 func init() {

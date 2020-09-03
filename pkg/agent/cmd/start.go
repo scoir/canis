@@ -41,7 +41,6 @@ func runStart(_ *cobra.Command, _ []string) {
 	}
 
 	runner, err := controller.New(ctx, a)
-
 	if err != nil {
 		log.Fatalln("unable to start steward", err)
 	}
