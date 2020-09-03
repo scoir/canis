@@ -45,12 +45,8 @@ func initCluster(_ *cobra.Command, _ []string) {
 }
 
 func getPublicDID() (string, error) {
-	ds, err := ctx.StorageProvider()
-	if err != nil {
-		return "", fmt.Errorf("unable to retrieve datastore: (%w)", err)
-	}
 
-	didds, _ := ds.OpenStore("DID")
+	didds := ctx.Store()
 	did, err := didds.GetPublicDID()
 	if err != nil {
 		return "", fmt.Errorf("no public DID set: (%w)", err)
@@ -78,11 +74,7 @@ func saveExistingPublicDID() {
 		log.Fatalln("DID must be registered to be public", err)
 	}
 
-	ds, err := ctx.StorageProvider()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	didds, _ := ds.OpenStore("DID")
+	didds := ctx.Store()
 
 	var d = &datastore.DID{
 		DID: did,

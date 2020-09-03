@@ -20,6 +20,7 @@ import (
 
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
+	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 	"github.com/scoir/canis/pkg/static"
 )
@@ -256,6 +257,21 @@ func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.
 	}
 
 	return out, nil
+}
+
+func (r *APIServer) GetAgentInvitation(ctx context.Context, request *api.InvitationRequest) (*api.InvitationResponse, error) {
+	doormanReq := &doorman.InvitationRequest{
+		AgentID: request.AgentId,
+		Name:    request.Name,
+	}
+	invite, err := r.doorman.GetInvitation(ctx, doormanReq)
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to get agent invitation").Error())
+	}
+
+	return &api.InvitationResponse{
+		Invitation: invite.Invitation,
+	}, nil
 }
 
 func (r *APIServer) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) (*api.DeleteAgentResponse, error) {

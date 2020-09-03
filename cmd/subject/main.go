@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -25,14 +24,15 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/suite/ed25519signature2018"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
+	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	vstore "github.com/hyperledger/aries-framework-go/pkg/store/verifiable"
 	"github.com/pkg/errors"
 	goji "goji.io"
 	"goji.io/pat"
 
+	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
-	"github.com/scoir/canis/pkg/aries/transport/amqp"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
@@ -81,7 +81,7 @@ func getCredentials(w http.ResponseWriter, _ *http.Request) {
 }
 
 func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
-	resp, err := http.Get("http://0.0.0.0:2002/invitation/subject")
+	resp, err := http.Post("http://local.scoir.com:7779/agents/voyager1/invitation", "application/json", strings.NewReader("{}"))
 	if err != nil {
 		util.WriteErrorf(w, "Error requesting invitation from issuer: %v", err)
 		return
@@ -89,8 +89,17 @@ func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
 	b, _ := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
 
+	inviteResponse := &api.InvitationResponse{}
+	err = json.Unmarshal(b, inviteResponse)
+	if err != nil {
+		util.WriteErrorf(w, "Error decoding invitation response: %v, s", err, string(b))
+		return
+	}
+
+	fmt.Println(inviteResponse.Invitation)
+
 	invite := &didexchange.Invitation{}
-	err = json.NewDecoder(bytes.NewReader(b)).Decode(invite)
+	err = json.NewDecoder(strings.NewReader(inviteResponse.Invitation)).Decode(invite)
 	if err != nil {
 		util.WriteErrorf(w, "Error decoding invitation: %v, s", err, string(b))
 		return
@@ -133,13 +142,14 @@ func connectToVerifier(w http.ResponseWriter, _ *http.Request) {
 }
 
 func createAriesContext() {
-	wsinbound := "localhost:5672"
+	wsinbound := "172.17.0.1:3001"
 
-	amqpInbound, err := amqp.NewInbound(wsinbound, "ws://0.0.0.0:3001", "", "")
+	//wsinbound := "localhost:5672"
+	//amqpInbound, err := amqp.NewInbound(wsinbound, "ws://0.0.0.0:3001", "", "")
 
 	ar, err := aries.New(
 		aries.WithStoreProvider(store.NewProvider("mongodb://172.17.0.1:27017", "subject")),
-		aries.WithInboundTransport(amqpInbound),
+		defaults.WithInboundWSAddr(wsinbound, fmt.Sprintf("ws://%s", wsinbound), "", ""),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 	)
 	if err != nil {

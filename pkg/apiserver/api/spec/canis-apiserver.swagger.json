@@ -123,6 +123,36 @@
         ]
       }
     },
+    "/agents/{agent_id}/invitation": {
+      "post": {
+        "operationId": "Admin_GetAgentInvitation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiserverInvitationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/agents/{id}": {
       "get": {
         "operationId": "Admin_GetAgent",
@@ -477,6 +507,14 @@
       "properties": {
         "schema": {
           "$ref": "#/definitions/apiserverSchema"
+        }
+      }
+    },
+    "apiserverInvitationResponse": {
+      "type": "object",
+      "properties": {
+        "invitation": {
+          "type": "string"
         }
       }
     },

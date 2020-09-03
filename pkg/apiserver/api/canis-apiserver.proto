@@ -170,6 +170,16 @@ message AgentEvent {
     Agent New = 3;
 }
 
+message InvitationRequest {
+  string agent_id = 1;
+  string name = 2;
+}
+
+message InvitationResponse {
+  string invitation = 1;
+}
+
+
 service Admin {
     rpc CreateSchema (CreateSchemaRequest) returns (CreateSchemaResponse) {
         option (google.api.http) = {
@@ -214,6 +224,12 @@ service Admin {
         option (google.api.http) = {
             get: "/agents/{id}"
         };
+    }
+    rpc GetAgentInvitation (InvitationRequest) returns (InvitationResponse) {
+        option (google.api.http) = {
+            post: "/agents/{agent_id}/invitation"
+        };
+
     }
     rpc DeleteAgent (DeleteAgentRequest) returns (DeleteAgentResponse) {
         option (google.api.http) = {

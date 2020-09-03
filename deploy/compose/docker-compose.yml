@@ -56,7 +56,8 @@ services:
     image: canis/canis
     command: "canis-didcomm-lb start"
     ports:
-      - "7979:7979"
+      - "9001:9001"
+      - "9003:9003"
     networks:
       - backend
     secrets:

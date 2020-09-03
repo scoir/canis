@@ -18,9 +18,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
+	"github.com/scoir/canis/pkg/didcomm/doorman/api"
+	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	"github.com/scoir/canis/pkg/runtime"
@@ -44,6 +47,7 @@ type Provider struct {
 	exec   runtime.Executor
 	dm     *manager.DataProviderManager
 	client *vdr.Client
+	store  datastore.Store
 }
 
 func Execute() {
@@ -89,9 +93,19 @@ func initConfig() {
 	}
 
 	dm := manager.NewDataProviderManager(dc)
+	sp, err := dm.DefaultStoreProvider()
+	if err != nil {
+		log.Fatalln("unable to get default data store", err)
+	}
+
+	store, err := sp.OpenStore("canis")
+	if err != nil {
+		log.Fatalln("unable to get default data store", err)
+	}
 	ctx = &Provider{
-		vp: vp,
-		dm: dm,
+		vp:    vp,
+		dm:    dm,
+		store: store,
 	}
 }
 
@@ -99,8 +113,8 @@ func (r *Provider) StorageManager() *manager.DataProviderManager {
 	return r.dm
 }
 
-func (r *Provider) StorageProvider() (datastore.Provider, error) {
-	return r.dm.DefaultStoreProvider()
+func (r *Provider) Store() datastore.Store {
+	return r.store
 }
 
 func (r *Provider) VDR() (*vdr.Client, error) {
@@ -140,4 +154,28 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	}
 
 	return ep, nil
+}
+
+func (r *Provider) GetDoormanClient() (api.DoormanClient, error) {
+	ep := &framework.Endpoint{}
+	err := r.vp.UnmarshalKey("doorman.grpc", ep)
+
+	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to dial grpc for steward client")
+	}
+	cl := api.NewDoormanClient(cc)
+	return cl, nil
+}
+
+func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
+	ep := &framework.Endpoint{}
+	err := r.vp.UnmarshalKey("issuer.grpc", ep)
+
+	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to dial grpc for steward client")
+	}
+	cl := issuer.NewIssuerClient(cc)
+	return cl, nil
 }

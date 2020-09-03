@@ -1,7 +1,7 @@
 syntax = "proto3";
 package didcomm;
 
-option go_package = "didcomm/bouncer/api";
+option go_package = "didcomm/doorman/api";
 
 message InvitationRequest {
   string agentID = 1;

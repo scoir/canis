@@ -14,6 +14,8 @@ import (
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
+	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
+	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
 
@@ -24,6 +26,8 @@ type APIServer struct {
 	storeManager *manager.DataProviderManager
 	client       *vdr.Client
 
+	doorman     doorman.DoormanClient
+	issuer      issuer.IssuerClient
 	watcherLock sync.RWMutex
 	watchers    []chan *api.AgentEvent
 }
@@ -31,8 +35,10 @@ type APIServer struct {
 //go:generate mockery -name=provider --structname=Provider
 type provider interface {
 	StorageManager() *manager.DataProviderManager
-	StorageProvider() (datastore.Provider, error)
+	Store() datastore.Store
 	VDR() (*vdr.Client, error)
+	GetDoormanClient() (doorman.DoormanClient, error)
+	GetIssuerClient() (issuer.IssuerClient, error)
 }
 
 func New(ctx provider) (*APIServer, error) {
@@ -42,29 +48,23 @@ func New(ctx provider) (*APIServer, error) {
 		watchers: make([]chan *api.AgentEvent, 0),
 	}
 
+	r.schemaStore = ctx.Store()
+	r.agentStore = ctx.Store()
+	r.didStore = ctx.Store()
+
 	r.client, err = ctx.VDR()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get VDR")
 	}
 
-	storageProvider, err := ctx.StorageProvider()
+	r.doorman, err = ctx.GetDoormanClient()
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to access datastore")
+		return nil, errors.Wrap(err, "unable to get doorman client")
 	}
 
-	r.schemaStore, err = storageProvider.OpenStore("Schema")
+	r.issuer, err = ctx.GetIssuerClient()
 	if err != nil {
-		return nil, err
-	}
-
-	r.agentStore, err = storageProvider.OpenStore("Agent")
-	if err != nil {
-		return nil, err
-	}
-
-	r.didStore, err = storageProvider.OpenStore("DID")
-	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "unable to get issuer client")
 	}
 
 	r.storeManager = ctx.StorageManager()

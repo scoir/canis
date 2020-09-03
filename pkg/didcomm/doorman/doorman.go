@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/didcomm/bouncer/api"
+	"github.com/scoir/canis/pkg/didcomm/doorman/api"
 	"github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
 )
