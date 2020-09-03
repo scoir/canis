@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package datastore
 
 import (
+	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 )
 
@@ -27,9 +28,6 @@ type Provider interface {
 
 	// Close closes all stores created under this store provider
 	Close() error
-
-	// GetAriesProvider returns a pre-configured storage provider for use in an Aries context
-	GetAriesProvider() (storage.Provider, error)
 }
 
 //go:generate mockery -name=Store
@@ -66,15 +64,9 @@ type Store interface {
 	DeleteAgent(id string) error
 	// UpdateAgent delete single agent
 	UpdateAgent(s *Agent) error
+	// InsertAgentConnection associates an agent with a connection
+	InsertAgentConnection(s *Agent, conn *didexchange.Connection) error
 
-	// Insert add Doc to store
-	Insert(d Doc) (string, error)
-	// List query docs
-	List(c Criteria, gen DocGen, start, pageSize int) (*DocList, error)
-	// Get return single Doc
-	Get(id string, gen DocGen) (Doc, error)
-	// Delete delete single doc
-	Delete(id string) error
-	// Update update single doc
-	Update(d Doc) error
+	// GetAriesProvider returns a pre-configured storage provider for use in an Aries context
+	GetAriesProvider() (storage.Provider, error)
 }

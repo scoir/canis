@@ -55,6 +55,13 @@ type Agent struct {
 	PublicDID           *DID
 }
 
+type AgentConnection struct {
+	AgentID      string
+	TheirDID     string
+	MyDID        string
+	ConnectionID string
+}
+
 type AgentCriteria struct {
 	Start, PageSize int
 	Name            string

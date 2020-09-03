@@ -1,7 +1,7 @@
 syntax = "proto3";
 package didcomm;
 
-option go_package = "didcomm/api";
+option go_package = "didcomm/issuer/api";
 
 message CredentialAttribute {
   string name = 1;
@@ -20,5 +20,5 @@ message OfferCredentialResponse {
 }
 
 service Issuer {
-  rpc OfferCredential (OfferCredentialRequest) returns (OfferCredentialResponse) {}
+  rpc OfferCredential (InvitationRequest) returns (InvitationResponse) {}
 }

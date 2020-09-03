@@ -15,6 +15,7 @@ import (
 	_ "github.com/go-kivik/couchdb" // The CouchDB driver
 	"github.com/go-kivik/kivik"
 	"github.com/google/uuid"
+	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	couchdbstore "github.com/hyperledger/aries-framework-go/pkg/storage/couchdb"
 	"github.com/pkg/errors"
@@ -78,15 +79,15 @@ func (p *Provider) OpenStore(name string) (datastore.Store, error) {
 		return nil, db.Err()
 	}
 
-	store := &couchDBStore{db: db}
+	store := &couchDBStore{db: db, hostURL: p.hostURL}
 
 	p.dbs[name] = store
 
 	return store, nil
 }
 
-func (p *Provider) GetAriesProvider() (storage.Provider, error) {
-	return couchdbstore.NewProvider(p.hostURL)
+func (r *couchDBStore) GetAriesProvider() (storage.Provider, error) {
+	return couchdbstore.NewProvider(r.hostURL)
 }
 
 // CloseStore closes a previously opened store.
@@ -127,26 +128,11 @@ func (p *Provider) Close() error {
 
 // couchDBStore represents a CouchDB-backed database.
 type couchDBStore struct {
-	db *kivik.DB
+	db      *kivik.DB
+	hostURL string
 }
 
-func (r *couchDBStore) Insert(d datastore.Doc) (string, error) {
-	panic("implement me")
-}
-
-func (r *couchDBStore) List(c datastore.Criteria, gen datastore.DocGen, start, pageSize int) (*datastore.DocList, error) {
-	panic("implement me")
-}
-
-func (r *couchDBStore) Get(id string, gen datastore.DocGen) (datastore.Doc, error) {
-	panic("implement me")
-}
-
-func (r *couchDBStore) Delete(id string) error {
-	panic("implement me")
-}
-
-func (r *couchDBStore) Update(d datastore.Doc) error {
+func (r *couchDBStore) InsertAgentConnection(s *datastore.Agent, conn *didexchange.Connection) error {
 	panic("implement me")
 }
 

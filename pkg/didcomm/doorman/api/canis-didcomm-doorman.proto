@@ -1,0 +1,17 @@
+syntax = "proto3";
+package didcomm;
+
+option go_package = "didcomm/bouncer/api";
+
+message InvitationRequest {
+  string agentID = 1;
+  string name = 2;
+}
+
+message InvitationResponse {
+  string Invitation = 1;
+}
+
+service Doorman {
+  rpc GetInvitation (InvitationRequest) returns (InvitationResponse) {}
+}

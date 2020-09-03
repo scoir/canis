@@ -3,6 +3,7 @@
 CANIS_ROOT=$(abspath .)
 DIDCOMM_LB_FILES = $(wildcard pkg/didcomm/loadbalancer/*.go pkg/didcomm/loadbalancer/**/*.go cmd/canis-didcomm-lb/*.go)
 DIDCOMM_ISSUER_FILES = $(wildcard pkg/didcomm/issuer/*.go pkg/didcomm/issuer/**/*.go cmd/canis-didcomm-issuer/*.go)
+DIDCOMM_DOORMAN_FILES = $(wildcard pkg/didcomm/doorman/*.go pkg/didcomm/doorman/**/*.go cmd/canis-didcomm-doorman/*.go)
 
 all: clean tools build
 
@@ -23,7 +24,7 @@ pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec
 	staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
 
 
-build: bin/canis-apiserver bin/agent bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-lb
+build: bin/canis-apiserver bin/agent bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-lb bin/canis-didcomm-doorman
 build-canis-apiserver: bin/canis-apiserver
 build-canis-scheduler: bin/canis-scheduler
 build-canis-didcomm-issuer: bin/canis-didcomm-issuer
@@ -36,6 +37,10 @@ bin/canis-apiserver: canis-apiserver-pb swagger_pack
 canis-didcomm-issuer: bin/canis-didcomm-issuer
 bin/canis-didcomm-issuer: $(DIDCOMM_ISSUER_FILES)
 	@. ./canis.sh; cd cmd/canis-didcomm-issuer && go build -o $(CANIS_ROOT)/bin/canis-didcomm-issuer
+
+canis-didcomm-doorman: bin/canis-didcomm-doorman
+bin/canis-didcomm-doorman: $(DIDCOMM_DOORMAN_FILES)
+	@. ./canis.sh; cd cmd/canis-didcomm-doorman && go build -o $(CANIS_ROOT)/bin/canis-didcomm-doorman
 
 canis-didcomm-lb: bin/canis-didcomm-lb
 bin/canis-didcomm-lb: $(DIDCOMM_LB_FILES)
@@ -73,6 +78,12 @@ pkg/apiserver/api/canis-apiserver.pb.go:pkg/apiserver/api/canis-apiserver.proto
 	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I apiserver/api/ apiserver/api/canis-apiserver.proto --grpc-gateway_out=logtostderr=true:.
 	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I apiserver/api/ apiserver/api/canis-apiserver.proto --swagger_out=logtostderr=true:.
 	mv pkg/apiserver/api/canis-apiserver.swagger.json pkg/apiserver/api/spec
+
+
+canis-didcomm-doorman-pb: pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go
+pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go:pkg/didcomm/doorman/api/canis-didcomm-doorman.proto
+	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I didcomm/doorman/api/ didcomm/doorman/api/canis-didcomm-doorman.proto --go_out=plugins=grpc:.
+
 demo-web:
 	cd demo && npm run build
 

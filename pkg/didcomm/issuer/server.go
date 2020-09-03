@@ -18,14 +18,12 @@ import (
 
 	"github.com/scoir/canis/pkg/credential"
 	"github.com/scoir/canis/pkg/didcomm/issuer/api"
-	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
 )
 
 type Server struct {
 	credcl      *issuecredential.Client
 	ctx         *ariescontext.Provider
-	bouncer     didex.Bouncer
 	credsup     *credential.Supervisor
 	credHandler *credHandler
 }
@@ -38,7 +36,6 @@ func New(ctx provider) (*Server, error) {
 
 	actx, err := ctx.GetAriesContext()
 	prov := framework.NewSimpleProvider(actx)
-	bouncer, _ := didex.NewBouncer(prov)
 	credcl, _ := prov.GetCredentialClient()
 
 	credsup, err := credential.New(prov)
@@ -57,7 +54,6 @@ func New(ctx provider) (*Server, error) {
 
 	r := &Server{
 		credcl:      credcl,
-		bouncer:     bouncer,
 		credsup:     credsup,
 		credHandler: handler,
 	}

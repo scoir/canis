@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
 
@@ -35,32 +36,16 @@ type Provider struct {
 	sync.RWMutex
 }
 
-func (p *Provider) GetAriesProvider() (storage.Provider, error) {
-	panic("implement me")
-}
-
 type postgresDBStore struct {
 	pool      *pgxpool.Pool
 	tableName string
 }
 
-func (p *postgresDBStore) Insert(d datastore.Doc) (string, error) {
+func (p *postgresDBStore) InsertAgentConnection(s *datastore.Agent, conn *didexchange.Connection) error {
 	panic("implement me")
 }
 
-func (p *postgresDBStore) List(c datastore.Criteria, gen datastore.DocGen, start, pageSize int) (*datastore.DocList, error) {
-	panic("implement me")
-}
-
-func (p *postgresDBStore) Get(id string, gen datastore.DocGen) (datastore.Doc, error) {
-	panic("implement me")
-}
-
-func (p *postgresDBStore) Delete(id string) error {
-	panic("implement me")
-}
-
-func (p *postgresDBStore) Update(d datastore.Doc) error {
+func (p *postgresDBStore) GetAriesProvider() (storage.Provider, error) {
 	panic("implement me")
 }
 

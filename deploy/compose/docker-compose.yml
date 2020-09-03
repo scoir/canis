@@ -23,11 +23,27 @@ services:
     command: "canis-didcomm-issuer start"
     ports:
       - "7776:7776"
-      - "7777:7777"
     networks:
       - backend
     secrets:
-      - source: canis-didcomm-config
+      - source: canis-didcomm-issuer-config
+        target: /etc/canis/canis-didcomm-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  canis-didcomm-doorman:
+    image: canis/canis
+    command: "canis-didcomm-doorman start"
+    ports:
+      - "8886:8886"
+    networks:
+      - backend
+    secrets:
+      - source: canis-didcomm-doorman-config
         target: /etc/canis/canis-didcomm-config.yml
     deploy:
       replicas: 1
@@ -65,8 +81,10 @@ secrets:
     file: ./canis-apiserver.yaml
   canis-scheduler-config:
     file: ./canis-scheduler.yaml
-  canis-didcomm-config:
-    file: ./canis-didcomm.yaml
+  canis-didcomm-issuer-config:
+    file: ./canis-didcomm-issuer.yaml
+  canis-didcomm-doorman-config:
+    file: ./canis-didcomm-doorman.yaml
   canis-didcomm-lb-config:
     file: ./canis-didcomm-lb.yaml
 

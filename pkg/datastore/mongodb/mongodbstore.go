@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,6 +25,13 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 )
 
+const (
+	DIDC             = "DID"
+	AgentC           = "Agent"
+	AgentConnectionC = "AgentConnection"
+	SchemaC          = "Schema"
+)
+
 type Config struct {
 	URL      string `mapstructure:"url"`
 	Database string `mapstructure:"database"`
@@ -31,7 +39,7 @@ type Config struct {
 
 // Provider represents a Mongo DB implementation of the storage.Provider interface
 type Provider struct {
-	db       *mongo.Database
+	client   *mongo.Client
 	dbURL    string
 	stores   map[string]*mongoDBStore
 	dbPrefix string
@@ -39,7 +47,8 @@ type Provider struct {
 }
 
 type mongoDBStore struct {
-	collection *mongo.Collection
+	dbURL string
+	db    *mongo.Database
 }
 
 // NewProvider instantiates Provider
@@ -62,11 +71,10 @@ func NewProvider(config *Config) (*Provider, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error connecting to mongo")
 	}
-	db := mongoClient.Database(config.Database)
 
 	p := &Provider{
 		dbURL:  config.URL,
-		db:     db,
+		client: mongoClient,
 		stores: map[string]*mongoDBStore{}}
 
 	return p, nil
@@ -81,8 +89,11 @@ func (r *Provider) OpenStore(name string) (datastore.Store, error) {
 		return nil, errors.New("store name is required")
 	}
 
+	db := r.client.Database(name)
+
 	store := &mongoDBStore{
-		collection: r.db.Collection(name),
+		dbURL: r.dbURL,
+		db:    db,
 	}
 
 	r.stores[name] = store
@@ -90,7 +101,7 @@ func (r *Provider) OpenStore(name string) (datastore.Store, error) {
 	return store, nil
 }
 
-func (r *Provider) GetAriesProvider() (storage.Provider, error) {
+func (r *mongoDBStore) GetAriesProvider() (storage.Provider, error) {
 	return store.NewProvider(r.dbURL, r.db.Name()), nil
 }
 
@@ -101,7 +112,7 @@ func (r *Provider) Close() error {
 
 	r.stores = make(map[string]*mongoDBStore)
 
-	return r.db.Client().Disconnect(context.Background())
+	return r.client.Disconnect(context.Background())
 }
 
 // CloseStore closes a previously opened store
@@ -125,7 +136,7 @@ func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
 		return errors.New("did is required")
 	}
 	d.ID = d.DID.String()
-	_, err := r.collection.InsertOne(context.Background(), d)
+	_, err := r.db.Collection(DIDC).InsertOne(context.Background(), d)
 	if err != nil {
 		return errors.Wrap(err, "unable to insert DID")
 	}
@@ -148,8 +159,8 @@ func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 	opts = opts.SetSkip(int64(c.Start)).SetLimit(int64(c.PageSize))
 
 	ctx := context.Background()
-	count, err := r.collection.CountDocuments(ctx, bc)
-	results, err := r.collection.Find(ctx, bc, opts)
+	count, err := r.db.Collection(DIDC).CountDocuments(ctx, bc)
+	results, err := r.db.Collection(DIDC).Find(ctx, bc, opts)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error trying to find DIDs")
@@ -171,12 +182,12 @@ func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 // SetPublicDID update single DID to public, unset remaining
 func (r *mongoDBStore) SetPublicDID(DID string) error {
 	ctx := context.Background()
-	_, err := r.collection.UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"public": false}})
+	_, err := r.db.Collection(DIDC).UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"public": false}})
 	if err != nil {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
 
-	_, err = r.collection.UpdateOne(ctx, bson.M{"id": DID}, bson.M{"$set": bson.M{"public": true}})
+	_, err = r.db.Collection(DIDC).UpdateOne(ctx, bson.M{"id": DID}, bson.M{"$set": bson.M{"public": true}})
 	if err != nil {
 		return errors.Wrap(err, "unable to unset public PeerDID")
 	}
@@ -188,7 +199,7 @@ func (r *mongoDBStore) SetPublicDID(DID string) error {
 func (r *mongoDBStore) GetPublicDID() (*datastore.DID, error) {
 	out := &datastore.DID{}
 
-	err := r.collection.FindOne(context.Background(), bson.M{"public": true}).Decode(out)
+	err := r.db.Collection(DIDC).FindOne(context.Background(), bson.M{"public": true}).Decode(out)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to find public PeerDID")
 	}
@@ -198,7 +209,7 @@ func (r *mongoDBStore) GetPublicDID() (*datastore.DID, error) {
 
 // InsertSchema add Schema to store
 func (r *mongoDBStore) InsertSchema(s *datastore.Schema) (string, error) {
-	_, err := r.collection.InsertOne(context.Background(), s)
+	_, err := r.db.Collection(SchemaC).InsertOne(context.Background(), s)
 	if err != nil {
 		return "", errors.Wrap(err, "unable to insert schema")
 	}
@@ -217,8 +228,9 @@ func (r *mongoDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 	opts = opts.SetSkip(int64(c.Start)).SetLimit(int64(c.PageSize))
 
 	ctx := context.Background()
-	count, err := r.collection.CountDocuments(ctx, bc)
-	results, err := r.collection.Find(ctx, bc, opts)
+
+	count, err := r.db.Collection(SchemaC).CountDocuments(ctx, bc)
+	results, err := r.db.Collection(SchemaC).Find(ctx, bc, opts)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error trying to find schema")
@@ -241,7 +253,7 @@ func (r *mongoDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 func (r *mongoDBStore) GetSchema(id string) (*datastore.Schema, error) {
 	schema := &datastore.Schema{}
 
-	err := r.collection.FindOne(context.Background(), bson.M{"id": id}).Decode(schema)
+	err := r.db.Collection(SchemaC).FindOne(context.Background(), bson.M{"id": id}).Decode(schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load schema")
 	}
@@ -251,7 +263,7 @@ func (r *mongoDBStore) GetSchema(id string) (*datastore.Schema, error) {
 
 // DeleteSchema delete single schema
 func (r *mongoDBStore) DeleteSchema(id string) error {
-	_, err := r.collection.DeleteOne(context.Background(), bson.M{"id": id})
+	_, err := r.db.Collection(SchemaC).DeleteOne(context.Background(), bson.M{"id": id})
 	if err != nil {
 		return errors.Wrap(err, "unable to delete schema")
 	}
@@ -261,7 +273,7 @@ func (r *mongoDBStore) DeleteSchema(id string) error {
 
 // UpdateSchema update single schema
 func (r *mongoDBStore) UpdateSchema(s *datastore.Schema) error {
-	_, err := r.collection.UpdateOne(context.Background(), bson.M{"id": s.ID}, bson.M{"$set": s})
+	_, err := r.db.Collection(SchemaC).UpdateOne(context.Background(), bson.M{"id": s.ID}, bson.M{"$set": s})
 	if err != nil {
 		return errors.Wrap(err, "unable to update schema")
 	}
@@ -271,11 +283,28 @@ func (r *mongoDBStore) UpdateSchema(s *datastore.Schema) error {
 
 // InsertAgent add agent to store
 func (r *mongoDBStore) InsertAgent(a *datastore.Agent) (string, error) {
-	_, err := r.collection.InsertOne(context.Background(), a)
+	_, err := r.db.Collection(AgentC).InsertOne(context.Background(), a)
 	if err != nil {
 		return "", errors.Wrap(err, "unable to insert agent")
 	}
 	return a.ID, nil
+
+}
+
+func (r *mongoDBStore) InsertAgentConnection(a *datastore.Agent, conn *didexchange.Connection) error {
+	ac := &datastore.AgentConnection{
+		AgentID:      a.ID,
+		TheirDID:     conn.TheirDID,
+		MyDID:        conn.MyDID,
+		ConnectionID: conn.ConnectionID,
+	}
+
+	_, err := r.db.Collection(AgentConnectionC).InsertOne(context.Background(), ac)
+	if err != nil {
+		return errors.Wrap(err, "unable to insert agent")
+	}
+
+	return nil
 
 }
 
@@ -298,8 +327,8 @@ func (r *mongoDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentLi
 	opts = opts.SetSkip(int64(c.Start)).SetLimit(int64(c.PageSize))
 
 	ctx := context.Background()
-	count, err := r.collection.CountDocuments(ctx, bc)
-	results, err := r.collection.Find(ctx, bc, opts)
+	count, err := r.db.Collection(AgentC).CountDocuments(ctx, bc)
+	results, err := r.db.Collection(AgentC).Find(ctx, bc, opts)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error trying to find agents")
@@ -322,7 +351,7 @@ func (r *mongoDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentLi
 func (r *mongoDBStore) GetAgent(id string) (*datastore.Agent, error) {
 	agent := &datastore.Agent{}
 
-	err := r.collection.FindOne(context.Background(), bson.M{"id": id}).Decode(agent)
+	err := r.db.Collection(AgentC).FindOne(context.Background(), bson.M{"id": id}).Decode(agent)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load agent")
 	}
@@ -335,7 +364,7 @@ func (r *mongoDBStore) GetAgent(id string) (*datastore.Agent, error) {
 func (r *mongoDBStore) GetAgentByInvitation(invitationID string) (*datastore.Agent, error) {
 	agent := &datastore.Agent{}
 
-	err := r.collection.FindOne(context.Background(), bson.M{"invitationid": invitationID}).Decode(agent)
+	err := r.db.Collection(AgentC).FindOne(context.Background(), bson.M{"invitationid": invitationID}).Decode(agent)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load agent by invitation")
 	}
@@ -346,7 +375,7 @@ func (r *mongoDBStore) GetAgentByInvitation(invitationID string) (*datastore.Age
 
 // DeleteAgent delete single agent
 func (r *mongoDBStore) DeleteAgent(id string) error {
-	_, err := r.collection.DeleteOne(context.Background(), bson.M{"id": id})
+	_, err := r.db.Collection(AgentC).DeleteOne(context.Background(), bson.M{"id": id})
 	if err != nil {
 		return errors.Wrap(err, "unable to delete agent")
 	}
@@ -356,80 +385,9 @@ func (r *mongoDBStore) DeleteAgent(id string) error {
 
 // UpdateAgent delete single agent
 func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
-	_, err := r.collection.UpdateOne(context.Background(), bson.M{"id": a.ID}, bson.M{"$set": a})
+	_, err := r.db.Collection(AgentC).UpdateOne(context.Background(), bson.M{"id": a.ID}, bson.M{"$set": a})
 	if err != nil {
 		return errors.Wrap(err, "unable to update agent")
-	}
-
-	return nil
-}
-
-func (r *mongoDBStore) Insert(d datastore.Doc) (string, error) {
-	_, err := r.collection.InsertOne(context.Background(), d)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to insert schema")
-	}
-	return d.GetID(), nil
-}
-
-func (r *mongoDBStore) List(c datastore.Criteria, gen datastore.DocGen, start, pageSize int) (*datastore.DocList, error) {
-	bc := bson.M{}
-	if c["Name"] != "" {
-		p := fmt.Sprintf(".*%s.*", c["Name"])
-		bc["name"] = primitive.Regex{Pattern: p, Options: ""}
-	}
-
-	opts := &options.FindOptions{}
-	opts = opts.SetSkip(int64(start)).SetLimit(int64(pageSize))
-
-	ctx := context.Background()
-	count, err := r.collection.CountDocuments(ctx, bc)
-	results, err := r.collection.Find(ctx, bc, opts)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error trying to find docs")
-	}
-
-	out := datastore.DocList{
-		Count: int(count),
-		Docs:  []datastore.Doc{},
-	}
-
-	for results.Next(ctx) {
-		d := gen()
-		err := results.Decode(d)
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to decode docs")
-		}
-		out.Docs = append(out.Docs, d)
-	}
-
-	return &out, nil
-}
-
-func (r *mongoDBStore) Get(id string, gen datastore.DocGen) (datastore.Doc, error) {
-	doc := gen()
-	err := r.collection.FindOne(context.Background(), bson.M{"id": id}).Decode(&doc)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to load doc")
-	}
-
-	return doc, nil
-}
-
-func (r *mongoDBStore) Delete(id string) error {
-	_, err := r.collection.DeleteOne(context.Background(), bson.M{"id": id})
-	if err != nil {
-		return errors.Wrap(err, "unable to delete doc")
-	}
-
-	return nil
-}
-
-func (r *mongoDBStore) Update(d datastore.Doc) error {
-	_, err := r.collection.UpdateOne(context.Background(), bson.M{"id": d.GetID()}, bson.M{"$set": d})
-	if err != nil {
-		return errors.Wrap(err, "unable to update doc")
 	}
 
 	return nil
