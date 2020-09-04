@@ -19,3 +19,14 @@ amqp:
   host: 172.17.0.1
   port: 5672
   vhost: canis
+
+###############################################################
+#
+#  Datastore configuration
+#
+###############################################################
+datastore:
+  database: mongo
+  mongo:
+     url: "mongodb://172.17.0.1:27017"
+     database: "canis"

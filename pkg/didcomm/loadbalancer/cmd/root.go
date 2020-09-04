@@ -8,16 +8,21 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/scoir/canis/pkg/datastore/manager"
+	"github.com/scoir/canis/pkg/framework"
 )
 
 var (
 	cfgFile string
-	ctx     *Provider
+	prov    *Provider
 )
 
 var rootCmd = &cobra.Command{
@@ -29,7 +34,8 @@ var rootCmd = &cobra.Command{
 }
 
 type Provider struct {
-	vp *viper.Viper
+	vp                   *viper.Viper
+	ariesStorageProvider storage.Provider
 }
 
 func Execute() {
@@ -68,7 +74,26 @@ func initConfig() {
 		os.Exit(1)
 	}
 
-	ctx = &Provider{
-		vp: vp,
+	dc := &framework.DatastoreConfig{}
+	err := vp.UnmarshalKey("datastore", dc)
+	if err != nil {
+		log.Fatalln("invalid datastore key in configuration")
+	}
+
+	dm := manager.NewDataProviderManager(dc)
+	sp, err := dm.DefaultStoreProvider()
+	if err != nil {
+		log.Fatalln("unable to retrieve default storage provider", err)
+	}
+
+	store, err := sp.OpenStore("issuer")
+	if err != nil {
+		log.Fatalln("unable to open store")
+	}
+	asp, err := store.GetAriesProvider()
+
+	prov = &Provider{
+		vp:                   vp,
+		ariesStorageProvider: asp,
 	}
 }

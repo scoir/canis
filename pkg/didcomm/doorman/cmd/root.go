@@ -93,7 +93,7 @@ func initConfig() {
 		log.Fatalln("unable to retrieve default storage provider", err)
 	}
 
-	store, err := sp.OpenStore("canis")
+	store, err := sp.OpenStore("doorman")
 	if err != nil {
 		log.Fatalln(err, "unable to open canis data store")
 	}
@@ -146,7 +146,7 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	config := &framework.AMQPConfig{}
 	err := r.vp.UnmarshalKey("inbound.amqp", config)
 
-	amqpInbound, err := amqp.NewInbound(config.Endpoint(), external, "", "")
+	amqpInbound, err := amqp.NewInbound(config.Endpoint(), external, "didexchange", "", "")
 	ar, err := aries.New(
 		aries.WithStoreProvider(r.ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),

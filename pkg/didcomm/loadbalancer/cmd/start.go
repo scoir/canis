@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	"github.com/spf13/cobra"
 
 	lb "github.com/scoir/canis/pkg/didcomm/loadbalancer"
@@ -23,20 +24,33 @@ var startCmd = &cobra.Command{
 }
 
 func runStart(_ *cobra.Command, _ []string) {
-	amqpUser := ctx.vp.GetString("amqp.user")
-	amqpPwd := ctx.vp.GetString("amqp.password")
-	amqpHost := ctx.vp.GetString("amqp.host")
-	amqpPort := ctx.vp.GetInt("amqp.port")
-	amqpVHost := ctx.vp.GetString("amqp.vhost")
+	amqpUser := prov.vp.GetString("amqp.user")
+	amqpPwd := prov.vp.GetString("amqp.password")
+	amqpHost := prov.vp.GetString("amqp.host")
+	amqpPort := prov.vp.GetInt("amqp.port")
+	amqpVHost := prov.vp.GetString("amqp.vhost")
 	amqpAddr := fmt.Sprintf("amqp://%s:%s@%s:%d/%s", amqpUser, amqpPwd, amqpHost, amqpPort, amqpVHost)
-	host := ctx.vp.GetString("inbound.host")
-	httpPort := ctx.vp.GetInt("inbound.httpport")
-	wsPort := ctx.vp.GetInt("inbound.wsport")
+	host := prov.vp.GetString("inbound.host")
+	httpPort := prov.vp.GetInt("inbound.httpport")
+	wsPort := prov.vp.GetInt("inbound.wsport")
 
 	wait := make(chan bool)
 
 	log.Println("starting didcomm loadbalancer")
-	srv, err := lb.New(amqpAddr, host, httpPort, wsPort)
+
+	ar, err := aries.New(
+		aries.WithStoreProvider(prov.ariesStorageProvider),
+	)
+	if err != nil {
+		log.Fatalln("unable to initialize aries", err)
+	}
+
+	ctx, err := ar.Context()
+	if err != nil {
+		log.Fatalln("unable to get aries context", err)
+	}
+
+	srv, err := lb.New(ctx, amqpAddr, host, httpPort, wsPort)
 	if err != nil {
 		log.Fatalln("unable to launch didcomm loadbalancer ")
 	}

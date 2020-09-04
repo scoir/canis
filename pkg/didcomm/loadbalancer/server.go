@@ -2,12 +2,15 @@ package loadbalancer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/transport"
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 	"nhooyr.io/websocket"
@@ -15,19 +18,28 @@ import (
 
 const (
 	// TODO configure ping request frequency.
-	queueName     = "didcomm-msgs"
+	didcommPrefix = "https://didcomm.org/"
 	pingFrequency = 30 * time.Second
+)
+
+var (
+	supportedProtocols = []string{"didexchange", "issue-credential"}
 )
 
 type Server struct {
 	wsAddr   string
 	httpAddr string
+	packager transport.Packager
 	conn     *amqp.Connection
 	ch       *amqp.Channel
-	queue    amqp.Queue
+	queues   []amqp.Queue
 }
 
-func New(amqpAddr, host string, httpPort, wsPort int) (*Server, error) {
+type provider interface {
+	Packager() transport.Packager
+}
+
+func New(prov provider, amqpAddr, host string, httpPort, wsPort int) (*Server, error) {
 
 	var err error
 	conn, err := amqp.Dial(amqpAddr)
@@ -40,24 +52,30 @@ func New(amqpAddr, host string, httpPort, wsPort int) (*Server, error) {
 		return nil, errors.Wrap(err, "unable to create an AMQP channel")
 	}
 
-	queue, err := ch.QueueDeclare(
-		queueName, // name
-		false,     // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to declare AMQP queue")
+	qs := make([]amqp.Queue, len(supportedProtocols))
+	for i, queueName := range supportedProtocols {
+
+		queue, err := ch.QueueDeclare(
+			queueName, // name
+			false,     // durable
+			false,     // delete when unused
+			false,     // exclusive
+			false,     // no-wait
+			nil,       // arguments
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to declare AMQP queue")
+		}
+		qs[i] = queue
 	}
 
 	return &Server{
 		wsAddr:   fmt.Sprintf("%s:%d", host, wsPort),
 		httpAddr: fmt.Sprintf("%s:%d", host, httpPort),
+		packager: prov.Packager(),
 		conn:     conn,
 		ch:       ch,
-		queue:    queue,
+		queues:   qs,
 	}, nil
 }
 
@@ -111,12 +129,18 @@ func (r *Server) listener(conn *websocket.Conn, outbound bool) {
 		_, message, err := conn.Read(context.Background())
 		if err != nil {
 			if websocket.CloseStatus(err) != websocket.StatusNormalClosure {
-				log.Fatalf("Error reading request message: %v", err)
+				log.Printf("Error reading request message: %v", err)
 			}
-
 			break
 		}
 
+		queueName, err := r.getQueryNameFromMessage(message)
+		if err != nil {
+			log.Printf("error typing message: %v", err)
+			continue
+		}
+
+		fmt.Println("publishing to queue", queueName)
 		err = r.ch.Publish(
 			"",        // exchange
 			queueName, // routing key
@@ -151,7 +175,7 @@ func Accept(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
 func closeWs(conn *websocket.Conn, verKeys []string) {
 	if err := conn.Close(websocket.StatusNormalClosure,
 		"closing the connection"); websocket.CloseStatus(err) != websocket.StatusNormalClosure {
-		log.Printf("connection close error\n")
+		log.Printf("connection close error: %v\n", err)
 	}
 
 }
@@ -195,6 +219,8 @@ func (r *Server) startHTTP() {
 			return
 		}
 
+		queueName, err := r.getQueryNameFromMessage(body)
+
 		err = r.ch.Publish(
 			"",        // exchange
 			queueName, // routing key
@@ -218,6 +244,34 @@ func (r *Server) startHTTP() {
 	}
 }
 
+func (r *Server) getQueryNameFromMessage(message []byte) (string, error) {
+	unpackMsg, err := r.packager.UnpackMessage(message)
+	if err != nil {
+		return "", errors.Wrap(err, "error unpacking message")
+	}
+	trans := &struct {
+		Type string `json:"@type"`
+	}{}
+
+	err = json.Unmarshal(unpackMsg.Message, trans)
+	if err != nil {
+		return "", errors.Wrap(err, "error unmarshalling message")
+	}
+
+	if !strings.HasPrefix(trans.Type, didcommPrefix) {
+		return "", errors.Errorf("invalid message type: %s", trans.Type)
+	}
+
+	suffix := trans.Type[len(didcommPrefix):]
+	i := strings.Index(suffix, "/")
+	if i == -1 {
+		return "", errors.Errorf("invalid message suffix: %s", trans.Type)
+	}
+
+	return suffix[:i], nil
+
+}
+
 func validatePayload(r *http.Request, w http.ResponseWriter) bool {
 	if r.ContentLength == 0 { // empty payload should not be accepted
 		http.Error(w, "Empty payload", http.StatusBadRequest)
@@ -235,7 +289,6 @@ func validateHTTPMethod(w http.ResponseWriter, r *http.Request) bool {
 
 	ct := r.Header.Get("Content-type")
 	if ct != "application/didcomm-envelope-enc" {
-		log.Println("hihihihi")
 		http.Error(w, fmt.Sprintf("Unsupported Content-type \"%s\"", ct), http.StatusUnsupportedMediaType)
 		return false
 	}

@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/scoir/canis/pkg/aries/transport/amqp"
+	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
 )
@@ -40,7 +41,7 @@ var rootCmd = &cobra.Command{
 
 type Provider struct {
 	vp                   *viper.Viper
-	dm                   *manager.DataProviderManager
+	store                datastore.Store
 	ariesStorageProvider storage.Provider
 }
 
@@ -92,11 +93,15 @@ func initConfig() {
 		log.Fatalln("unable to retrieve default storage provider", err)
 	}
 
-	asp, err := sp.GetAriesProvider()
+	store, err := sp.OpenStore("issuer")
+	if err != nil {
+		log.Fatalln("unable to open store")
+	}
+	asp, err := store.GetAriesProvider()
 
 	ctx = &Provider{
 		vp:                   vp,
-		dm:                   dm,
+		store:                store,
 		ariesStorageProvider: asp,
 	}
 }
@@ -133,7 +138,7 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	config := &framework.AMQPConfig{}
 	err := r.vp.UnmarshalKey("inbound.amqp", config)
 
-	amqpInbound, err := amqp.NewInbound(config.Endpoint(), external, "", "")
+	amqpInbound, err := amqp.NewInbound(config.Endpoint(), external, "issue-credential", "", "")
 	ar, err := aries.New(
 		aries.WithStoreProvider(r.ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),

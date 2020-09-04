@@ -39,10 +39,10 @@ type Config struct {
 
 // Provider represents a Mongo DB implementation of the storage.Provider interface
 type Provider struct {
-	client   *mongo.Client
-	dbURL    string
-	stores   map[string]*mongoDBStore
-	dbPrefix string
+	client *mongo.Client
+	dbURL  string
+	stores map[string]*mongoDBStore
+	dbName string
 	sync.RWMutex
 }
 
@@ -75,6 +75,7 @@ func NewProvider(config *Config) (*Provider, error) {
 	p := &Provider{
 		dbURL:  config.URL,
 		client: mongoClient,
+		dbName: config.Database,
 		stores: map[string]*mongoDBStore{}}
 
 	return p, nil
@@ -85,20 +86,16 @@ func (r *Provider) OpenStore(name string) (datastore.Store, error) {
 	r.Lock()
 	defer r.Unlock()
 
-	if name == "" {
-		return nil, errors.New("store name is required")
-	}
+	db := r.client.Database(r.dbName)
 
-	db := r.client.Database(name)
-
-	store := &mongoDBStore{
+	theStore := &mongoDBStore{
 		dbURL: r.dbURL,
 		db:    db,
 	}
 
-	r.stores[name] = store
+	r.stores[name] = theStore
 
-	return store, nil
+	return theStore, nil
 }
 
 func (r *mongoDBStore) GetAriesProvider() (storage.Provider, error) {

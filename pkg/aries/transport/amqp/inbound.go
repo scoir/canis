@@ -21,16 +21,13 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport"
 )
 
-const (
-	queueName = "didcomm-msgs"
-)
-
 var logger = log.New("aries-framework/transport/amqp")
 
 // Inbound amqp type.
 type Inbound struct {
 	internalAddr      string
 	externalAddr      string
+	queueName         string
 	conn              *amqp.Connection
 	ch                *amqp.Channel
 	que               amqp.Queue
@@ -40,7 +37,7 @@ type Inbound struct {
 }
 
 // NewInbound creates a new WebSocket inbound transport instance.
-func NewInbound(internalAddr, externalAddr, certFile, keyFile string) (*Inbound, error) {
+func NewInbound(internalAddr, externalAddr, queueName, certFile, keyFile string) (*Inbound, error) {
 	if internalAddr == "" {
 		return nil, errors.New("websocket address is mandatory")
 	}
@@ -54,6 +51,7 @@ func NewInbound(internalAddr, externalAddr, certFile, keyFile string) (*Inbound,
 		keyFile:      keyFile,
 		internalAddr: internalAddr,
 		externalAddr: externalAddr,
+		queueName:    queueName,
 	}, nil
 }
 
@@ -86,12 +84,12 @@ func (i *Inbound) Start(prov transport.Provider) error {
 	}
 
 	q, err := ch.QueueDeclare(
-		queueName, // name
-		false,     // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
+		i.queueName, // name
+		false,       // durable
+		false,       // delete when unused
+		false,       // exclusive
+		false,       // no-wait
+		nil,         // arguments
 	)
 
 	i.conn = conn
@@ -111,13 +109,13 @@ func (i *Inbound) Start(prov transport.Provider) error {
 
 func (i *Inbound) listenAndServe() error {
 	msgs, err := i.ch.Consume(
-		queueName, // queue
-		"",        // consumer
-		true,      // auto-ack
-		false,     // exclusive
-		false,     // no-local
-		false,     // no-wait
-		nil,       // args
+		i.queueName, // queue
+		"",          // consumer
+		true,        // auto-ack
+		false,       // exclusive
+		false,       // no-local
+		false,       // no-wait
+		nil,         // args
 	)
 	if err != nil {
 		return errors.Wrap(err, "unable to consume")
