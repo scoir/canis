@@ -5,6 +5,7 @@ go 1.14
 replace github.com/hyperledger/aries-framework-go => ../aries-framework-go
 
 require (
+	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
@@ -42,11 +43,12 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/unidoc/unipdf/v3 v3.10.1
+	github.com/vektra/mockery v1.1.2 // indirect
 	go.mongodb.org/mongo-driver v1.3.4
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
-	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208 // indirect
 	golang.org/x/sys v0.0.0-20200812155832-6a926be9bd1d // indirect
+	golang.org/x/tools v0.0.0-20200904140424-93eecc3576be // indirect
 	google.golang.org/genproto v0.0.0-20200814021100-8c09557e8a18
 	google.golang.org/grpc v1.31.0
 	google.golang.org/protobuf v1.25.0
