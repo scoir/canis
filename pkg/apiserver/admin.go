@@ -261,8 +261,9 @@ func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.
 
 func (r *APIServer) GetAgentInvitation(ctx context.Context, request *api.InvitationRequest) (*api.InvitationResponse, error) {
 	doormanReq := &doorman.InvitationRequest{
-		AgentID: request.AgentId,
-		Name:    request.Name,
+		AgentId:    request.AgentId,
+		ExternalId: request.ExternalId,
+		Name:       request.Name,
 	}
 	invite, err := r.doorman.GetInvitation(ctx, doormanReq)
 	if err != nil {

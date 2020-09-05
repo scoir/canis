@@ -4,8 +4,9 @@ package didcomm;
 option go_package = "didcomm/doorman/api";
 
 message InvitationRequest {
-  string agentID = 1;
-  string name = 2;
+  string agent_id = 1;
+  string external_id = 2;
+  string name = 3;
 }
 
 message InvitationResponse {

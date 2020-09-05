@@ -41,7 +41,7 @@ type postgresDBStore struct {
 	tableName string
 }
 
-func (p *postgresDBStore) InsertAgentConnection(s *datastore.Agent, conn *didexchange.Connection) error {
+func (p *postgresDBStore) InsertAgentConnection(s *datastore.Agent, externalID string, conn *didexchange.Connection) error {
 	panic("implement me")
 }
 

@@ -288,12 +288,13 @@ func (r *mongoDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 
 }
 
-func (r *mongoDBStore) InsertAgentConnection(a *datastore.Agent, conn *didexchange.Connection) error {
+func (r *mongoDBStore) InsertAgentConnection(a *datastore.Agent, externalID string, conn *didexchange.Connection) error {
 	ac := &datastore.AgentConnection{
 		AgentID:      a.ID,
 		TheirDID:     conn.TheirDID,
 		MyDID:        conn.MyDID,
 		ConnectionID: conn.ConnectionID,
+		ExternalID:   externalID,
 	}
 
 	_, err := r.db.Collection(AgentConnectionC).InsertOne(context.Background(), ac)

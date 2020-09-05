@@ -14,10 +14,10 @@ clean:
 	rm -f bin/*
 
 tools:
-	go get bou.ke/staticfiles
-	go get github.com/vektra/mockery/.../
-	go get golang.org/x/tools/cmd/cover
-	go get -u github.com/golang/protobuf/protoc-gen-go
+	go get "bou.ke/staticfiles@v0.0.0-20190225145250-827d7f6389cd"
+	go get "github.com/vektra/mockery/.../@v1.1.2"
+	go get "golang.org/x/tools/cmd/cover@v0.0.0-20200904140424-93eecc3576be"
+	go get "github.com/golang/protobuf/protoc-gen-go@v1.4.2"
 
 swagger_pack: pkg/static/canis-apiserver_swagger.go
 pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec/canis-apiserver.swagger.json

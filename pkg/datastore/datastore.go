@@ -65,7 +65,7 @@ type Store interface {
 	// UpdateAgent delete single agent
 	UpdateAgent(s *Agent) error
 	// InsertAgentConnection associates an agent with a connection
-	InsertAgentConnection(s *Agent, conn *didexchange.Connection) error
+	InsertAgentConnection(s *Agent, externalID string, conn *didexchange.Connection) error
 
 	// GetAriesProvider returns a pre-configured storage provider for use in an Aries context
 	GetAriesProvider() (storage.Provider, error)

@@ -132,7 +132,7 @@ type couchDBStore struct {
 	hostURL string
 }
 
-func (r *couchDBStore) InsertAgentConnection(s *datastore.Agent, conn *didexchange.Connection) error {
+func (r *couchDBStore) InsertAgentConnection(s *datastore.Agent, externalID string, conn *didexchange.Connection) error {
 	panic("implement me")
 }
 

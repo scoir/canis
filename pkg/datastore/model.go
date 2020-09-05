@@ -60,6 +60,7 @@ type AgentConnection struct {
 	TheirDID     string
 	MyDID        string
 	ConnectionID string
+	ExternalID   string
 }
 
 type AgentCriteria struct {

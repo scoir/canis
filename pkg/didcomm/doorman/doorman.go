@@ -71,14 +71,14 @@ func (r *Doorman) APISpec() (http.HandlerFunc, error) {
 
 func (r *Doorman) GetInvitation(_ context.Context, request *api.InvitationRequest) (*api.InvitationResponse, error) {
 
-	agent, err := r.agentStore.GetAgent(request.AgentID)
+	agent, err := r.agentStore.GetAgent(request.AgentId)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("agent with id %s not found", request.AgentID))
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("agent with id %s not found", request.AgentId))
 	}
 
-	invite, err := r.bouncer.CreateInvitationNotify(request.Name, r.accepted(agent), failed)
+	invite, err := r.bouncer.CreateInvitationNotify(request.Name, r.accepted(agent, request.ExternalId), failed)
 	if err != nil {
-		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", request.AgentID))
+		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", request.AgentId))
 	}
 
 	d, _ := json.MarshalIndent(invite, " ", " ")
@@ -87,9 +87,9 @@ func (r *Doorman) GetInvitation(_ context.Context, request *api.InvitationReques
 	}, nil
 }
 
-func (r *Doorman) accepted(agent *datastore.Agent) func(id string, conn *ariesdidex.Connection) {
+func (r *Doorman) accepted(agent *datastore.Agent, externalID string) func(id string, conn *ariesdidex.Connection) {
 	return func(id string, conn *ariesdidex.Connection) {
-		err := r.agentStore.InsertAgentConnection(agent, conn)
+		err := r.agentStore.InsertAgentConnection(agent, externalID, conn)
 		if err != nil {
 			log.Println("error creating agent connection")
 		}

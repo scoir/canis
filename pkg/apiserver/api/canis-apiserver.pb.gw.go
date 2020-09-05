@@ -404,7 +404,7 @@ func local_request_Admin_GetAgent_0(ctx context.Context, marshaler runtime.Marsh
 }
 
 var (
-	filter_Admin_GetAgentInvitation_0 = &utilities.DoubleArray{Encoding: map[string]int{"agent_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Admin_GetAgentInvitation_0 = &utilities.DoubleArray{Encoding: map[string]int{"agent_id": 0, "external_id": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
 )
 
 func request_Admin_GetAgentInvitation_0(ctx context.Context, marshaler runtime.Marshaler, client AdminClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -427,6 +427,17 @@ func request_Admin_GetAgentInvitation_0(ctx context.Context, marshaler runtime.M
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "agent_id", err)
+	}
+
+	val, ok = pathParams["external_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "external_id")
+	}
+
+	protoReq.ExternalId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "external_id", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -461,6 +472,17 @@ func local_request_Admin_GetAgentInvitation_0(ctx context.Context, marshaler run
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "agent_id", err)
+	}
+
+	val, ok = pathParams["external_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "external_id")
+	}
+
+	protoReq.ExternalId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "external_id", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -1105,7 +1127,7 @@ var (
 
 	pattern_Admin_GetAgent_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"agents", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Admin_GetAgentInvitation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"agents", "agent_id", "invitation"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Admin_GetAgentInvitation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"agents", "agent_id", "invitation", "external_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Admin_DeleteAgent_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"agents", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
