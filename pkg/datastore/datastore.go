@@ -37,7 +37,7 @@ type Store interface {
 	// ListDIDs query DIDs
 	ListDIDs(c *DIDCriteria) (*DIDList, error)
 	// SetPublicDID update single DID to public, unset remaining
-	SetPublicDID(DID string) error
+	SetPublicDID(DID *DID) error
 	// GetPublicDID get public DID
 	GetPublicDID() (*DID, error)
 
@@ -53,7 +53,7 @@ type Store interface {
 	UpdateSchema(s *Schema) error
 
 	// InsertAgent add agent to store
-	InsertAgent(s *Agent) (string, error)
+	InsertAgent(a *Agent) (string, error)
 	// ListAgent query agents
 	ListAgent(c *AgentCriteria) (*AgentList, error)
 	// GetAgent return single agent
@@ -63,9 +63,11 @@ type Store interface {
 	// DeleteAgent delete single agent
 	DeleteAgent(id string) error
 	// UpdateAgent delete single agent
-	UpdateAgent(s *Agent) error
+	UpdateAgent(a *Agent) error
 	// InsertAgentConnection associates an agent with a connection
-	InsertAgentConnection(s *Agent, externalID string, conn *didexchange.Connection) error
+	InsertAgentConnection(a *Agent, externalID string, conn *didexchange.Connection) error
+	// GetAgentConnection return single connection between an agent and an external subject
+	GetAgentConnection(a *Agent, externalID string) (*AgentConnection, error)
 
 	// GetAriesProvider returns a pre-configured storage provider for use in an Aries context
 	GetAriesProvider() (storage.Provider, error)

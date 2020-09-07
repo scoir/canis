@@ -20,12 +20,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
 	"github.com/scoir/canis/pkg/datastore"
 )
 
 const (
+	PublicDIDC       = "PublicDID"
 	DIDC             = "DID"
 	AgentC           = "Agent"
 	AgentConnectionC = "AgentConnection"
@@ -177,16 +180,18 @@ func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 }
 
 // SetPublicDID update single DID to public, unset remaining
-func (r *mongoDBStore) SetPublicDID(DID string) error {
+func (r *mongoDBStore) SetPublicDID(d *datastore.DID) error {
 	ctx := context.Background()
-	_, err := r.db.Collection(DIDC).UpdateMany(ctx, bson.M{}, bson.M{"$set": bson.M{"public": false}})
+	_, err := r.db.Collection(PublicDIDC).DeleteMany(ctx, bson.M{})
 	if err != nil {
-		return errors.Wrap(err, "unable to unset public PeerDID")
+		return errors.Wrap(err, "unable to unset public DID")
 	}
 
-	_, err = r.db.Collection(DIDC).UpdateOne(ctx, bson.M{"id": DID}, bson.M{"$set": bson.M{"public": true}})
+	d.ID = d.DID.String()
+	d.Public = true
+	_, err = r.db.Collection(PublicDIDC).InsertOne(ctx, d)
 	if err != nil {
-		return errors.Wrap(err, "unable to unset public PeerDID")
+		return errors.Wrap(err, "unable to unset public DID")
 	}
 
 	return nil
@@ -196,7 +201,7 @@ func (r *mongoDBStore) SetPublicDID(DID string) error {
 func (r *mongoDBStore) GetPublicDID() (*datastore.DID, error) {
 	out := &datastore.DID{}
 
-	err := r.db.Collection(DIDC).FindOne(context.Background(), bson.M{"public": true}).Decode(out)
+	err := r.db.Collection(PublicDIDC).FindOne(context.Background(), bson.M{}).Decode(out)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to find public PeerDID")
 	}
@@ -389,4 +394,17 @@ func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
 	}
 
 	return nil
+}
+
+func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string) (*datastore.AgentConnection, error) {
+	ac := &datastore.AgentConnection{}
+	err := r.db.Collection(AgentConnectionC).FindOne(context.Background(),
+		bson.M{"agentid": a.ID, "externalid": externalID}).Decode(ac)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed load agent connection").Error())
+	}
+
+	return ac, nil
+
 }

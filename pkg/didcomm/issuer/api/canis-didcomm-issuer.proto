@@ -9,16 +9,16 @@ message CredentialAttribute {
 }
 
 message OfferCredentialRequest {
-  string connectionID = 1;
-  string schemaName = 2;
+  string connection_id = 1;
+  string schema_id = 2;
   repeated CredentialAttribute attributes = 3;
   string comment = 4;
 }
 
 message OfferCredentialResponse {
-  string threadID = 1;
+  string credential_id = 1;
 }
 
 service Issuer {
-  rpc OfferCredential (InvitationRequest) returns (InvitationResponse) {}
+  rpc OfferCredential (OfferCredentialRequest) returns (OfferCredentialResponse) {}
 }

@@ -41,6 +41,10 @@ type postgresDBStore struct {
 	tableName string
 }
 
+func (p *postgresDBStore) GetAgentConnection(a *datastore.Agent, externalID string) (*datastore.AgentConnection, error) {
+	panic("implement me")
+}
+
 func (p *postgresDBStore) InsertAgentConnection(s *datastore.Agent, externalID string, conn *didexchange.Connection) error {
 	panic("implement me")
 }
@@ -184,7 +188,7 @@ func (p *postgresDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList
 }
 
 // SetPublicDID update single DID to public, unset remaining
-func (p *postgresDBStore) SetPublicDID(DID string) error {
+func (p *postgresDBStore) SetPublicDID(DID *datastore.DID) error {
 
 	_, err := p.pool.Exec(context.Background(),
 		fmt.Sprintf(`UPDATE %s SET data = jsonb_set(data, '{"Public"}', 'false', true);`, p.tableName))

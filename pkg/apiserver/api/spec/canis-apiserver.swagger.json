@@ -123,6 +123,42 @@
         ]
       }
     },
+    "/agents/{agent_id}/credential/{subject_id}/issue": {
+      "post": {
+        "operationId": "Admin_IssueCredential",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiserverIssueCredentialResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/agents/{agent_id}/invitation/{external_id}": {
       "post": {
         "operationId": "Admin_GetAgentInvitation",
@@ -494,6 +530,34 @@
         }
       }
     },
+    "apiserverCredential": {
+      "type": "object",
+      "properties": {
+        "schema_id": {
+          "type": "string"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiserverCredentialAttribute"
+          }
+        }
+      }
+    },
+    "apiserverCredentialAttribute": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
     "apiserverDeleteAgentResponse": {
       "type": "object"
     },
@@ -520,6 +584,14 @@
       "type": "object",
       "properties": {
         "invitation": {
+          "type": "string"
+        }
+      }
+    },
+    "apiserverIssueCredentialResponse": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
           "type": "string"
         }
       }
@@ -564,6 +636,9 @@
           "type": "string"
         },
         "version": {
+          "type": "string"
+        },
+        "type": {
           "type": "string"
         },
         "attributes": {

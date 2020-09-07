@@ -1,0 +1,69 @@
+package engine
+
+import (
+	"fmt"
+
+	"github.com/pkg/errors"
+	"github.com/scoir/canis/pkg/apiserver/api"
+	"github.com/scoir/canis/pkg/datastore"
+)
+
+type CredentialEngine interface {
+	Accept(typ string) bool
+	CreateSchema(issuer *datastore.DID, s *datastore.Schema) (string, error)
+	RegisterSchema(issuer *datastore.DID, registrant *datastore.DID, s *datastore.Schema) error
+	IssueCredential(s *datastore.Schema, c *api.Credential) (string, error)
+}
+
+type Option func(opts *Registry)
+
+type Registry struct {
+	engines  []CredentialEngine
+	didStore datastore.Store
+}
+
+type provider interface {
+	Store() datastore.Store
+}
+
+func New(prov provider, opts ...Option) *Registry {
+	reg := &Registry{didStore: prov.Store()}
+
+	for _, opt := range opts {
+		opt(reg)
+	}
+
+	return reg
+}
+
+func (r *Registry) CreateSchema(s *datastore.Schema) (string, error) {
+	e, err := r.resolveEngine(s.Type)
+	if err != nil {
+		return "", err
+	}
+
+	issuer, err := r.didStore.GetPublicDID()
+	if err != nil {
+		return "", errors.Wrap(err, "error getting public did to create schema")
+	}
+
+	id, err := e.CreateSchema(issuer, s)
+	return id, errors.Wrap(err, "error from credential engine")
+}
+
+func (r *Registry) resolveEngine(method string) (CredentialEngine, error) {
+	for _, e := range r.engines {
+		if e.Accept(method) {
+			return e, nil
+		}
+	}
+
+	return nil, fmt.Errorf("credential type %s not supported for engine", method)
+}
+
+// WithEngine adds did method implementation for store.
+func WithEngine(e CredentialEngine) Option {
+	return func(opts *Registry) {
+		opts.engines = append(opts.engines, e)
+	}
+}

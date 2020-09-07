@@ -96,7 +96,7 @@ func writeDemoTest() {
 		log.Fatalln(err)
 	}
 
-	err = client.CreateNym(someRandomDID.DIDVal.DID, someRandomDID.Verkey, vdr.EndorserRole, did.DIDVal.DID, mysig)
+	err = client.CreateNym(someRandomDID.DIDVal.MethodSpecificID, someRandomDID.Verkey, vdr.EndorserRole, did.DIDVal.MethodSpecificID, mysig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -108,19 +108,19 @@ func writeDemoTest() {
 
 	newDIDsig := crypto.NewSigner(someRandomKP.RawPublicKey(), someRandomKP.RawPrivateKey())
 
-	err = client.SetEndpoint(someRandomDID.DIDVal.DID, someRandomDID.DIDVal.DID, "http://420.69.420.69:6969", newDIDsig)
+	err = client.SetEndpoint(someRandomDID.DIDVal.MethodSpecificID, someRandomDID.DIDVal.MethodSpecificID, "http://420.69.420.69:6969", newDIDsig)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	rply, err := client.GetNym(someRandomDID.DIDVal.DID)
+	rply, err := client.GetNym(someRandomDID.DIDVal.MethodSpecificID)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	fmt.Println(rply.Data)
 
-	rply, err = client.GetEndpoint(someRandomDID.DIDVal.DID)
+	rply, err = client.GetEndpoint(someRandomDID.DIDVal.MethodSpecificID)
 	if err != nil {
 		log.Fatalln(err)
 	}

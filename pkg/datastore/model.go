@@ -79,10 +79,12 @@ type SchemaList struct {
 }
 
 type Schema struct {
-	ID         string
-	Name       string
-	Version    string
-	Attributes []*Attribute
+	ID               string
+	Type             string
+	Name             string
+	Version          string
+	ExternalSchemaID string
+	Attributes       []*Attribute
 }
 
 type Schemas []*Schema
@@ -96,6 +98,7 @@ type DIDs []*DID
 type DID struct {
 	ID       string
 	DID      *identifiers.DID
+	OwnerID  string
 	KeyPair  *KeyPair
 	Endpoint string
 	Public   bool

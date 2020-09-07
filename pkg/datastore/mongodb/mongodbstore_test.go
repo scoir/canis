@@ -99,7 +99,7 @@ func TestInsertListDID(t *testing.T) {
 		err = store.InsertDID(&datastore.DID{
 			DID: &identifiers.DID{
 				DIDVal: identifiers.DIDValue{
-					DID: "a did",
+					MethodSpecificID: "a did",
 				},
 			},
 			Public: true,
@@ -111,7 +111,7 @@ func TestInsertListDID(t *testing.T) {
 
 		require.Equal(t, didlist.Count, 1)
 
-		did := didlist.DIDs[0].DID.DIDVal.DID
+		did := didlist.DIDs[0].DID.DIDVal.MethodSpecificID
 		require.Equal(t, "a did", did)
 
 		err = prov.CloseStore("test_list")
@@ -132,24 +132,23 @@ func TestSetGetPublicDID(t *testing.T) {
 
 		err = store.InsertDID(&datastore.DID{DID: &identifiers.DID{
 			DIDVal: identifiers.DIDValue{
-				DID: "did to be public",
+				MethodSpecificID: "did to be public",
 			},
 		}, Public: false})
 		require.NoError(t, err)
-		err = store.InsertDID(&datastore.DID{DID: &identifiers.DID{
+		d := &datastore.DID{DID: &identifiers.DID{
 			DIDVal: identifiers.DIDValue{
-				DID: "didtobepublic",
+				MethodSpecificID: "didtobepublic",
 			},
-		}, Public: true})
-		require.NoError(t, err)
+		}, Public: true}
 
-		err = store.SetPublicDID("did:did to be public")
+		err = store.SetPublicDID(d)
 		require.NoError(t, err)
 
 		public, err := store.GetPublicDID()
 		require.NoError(t, err)
 
-		require.Equal(t, "did to be public", public.DID.DIDVal.DID)
+		require.Equal(t, "did to be public", public.DID.DIDVal.MethodSpecificID)
 
 		err = prov.CloseStore("test_dids")
 		require.NoError(t, err)
@@ -298,7 +297,7 @@ func TestDIDFailures(t *testing.T) {
 		store, err := prov.OpenStore("test_did_failures")
 		require.NoError(t, err)
 
-		err = prov.db.Client().Disconnect(context.Background())
+		err = prov.client.Disconnect(context.Background())
 		require.NoError(t, err)
 
 		err = store.InsertDID(&datastore.DID{})
@@ -309,13 +308,9 @@ func TestDIDFailures(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "error trying to find DIDs")
 
-		err = store.SetPublicDID("")
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "unable to unset public PeerDID")
-
 		_, err = store.GetPublicDID()
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "unable to find public PeerDID")
+		require.Contains(t, err.Error(), "unable to find public")
 	})
 }
 
@@ -327,7 +322,7 @@ func TestSchemaFailures(t *testing.T) {
 		store, err := prov.OpenStore("test_schema_failures")
 		require.NoError(t, err)
 
-		err = prov.db.Client().Disconnect(context.Background())
+		err = prov.client.Disconnect(context.Background())
 		require.NoError(t, err)
 
 		_, err = store.InsertSchema(&datastore.Schema{})
@@ -360,7 +355,7 @@ func TestAgentFailures(t *testing.T) {
 		store, err := prov.OpenStore("test_agent_failures")
 		require.NoError(t, err)
 
-		err = prov.db.Client().Disconnect(context.Background())
+		err = prov.client.Disconnect(context.Background())
 		require.NoError(t, err)
 
 		_, err = store.InsertAgent(&datastore.Agent{ID: "agent id", Name: "an agent"})

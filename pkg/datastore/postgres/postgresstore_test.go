@@ -122,7 +122,7 @@ func TestInsertListDID(t *testing.T) {
 		err = store.InsertDID(&datastore.DID{
 			DID: &identifiers.DID{
 				DIDVal: identifiers.DIDValue{
-					DID: "a did",
+					MethodSpecificID: "a did",
 				},
 			},
 			Public: true,
@@ -135,7 +135,7 @@ func TestInsertListDID(t *testing.T) {
 		require.Equal(t, didlist.Count, 1)
 
 		did := didlist.DIDs[0]
-		require.Equal(t, "a did", did.DID.DIDVal.DID)
+		require.Equal(t, "a did", did.DID.DIDVal.MethodSpecificID)
 
 		err = prov.CloseStore("test_list")
 		require.NoError(t, err)
@@ -155,13 +155,13 @@ func TestSetGetPublicDID(t *testing.T) {
 
 		err = store.InsertDID(&datastore.DID{DID: &identifiers.DID{
 			DIDVal: identifiers.DIDValue{
-				DID: "did to be public",
+				MethodSpecificID: "did to be public",
 			},
 		}, Public: false})
 		require.NoError(t, err)
 		err = store.InsertDID(&datastore.DID{DID: &identifiers.DID{
 			DIDVal: identifiers.DIDValue{
-				DID: "another did",
+				MethodSpecificID: "another did",
 			},
 		}, Public: true})
 		require.NoError(t, err)
@@ -172,7 +172,7 @@ func TestSetGetPublicDID(t *testing.T) {
 		public, err := store.GetPublicDID()
 		require.NoError(t, err)
 
-		require.Equal(t, "did to be public", public.DID.DIDVal.DID)
+		require.Equal(t, "did to be public", public.DID.DIDVal.MethodSpecificID)
 
 		err = prov.CloseStore("test_dids")
 		require.NoError(t, err)

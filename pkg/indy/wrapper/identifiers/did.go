@@ -45,15 +45,15 @@ type MyDIDInfo struct {
 }
 
 type DIDValue struct {
-	DID    string
-	Method string
+	MethodSpecificID string
+	Method           string
 }
 
 func (r *DIDValue) String() string {
 	if r.Method == "" {
-		return fmt.Sprintf("did:%s", r.DID)
+		return fmt.Sprintf("did:%s", r.MethodSpecificID)
 	}
-	return fmt.Sprintf("did:%s:%s", r.Method, r.DID)
+	return fmt.Sprintf("did:%s:%s", r.Method, r.MethodSpecificID)
 }
 
 func (r *DIDValue) Abbreviatable() bool {
@@ -69,6 +69,10 @@ func (r *DID) String() string {
 	return r.DIDVal.String()
 }
 
+func (r *DID) MethodID() string {
+	return r.DIDVal.MethodSpecificID
+}
+
 func (r *DID) AbbreviateVerkey() string {
 	return AbbreviateVerkey(r.String(), r.Verkey)
 }
@@ -77,15 +81,15 @@ func ParseDID(did string) *DIDValue {
 	if DIDRegEx.MatchString(did) {
 		p := DIDRegEx.FindStringSubmatch(did)
 		return &DIDValue{
-			DID:    p[2],
-			Method: p[1],
+			MethodSpecificID: p[2],
+			Method:           p[1],
 		}
 
 	}
 
 	return &DIDValue{
-		DID:    did,
-		Method: "",
+		MethodSpecificID: did,
+		Method:           "",
 	}
 }
 
@@ -119,8 +123,8 @@ func CreateDID(info *MyDIDInfo) (*DID, *KeyPair, error) {
 
 	out := &DID{
 		DIDVal: DIDValue{
-			DID:    did,
-			Method: info.MethodName,
+			MethodSpecificID: did,
+			Method:           info.MethodName,
 		},
 		Verkey: base58.Encode(pubkey),
 	}
@@ -164,7 +168,7 @@ func AbbreviateVerkey(did, verkey string) string {
 		return verkey
 	}
 
-	bdid, err := base58.Decode(didval.DID)
+	bdid, err := base58.Decode(didval.MethodSpecificID)
 	if err != nil {
 		return verkey
 	}

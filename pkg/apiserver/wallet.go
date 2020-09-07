@@ -13,7 +13,7 @@ import (
 
 func (r *APIServer) createAgentWallet(a *datastore.Agent) error {
 	//TODO:  where is the methodName stored
-	//TODO: use Indy VDR for now but do NOT tie ourselves to Indy!
+	//TODO: use Indy IndyVDR for now but do NOT tie ourselves to Indy!
 	did, err := r.didStore.GetPublicDID()
 	if err != nil {
 		return errors.Wrap(err, "unable to get public DID.")
@@ -30,7 +30,7 @@ func (r *APIServer) createAgentWallet(a *datastore.Agent) error {
 		return errors.Wrap(err, "unable to create agent DID")
 	}
 
-	err = r.client.CreateNym(agentPublicDID.DIDVal.DID, agentPublicDID.Verkey, vdr.EndorserRole, did.DID.DIDVal.DID, mysig)
+	err = r.client.CreateNym(agentPublicDID.DIDVal.MethodSpecificID, agentPublicDID.Verkey, vdr.EndorserRole, did.DID.DIDVal.MethodSpecificID, mysig)
 	if err != nil {
 		return errors.Wrap(err, "unable to set nym")
 	}
@@ -42,7 +42,7 @@ func (r *APIServer) createAgentWallet(a *datastore.Agent) error {
 
 	newDIDsig := crypto.NewSigner(agentPublicKeys.RawPublicKey(), agentPublicKeys.RawPrivateKey())
 
-	err = r.client.SetEndpoint(agentPublicDID.DIDVal.DID, agentPublicDID.DIDVal.DID, endpoint, newDIDsig)
+	err = r.client.SetEndpoint(agentPublicDID.DIDVal.MethodSpecificID, agentPublicDID.DIDVal.MethodSpecificID, endpoint, newDIDsig)
 	if err != nil {
 		return errors.Wrap(err, "unable to set endpoint")
 	}
@@ -56,18 +56,5 @@ func (r *APIServer) createAgentWallet(a *datastore.Agent) error {
 		Endpoint: endpoint,
 	}
 
-	c := r.storeManager.Config()
-	c.SetName(fmt.Sprintf("agent%s", a.ID))
-
-	agentStoreProvider, err := r.storeManager.StorageProvider(c)
-	if err != nil {
-		return errors.Wrap(err, "unable to get store provider for agent")
-	}
-	agentStore, err := agentStoreProvider.OpenStore("Agent")
-	if err != nil {
-		return errors.Wrap(err, "unable to open agent datastore")
-	}
-
-	_, err = agentStore.InsertAgent(a)
-	return errors.Wrap(err, "unable to insert agent into agent datastore")
+	return nil
 }

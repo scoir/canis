@@ -14,19 +14,25 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock"
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock/local"
+	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
+	"github.com/scoir/canis/pkg/credential/engine"
+	"github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
-	"github.com/scoir/canis/pkg/runtime"
 )
 
 var (
@@ -43,11 +49,10 @@ var rootCmd = &cobra.Command{
 }
 
 type Provider struct {
-	vp     *viper.Viper
-	exec   runtime.Executor
-	dm     *manager.DataProviderManager
-	client *vdr.Client
-	store  datastore.Store
+	vp                   *viper.Viper
+	lock                 secretlock.Service
+	store                datastore.Store
+	ariesStorageProvider storage.Provider
 }
 
 func Execute() {
@@ -102,22 +107,39 @@ func initConfig() {
 	if err != nil {
 		log.Fatalln("unable to get default data store", err)
 	}
+
+	asp, err := store.GetAriesProvider()
+	if err != nil {
+		log.Fatalln("unable to load aries storage provider", err)
+	}
+
+	mlk := vp.GetString("masterLockKey")
+	if mlk == "" {
+		mlk = "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
+	}
+
+	lock, err := local.NewService(strings.NewReader(mlk), nil)
+	if err != nil {
+		log.Fatalln("error creating lock service")
+	}
+
 	ctx = &Provider{
-		vp:    vp,
-		dm:    dm,
-		store: store,
+		vp:                   vp,
+		lock:                 lock,
+		store:                store,
+		ariesStorageProvider: asp,
 	}
 }
 
-func (r *Provider) StorageManager() *manager.DataProviderManager {
-	return r.dm
+func (r *Provider) StorageProvider() storage.Provider {
+	return r.ariesStorageProvider
 }
 
 func (r *Provider) Store() datastore.Store {
 	return r.store
 }
 
-func (r *Provider) VDR() (*vdr.Client, error) {
+func (r *Provider) IndyVDR() (*vdr.Client, error) {
 	genesisFile := r.vp.GetString("genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
@@ -178,4 +200,21 @@ func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
 	}
 	cl := issuer.NewIssuerClient(cc)
 	return cl, nil
+}
+
+func (r *Provider) KMS() (kms.KeyManager, error) {
+	mgr, err := localkms.New("", r)
+	return mgr, errors.Wrap(err, "unable to create locakkms")
+}
+
+func (r *Provider) GetCredentailEngineRegistry() (*engine.Registry, error) {
+	e, err := indy.New(r)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get credential engine registry")
+	}
+	return engine.New(r, engine.WithEngine(e)), nil
+}
+
+func (r *Provider) SecretLock() secretlock.Service {
+	return r.lock
 }

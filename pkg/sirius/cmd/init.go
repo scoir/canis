@@ -40,7 +40,7 @@ func initCluster(_ *cobra.Command, _ []string) {
 		log.Fatalln("invalid server configuration", err)
 	}
 
-	_, err = cli.SeedPublicDID(context.Background(), &api.SeePublicDIDRequest{Seed: seed})
+	_, err = cli.SeedPublicDID(context.Background(), &api.SeedPublicDIDRequest{Seed: seed})
 	if err != nil {
 		log.Fatalln("error seeding public DID for API server", err)
 	}

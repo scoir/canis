@@ -21,6 +21,7 @@ import (
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
+	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 	"github.com/scoir/canis/pkg/static"
 )
@@ -43,6 +44,7 @@ func (r *APIServer) APISpec() (http.HandlerFunc, error) {
 func (r *APIServer) CreateSchema(_ context.Context, req *api.CreateSchemaRequest) (*api.CreateSchemaResponse, error) {
 	s := &datastore.Schema{
 		ID:      req.Schema.Id,
+		Type:    req.Schema.Type,
 		Name:    req.Schema.Name,
 		Version: req.Schema.Version,
 	}
@@ -62,6 +64,12 @@ func (r *APIServer) CreateSchema(_ context.Context, req *api.CreateSchemaRequest
 	_, err := r.schemaStore.GetSchema(s.ID)
 	if err == nil {
 		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", req.Schema.Id))
+	}
+
+	if id, err := r.schemaRegistry.CreateSchema(s); err == nil {
+		s.ExternalSchemaID = id
+	} else {
+		log.Println("error creating schema", err)
 	}
 
 	id, err := r.schemaStore.InsertSchema(s)
@@ -389,7 +397,7 @@ func (r *APIServer) fireAgentEvent(evt *api.AgentEvent) {
 	}
 }
 
-func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeePublicDIDRequest) (*api.SeedPublicDIDResponse, error) {
+func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDRequest) (*api.SeedPublicDIDResponse, error) {
 	_, err := r.didStore.GetPublicDID()
 	if err == nil {
 		return nil, status.Error(codes.FailedPrecondition, "public DID already exists")
@@ -423,10 +431,39 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeePublicDIDReques
 		log.Fatalln(err)
 	}
 
-	err = r.didStore.SetPublicDID(did.String())
+	err = r.didStore.SetPublicDID(d)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	return &api.SeedPublicDIDResponse{}, nil
+}
+
+func (r *APIServer) IssueCredential(ctx context.Context, req *api.IssueCredentialRequest) (*api.IssueCredentialResponse, error) {
+	agent, err := r.agentStore.GetAgent(req.AgentId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, errors.Wrapf(err, "failed to issue credential, agent error").Error())
+	}
+
+	agentConnection, err := r.agentStore.GetAgentConnection(agent, req.SubjectId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, errors.Wrapf(err, "failed to issue credential, agent connection error").Error())
+	}
+
+	offer := &issuerapi.OfferCredentialRequest{
+		ConnectionId: agentConnection.ConnectionID,
+		SchemaId:     "",
+		Attributes:   nil,
+		Comment:      "",
+	}
+
+	resp, err := r.issuer.OfferCredential(ctx, offer)
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to issue credential error").Error())
+	}
+
+	return &api.IssueCredentialResponse{
+		CredentialId: resp.CredentialId,
+	}, nil
+
 }

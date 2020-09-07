@@ -64,9 +64,9 @@ func saveExistingPublicDID() {
 		log.Fatalln(err)
 	}
 
-	vdr, err := ctx.VDR()
+	vdr, err := ctx.IndyVDR()
 	if err != nil {
-		log.Fatalln("unable to get VDR", err)
+		log.Fatalln("unable to get IndyVDR", err)
 	}
 
 	_, err = vdr.GetNym(did.String())
@@ -89,7 +89,7 @@ func saveExistingPublicDID() {
 		log.Fatalln(err)
 	}
 
-	err = didds.SetPublicDID(did.String())
+	err = didds.SetPublicDID(d)
 	if err != nil {
 		log.Fatalln(err)
 	}

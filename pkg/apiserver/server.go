@@ -12,19 +12,19 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
+	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/datastore/manager"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
 
 type APIServer struct {
-	agentStore   datastore.Store
-	schemaStore  datastore.Store
-	didStore     datastore.Store
-	storeManager *manager.DataProviderManager
-	client       *vdr.Client
+	agentStore     datastore.Store
+	schemaStore    datastore.Store
+	didStore       datastore.Store
+	client         *vdr.Client
+	schemaRegistry *engine.Registry
 
 	doorman     doorman.DoormanClient
 	issuer      issuer.IssuerClient
@@ -34,11 +34,11 @@ type APIServer struct {
 
 //go:generate mockery -name=provider --structname=Provider
 type provider interface {
-	StorageManager() *manager.DataProviderManager
 	Store() datastore.Store
-	VDR() (*vdr.Client, error)
+	IndyVDR() (*vdr.Client, error)
 	GetDoormanClient() (doorman.DoormanClient, error)
 	GetIssuerClient() (issuer.IssuerClient, error)
+	GetCredentailEngineRegistry() (*engine.Registry, error)
 }
 
 func New(ctx provider) (*APIServer, error) {
@@ -52,9 +52,9 @@ func New(ctx provider) (*APIServer, error) {
 	r.agentStore = ctx.Store()
 	r.didStore = ctx.Store()
 
-	r.client, err = ctx.VDR()
+	r.client, err = ctx.IndyVDR()
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get VDR")
+		return nil, errors.Wrap(err, "unable to get IndyVDR")
 	}
 
 	r.doorman, err = ctx.GetDoormanClient()
@@ -67,7 +67,10 @@ func New(ctx provider) (*APIServer, error) {
 		return nil, errors.Wrap(err, "unable to get issuer client")
 	}
 
-	r.storeManager = ctx.StorageManager()
+	r.schemaRegistry, err = ctx.GetCredentailEngineRegistry()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load credential engine registry")
+	}
 
 	return r, nil
 }

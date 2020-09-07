@@ -132,6 +132,10 @@ type couchDBStore struct {
 	hostURL string
 }
 
+func (r *couchDBStore) GetAgentConnection(a *datastore.Agent, externalID string) (*datastore.AgentConnection, error) {
+	panic("implement me")
+}
+
 func (r *couchDBStore) InsertAgentConnection(s *datastore.Agent, externalID string, conn *didexchange.Connection) error {
 	panic("implement me")
 }
@@ -212,7 +216,7 @@ func (r *couchDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 }
 
 // SetPublicDID update single DID to public, unset remaining
-func (r *couchDBStore) SetPublicDID(DID string) error {
+func (r *couchDBStore) SetPublicDID(DID *datastore.DID) error {
 	ctx := context.Background()
 	query := map[string]interface{}{
 		"selector": map[string]interface{}{
@@ -226,26 +230,13 @@ func (r *couchDBStore) SetPublicDID(DID string) error {
 		m := map[string]interface{}{}
 		err = rows.ScanDoc(&m)
 		if err == nil {
-			m["Public"] = false
 			id, _ := m["_id"].(string)
-			r.db.Put(ctx, id, m)
+			rev, _ := m["_rev"].(string)
+			r.db.Delete(ctx, id, rev)
 		}
 	}
 
-	row := r.db.Get(ctx, DID)
-
-	if row.Err != nil {
-		return errors.Wrap(row.Err, "unable to find DID to set at public")
-	}
-
-	did := map[string]interface{}{}
-	err = row.ScanDoc(&did)
-	if err != nil {
-		return errors.Wrap(err, "unable to scan DID to set as public")
-	}
-
-	did["Public"] = true
-	_, err = r.db.Put(ctx, DID, did)
+	_, err = r.db.Put(context.Background(), DID.DID.String(), DID)
 	if err != nil {
 		return errors.Wrap(err, "unable to save new public DID")
 	}
