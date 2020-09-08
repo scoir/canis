@@ -11,7 +11,7 @@ import (
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
 
-func (r *APIServer) createAgentWallet(a *datastore.Agent) error {
+func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 	//TODO:  where is the methodName stored
 	//TODO: use Indy IndyVDR for now but do NOT tie ourselves to Indy!
 	did, err := r.didStore.GetPublicDID()
@@ -25,7 +25,7 @@ func (r *APIServer) createAgentWallet(a *datastore.Agent) error {
 	fmt.Println("Steward DID:", did.DID)
 	fmt.Println("Steward Verkey:", did.DID.AbbreviateVerkey())
 
-	agentPublicDID, agentPublicKeys, err := identifiers.CreateDID(&identifiers.MyDIDInfo{MethodName: "sov", Cid: true})
+	agentPublicDID, agentPublicKeys, err := identifiers.CreateDID(&identifiers.MyDIDInfo{MethodName: "scr", Cid: true})
 	if err != nil {
 		return errors.Wrap(err, "unable to create agent DID")
 	}

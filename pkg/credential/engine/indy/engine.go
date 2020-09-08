@@ -1,6 +1,8 @@
 package indy
 
 import (
+	"encoding/json"
+
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/pkg/errors"
 
@@ -8,6 +10,7 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/indy/wrapper/crypto"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/scoir/canis/pkg/ursa"
 )
 
 const Indy = "indy"
@@ -56,7 +59,39 @@ func (r *CredentialEngine) CreateSchema(issuer *datastore.DID, s *datastore.Sche
 }
 
 func (r *CredentialEngine) RegisterSchema(issuer *datastore.DID, registrant *datastore.DID, s *datastore.Schema) error {
-	panic("implement me")
+	schema, err := r.client.GetSchema(s.ExternalSchemaID)
+	if err != nil {
+		return errors.Wrap(err, "unable to find schema on ledger to create cred def")
+	}
+	mysig := crypto.NewSigner(issuer.KeyPair.RawPublicKey(), issuer.KeyPair.RawPrivateKey())
+
+	indycd := ursa.NewCredentailDefinition()
+
+	names := make([]string, len(s.Attributes))
+	for i, attr := range s.Attributes {
+		names[i] = attr.Name
+	}
+	indycd.AddSchemaFields(names...)
+	err = indycd.Finalize()
+	if err != nil {
+		return errors.Wrap(err, "unable to finalize indy credential definition")
+	}
+	pubd, _ := indycd.PublicKey()
+	pubKeyDef := map[string]interface{}{}
+
+	err = json.Unmarshal([]byte(pubd), &pubKeyDef)
+	if err != nil {
+		return errors.Wrap(err, "invalid cl pubkey")
+	}
+
+	pubKey, _ := pubKeyDef["p_key"].(map[string]interface{})
+
+	_, err = r.client.CreateClaimDef(registrant.DID.MethodID(), schema.SeqNo, pubKey, nil, mysig)
+	if err != nil {
+		return errors.Wrap(err, "unable to create claim def")
+	}
+
+	return nil
 }
 
 func (r *CredentialEngine) IssueCredential(s *datastore.Schema, c *api.Credential) (string, error) {

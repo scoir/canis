@@ -199,9 +199,20 @@ func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) 
 	}
 
 	if a.HasPublicDID {
-		err = r.createAgentWallet(a)
+		err = r.createAgentPublicDID(a)
 		if err != nil {
 			return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to provision agent wallet %s", req.Agent.Id).Error())
+		}
+
+		for _, schemaID := range a.EndorsableSchemaIds {
+			schema, err := r.schemaStore.GetSchema(schemaID)
+			if err != nil {
+				log.Println("unable to load schema for agent", err)
+			}
+			err = r.schemaRegistry.RegisterSchema(a.PublicDID, schema)
+			if err != nil {
+				return nil, errors.Wrap(err, "")
+			}
 		}
 	}
 
@@ -324,6 +335,24 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 	upd.Name = req.Agent.Name
 	upd.AssignedSchemaId = req.Agent.AssignedSchemaId
 	upd.EndorsableSchemaIds = req.Agent.EndorsableSchemaIds
+	upd.HasPublicDID = req.Agent.PublicDid
+	if upd.HasPublicDID && upd.PublicDID == nil {
+		err := r.createAgentPublicDID(&upd)
+		if err != nil {
+			return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating agent public DID for %s: %v", req.Agent.Id, err))
+		}
+	}
+
+	for _, schemaID := range upd.EndorsableSchemaIds {
+		schema, err := r.schemaStore.GetSchema(schemaID)
+		if err != nil {
+			log.Println("unable to load schema for agent", err)
+		}
+		err = r.schemaRegistry.RegisterSchema(upd.PublicDID, schema)
+		if err != nil {
+			return nil, errors.Wrap(err, "")
+		}
+	}
 
 	err = r.agentStore.UpdateAgent(&upd)
 	if err != nil {

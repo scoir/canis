@@ -51,6 +51,22 @@ func (r *Registry) CreateSchema(s *datastore.Schema) (string, error) {
 	return id, errors.Wrap(err, "error from credential engine")
 }
 
+func (r *Registry) RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error {
+	e, err := r.resolveEngine(s.Type)
+	if err != nil {
+		return err
+	}
+
+	issuer, err := r.didStore.GetPublicDID()
+	if err != nil {
+		return errors.Wrap(err, "error getting public did to register schema")
+	}
+
+	err = e.RegisterSchema(issuer, registrant, s)
+	return errors.Wrap(err, "error from credential engine")
+
+}
+
 func (r *Registry) resolveEngine(method string) (CredentialEngine, error) {
 	for _, e := range r.engines {
 		if e.Accept(method) {
