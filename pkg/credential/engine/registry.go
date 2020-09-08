@@ -11,7 +11,7 @@ import (
 type CredentialEngine interface {
 	Accept(typ string) bool
 	CreateSchema(issuer *datastore.DID, s *datastore.Schema) (string, error)
-	RegisterSchema(issuer *datastore.DID, registrant *datastore.DID, s *datastore.Schema) error
+	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
 	IssueCredential(s *datastore.Schema, c *api.Credential) (string, error)
 }
 
@@ -57,12 +57,7 @@ func (r *Registry) RegisterSchema(registrant *datastore.DID, s *datastore.Schema
 		return err
 	}
 
-	issuer, err := r.didStore.GetPublicDID()
-	if err != nil {
-		return errors.Wrap(err, "error getting public did to register schema")
-	}
-
-	err = e.RegisterSchema(issuer, registrant, s)
+	err = e.RegisterSchema(registrant, s)
 	return errors.Wrap(err, "error from credential engine")
 
 }

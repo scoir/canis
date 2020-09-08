@@ -58,7 +58,7 @@ func (r *CredentialEngine) CreateSchema(issuer *datastore.DID, s *datastore.Sche
 	return ischema, nil
 }
 
-func (r *CredentialEngine) RegisterSchema(issuer *datastore.DID, registrant *datastore.DID, s *datastore.Schema) error {
+func (r *CredentialEngine) RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error {
 	schema, err := r.client.GetSchema(s.ExternalSchemaID)
 	if err != nil {
 		return errors.Wrap(err, "unable to find schema on ledger to create cred def")
