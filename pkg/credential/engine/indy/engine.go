@@ -63,7 +63,7 @@ func (r *CredentialEngine) RegisterSchema(issuer *datastore.DID, registrant *dat
 	if err != nil {
 		return errors.Wrap(err, "unable to find schema on ledger to create cred def")
 	}
-	mysig := crypto.NewSigner(issuer.KeyPair.RawPublicKey(), issuer.KeyPair.RawPrivateKey())
+	mysig := crypto.NewSigner(registrant.KeyPair.RawPublicKey(), registrant.KeyPair.RawPrivateKey())
 
 	indycd := ursa.NewCredentailDefinition()
 
