@@ -2,8 +2,6 @@ module github.com/scoir/canis
 
 go 1.14
 
-replace github.com/hyperledger/aries-framework-go => ../aries-framework-go
-
 require (
 	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
@@ -23,7 +21,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
-	github.com/hyperledger/aries-framework-go v0.1.4-0.20200804111331-8d83b0e1914f
+	github.com/hyperledger/aries-framework-go v0.1.4
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/jackc/pgx/v4 v4.8.0
 	github.com/lib/pq v1.7.0
