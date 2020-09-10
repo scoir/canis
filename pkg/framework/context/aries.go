@@ -76,7 +76,11 @@ func (r *kmsProvider) SecretLock() secretlock.Service {
 func (r *Provider) newProvider() (*kmsProvider, error) {
 	out := &kmsProvider{}
 
-	dc, _ := r.GetDatastoreConfig()
+	dc := &framework.DatastoreConfig{}
+	err := r.vp.UnmarshalKey(datastoreKey, dc)
+	if err != nil {
+		return nil, errors.Wrap(err, "execution environment is not correctly configured")
+	}
 	switch dc.Database {
 	case "mongo":
 		out.sp = mongodbstore.NewProvider(dc.Mongo.URL, dc.Mongo.Database)
@@ -91,7 +95,6 @@ func (r *Provider) newProvider() (*kmsProvider, error) {
 		mlk = "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
 	}
 
-	var err error
 	out.lock, err = local.NewService(strings.NewReader(mlk), nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
@@ -159,7 +162,7 @@ func (r *Provider) getOptions() []aries.Option {
 	if r.vp.IsSet(wsinboundKey) {
 		wsinbound := &framework.Endpoint{}
 		_ = r.vp.UnmarshalKey(wsinboundKey, wsinbound)
-		out = append(out, defaults.WithInboundWSAddr(wsinbound.Address(), wsinbound.Address()))
+		out = append(out, defaults.WithInboundWSAddr(wsinbound.Address(), wsinbound.Address(), "", ""))
 	}
 
 	if r.vp.IsSet("host") && r.vp.IsSet("port") {

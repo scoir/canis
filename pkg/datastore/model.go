@@ -6,17 +6,14 @@ SPDX-License-Identifier: Apache-2.0
 
 package datastore
 
-type SchemaList struct {
-	Count  int
-	Schema []*Schema
-}
+import (
+	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
+	"github.com/mr-tron/base58"
 
-type Schema struct {
-	ID         string
-	Name       string
-	Version    string
-	Attributes []*Attribute
-}
+	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
+)
+
+type Criteria map[string]interface{}
 
 type Attribute struct {
 	Name string
@@ -41,18 +38,20 @@ type Agent struct {
 	ID                  string
 	Name                string
 	AssignedSchemaId    string
-	ConnectionID        string
-	ConnectionState     string
-	PeerDID             string
 	EndorsableSchemaIds []string
+	OutstandingOffers   []string
 	Status              StatusType
 	PID                 string
-	PublicDID           bool
+	HasPublicDID        bool
+	PublicDID           *DID
 }
 
-type SchemaCriteria struct {
-	Start, PageSize int
-	Name            string
+type AgentConnection struct {
+	AgentID      string
+	TheirDID     string
+	MyDID        string
+	ConnectionID string
+	ExternalID   string
 }
 
 type AgentCriteria struct {
@@ -60,16 +59,72 @@ type AgentCriteria struct {
 	Name            string
 }
 
+type SchemaCriteria struct {
+	Start, PageSize int
+	Name            string
+}
+
+type SchemaList struct {
+	Count  int
+	Schema []*Schema
+}
+
+type Schema struct {
+	ID               string
+	Type             string
+	Name             string
+	Version          string
+	ExternalSchemaID string
+	Attributes       []*Attribute
+}
+
+type Schemas []*Schema
+
 type DIDCriteria struct {
 	Start, PageSize int
 }
 
+type DIDs []*DID
+
 type DID struct {
-	DID, Verkey, Endpoint string
-	Public                bool
+	ID       string
+	DID      *identifiers.DID
+	OwnerID  string
+	KeyPair  *KeyPair
+	Endpoint string
+	Public   bool
 }
 
 type DIDList struct {
 	Count int
 	DIDs  []*DID
+}
+
+type KeyPair struct {
+	PublicKey  string
+	PrivateKey string
+}
+
+func (r *KeyPair) RawPublicKey() []byte {
+	k, _ := base58.Decode(r.PublicKey)
+	return k
+}
+
+func (r *KeyPair) RawPrivateKey() []byte {
+	k, _ := base58.Decode(r.PrivateKey)
+	return k
+}
+
+type Offer struct {
+	Comment    string
+	Type       string
+	Attributes []icprotocol.Attribute
+}
+
+type Credential struct {
+	AgentID           string
+	OfferID           string
+	ExternalSubjectID string
+	Offer             Offer
+	SystemState       string
 }

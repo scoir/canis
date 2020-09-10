@@ -13,3 +13,4 @@ RUN mv /tmp/go /usr/local
 
 ENV PATH /usr/local/go/bin:$PATH
 RUN mkdir /canis
+RUN mkdir /etc/canis

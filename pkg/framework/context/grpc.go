@@ -10,14 +10,14 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
+	api "github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/framework"
-	api "github.com/scoir/canis/pkg/steward/api"
 )
 
 const (
-	grpcKey            = "grpc"
-	bridgeKey          = "grpcbridge"
-	stewardEndpointKey = "stewardEndpoint"
+	grpcKey     = "grpc"
+	bridgeKey   = "grpcbridge"
+	apiEndpoint = "api.grpc"
 )
 
 func (r *Provider) GetGRPCEndpoint() (*framework.Endpoint, error) {
@@ -48,13 +48,13 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	return ep, nil
 }
 
-func (r *Provider) GetStewardClient() (api.AdminClient, error) {
-	if !r.vp.IsSet(stewardEndpointKey) {
+func (r *Provider) GetAPIAdminClient() (api.AdminClient, error) {
+	if !r.vp.IsSet(apiEndpoint) {
 		return nil, errors.New("steward client is not properly configured")
 	}
 
 	ep := &framework.Endpoint{}
-	err := r.vp.UnmarshalKey(stewardEndpointKey, ep)
+	err := r.vp.UnmarshalKey(apiEndpoint, ep)
 	if err != nil {
 		return nil, errors.Wrap(err, "steward client is not properly configured")
 	}

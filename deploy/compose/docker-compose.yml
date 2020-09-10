@@ -1,0 +1,102 @@
+version: "3.3"
+services:
+  canis-apiserver:
+    image: canis/canis
+    command: "canis-apiserver start"
+    ports:
+      - "7778:7778"
+      - "7779:7779"
+    networks:
+      - backend
+    secrets:
+      - source: canis-apiserver-config
+        target: /etc/canis/canis-apiserver-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  canis-didcomm-issuer:
+    image: canis/canis
+    command: "canis-didcomm-issuer start"
+    ports:
+      - "7776:7776"
+    networks:
+      - backend
+    secrets:
+      - source: canis-didcomm-issuer-config
+        target: /etc/canis/canis-didcomm-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  canis-didcomm-doorman:
+    image: canis/canis
+    command: "canis-didcomm-doorman start"
+    ports:
+      - "8886:8886"
+    networks:
+      - backend
+    secrets:
+      - source: canis-didcomm-doorman-config
+        target: /etc/canis/canis-didcomm-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  canis-didcomm-lb:
+    image: canis/canis
+    command: "canis-didcomm-lb start"
+    ports:
+      - "9001:9001"
+      - "9003:9003"
+    networks:
+      - backend
+    secrets:
+      - source: canis-didcomm-lb-config
+        target: /etc/canis/canis-didcomm-lb-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+#  rabbitmq:
+#    image: rabbitmq:3-management
+#    container_name: rabbitmq
+#    ports:
+#      - 5672:5672
+#      - 15672:15672
+
+secrets:
+  canis-apiserver-config:
+    file: ./canis-apiserver.yaml
+  canis-scheduler-config:
+    file: ./canis-scheduler.yaml
+  canis-didcomm-issuer-config:
+    file: ./canis-didcomm-issuer.yaml
+  canis-didcomm-doorman-config:
+    file: ./canis-didcomm-doorman.yaml
+  canis-didcomm-lb-config:
+    file: ./canis-didcomm-lb.yaml
+
+networks:
+  backend:
+
+volumes:
+  canis_data:
+  etc:
+    driver: local
+    driver_opts:
+      type: local
+      device: /data/canis
+      o: bind

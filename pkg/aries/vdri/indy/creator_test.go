@@ -18,7 +18,7 @@ func TestVDRI_Build(t *testing.T) {
 
 		pubKey := &vdriapi.PubKey{
 			ID:    "test",
-			Value: "test",
+			Value: []byte("test"),
 			Type:  "Not Valid",
 		}
 
@@ -35,7 +35,7 @@ func TestVDRI_Build(t *testing.T) {
 		k := ed25519.NewKeyFromSeed([]byte("b2352b32947e188eb72871093ac6217e"))
 		pubKey := &vdriapi.PubKey{
 			ID:    "test",
-			Value: base58.Encode(k),
+			Value: []byte(base58.Encode(k)),
 			Type:  "Ed25519VerificationKey2018",
 		}
 
@@ -59,7 +59,7 @@ func TestVDRI_Build(t *testing.T) {
 		k := ed25519.NewKeyFromSeed([]byte("b2352b32947e188eb72871093ac6217e"))
 		pubKey := &vdriapi.PubKey{
 			ID:    "test",
-			Value: base58.Encode(k),
+			Value: []byte(base58.Encode(k)),
 			Type:  "Ed25519VerificationKey2018",
 		}
 

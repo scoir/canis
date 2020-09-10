@@ -63,8 +63,8 @@ func TestCreateDID(t *testing.T) {
 			},
 			want: &DID{
 				DIDVal: DIDValue{
-					DID:    "WvRwKqxFLtJ3YbhmHZBpmy",
-					Method: "sov",
+					MethodSpecificID: "WvRwKqxFLtJ3YbhmHZBpmy",
+					Method:           "sov",
 				},
 				Verkey: "HJsMyfABm7gmPse8QzgUePRwTbQRyALgeZudJuYbYmro",
 			},
@@ -82,8 +82,8 @@ func TestCreateDID(t *testing.T) {
 			},
 			want: &DID{
 				DIDVal: DIDValue{
-					DID:    "HJsMyfABm7gmPse8QzgUePRwTbQRyALgeZudJuYbYmro",
-					Method: "",
+					MethodSpecificID: "HJsMyfABm7gmPse8QzgUePRwTbQRyALgeZudJuYbYmro",
+					Method:           "",
 				},
 				Verkey: "HJsMyfABm7gmPse8QzgUePRwTbQRyALgeZudJuYbYmro",
 			},
@@ -142,8 +142,8 @@ func TestDIDValue_Abbreviatable(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &DIDValue{
-				DID:    tt.fields.DID,
-				Method: tt.fields.Method,
+				MethodSpecificID: tt.fields.DID,
+				Method:           tt.fields.Method,
 			}
 			if got := r.Abbreviatable(); got != tt.want {
 				t.Errorf("Abbreviatable() = %v, want %v", got, tt.want)
@@ -167,8 +167,8 @@ func TestDIDValue_String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &DIDValue{
-				DID:    tt.fields.DID,
-				Method: tt.fields.Method,
+				MethodSpecificID: tt.fields.DID,
+				Method:           tt.fields.Method,
 			}
 			if got := r.String(); got != tt.want {
 				t.Errorf("String() = %v, want %v", got, tt.want)
@@ -216,8 +216,8 @@ func TestDID_String(t *testing.T) {
 			name: "test formatting",
 			fields: fields{
 				DIDVal: DIDValue{
-					DID:    "WvRwKqxFLtJ3YbhmHZBpmy",
-					Method: "sov",
+					MethodSpecificID: "WvRwKqxFLtJ3YbhmHZBpmy",
+					Method:           "sov",
 				},
 				Verkey: "",
 			},
@@ -227,8 +227,8 @@ func TestDID_String(t *testing.T) {
 			name: "no method",
 			fields: fields{
 				DIDVal: DIDValue{
-					DID:    "WvRwKqxFLtJ3YbhmHZBpmy",
-					Method: "",
+					MethodSpecificID: "WvRwKqxFLtJ3YbhmHZBpmy",
+					Method:           "",
 				},
 				Verkey: "",
 			},
@@ -263,8 +263,8 @@ func TestParseDID(t *testing.T) {
 				did: "did:ioe:PBu1XhbSQCdaeEKuJVFTi4",
 			},
 			want: &DIDValue{
-				DID:    "PBu1XhbSQCdaeEKuJVFTi4",
-				Method: "ioe",
+				MethodSpecificID: "PBu1XhbSQCdaeEKuJVFTi4",
+				Method:           "ioe",
 			},
 		},
 		{
@@ -273,8 +273,8 @@ func TestParseDID(t *testing.T) {
 				did: "PBu1XhbSQCdaeEKuJVFTi4",
 			},
 			want: &DIDValue{
-				DID:    "PBu1XhbSQCdaeEKuJVFTi4",
-				Method: "",
+				MethodSpecificID: "PBu1XhbSQCdaeEKuJVFTi4",
+				Method:           "",
 			},
 		},
 	}

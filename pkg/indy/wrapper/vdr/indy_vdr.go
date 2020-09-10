@@ -42,7 +42,7 @@ type Client struct {
 	genesisTxns []byte
 }
 
-//New creates an Indy VDR client connected to the Indy distributed ledger identified by the genesis file
+//New creates an Indy IndyVDR client connected to the Indy distributed ledger identified by the genesis file
 //provided as a reader.
 func New(genesis io.ReadCloser) (*Client, error) {
 

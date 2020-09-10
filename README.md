@@ -12,38 +12,47 @@ identity standards including [W3C decentralized identifiers](https://w3c.github.
 
 ## Summary
 
+- [**Architecture**](#Architecture)
 - [**Why Canis?**](#why-canis)
 - [**Features**](#features)
 - [**Building Canis**](#building-canis)
-- [**Distributions**](#distributions)
 - [**Development**](#development)
 - [**License**](#license)
 
 ## Architecture
 
-![Architecture](/static/V1.png?raw=true "Canis Architecture")
+![Architecture](/static/V2.png?raw=true "Canis Architecture")
+
+Canis concerns itself levels one, two and three of the ToIP technical stack, it uses Aries to accomplish that although
+we plan to support others, at level one Canis uses Indy Node. Your third party application should be level four.
+
+Canis concerns itself levels one, two and three of the ToIP technical stack, it uses Aries to accomplish that although
+we plan to support others, at level one Canis uses Indy Node. Your third party application should be level four.
+
+Canis concerns itself levels one, two and three of the ToIP technical stack, it uses Aries to accomplish that although
+we plan to support others, at level one Canis uses Indy Node. Your third party application should be level four.
 
 ## Why Canis?
 
-Issuing digital credentials requires an institution or organization to have an agent to represent its interest in the digital landscape.
+Issuing digital credentials requires an institution or organization to have an agency/agent to represent its interest in the digital landscape.
 This agent must act as a fiduciary on behalf of the organization, must hold cryptographic keys representing its delegated authority, and it must communicate
 via [DIDComm Protocols](https://github.com/hyperledger/indy-hipe/pull/69).  
 
-In addition needing an agent, organizations need a way to instruct this agent how to issue a credential and to whom.  That requires information that is currently stored 
+In addition, needing an agent, organizations need a way to instruct this agent how to issue a credential and to whom.  That requires information that is currently stored 
 in legacy (in ToIP terms) systems.
 
 Canis serves as a platform for creating, launching and empowering agents to participate in a credentialing ecosystem on any organization's behalf.  In addition,
 Canis provides an easy to use RESTful API and extensible data model to allow for endorsing agents on behalf of any hierarchy of organizational structure.
 
-## Features
+## Roadmap
 1. **REST API**: Canis can be operated with its RESTful API for maximum flexibility
-1. **Multiple Databases**: Canis can be used with Mongo or Postgres
+1. **Multiple Databases**: Aries today... who knows tomorrow
 1. **Multiple DID Resolution**: DID resolution can be performed against...
 1. **Multiple VC Formats**: Issue, prove and verify CL, JWT and JSON-LD credentials, even in the same issuance
-1. **Multiple Ledger Support**:  Credential issuing on Indy, ?
-1. **Plugins**: Extendable architecture for adding functionality to Canis and APIs. 
-1. **CLI**: Control your Canis platform from the command line.
-1. **Mediator/Router**:  Offer single endpoint to all entities maintaining identity on platform
+1. **Multiple Ledger Support**:  Credential issuing on Indy, and then...
+1. **Plugins**: We think the future lays in an extendable architecture for adding functionality to Canis and APIs, we're 
+just starting with the ones we know best
+1. **CLI**: Control your Canis platform from the command line
 1. **Mailbox**: Message routing and storage for agents in support of remote, not-always-on devices
 
 ## Building Canis

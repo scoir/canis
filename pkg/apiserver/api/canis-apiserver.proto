@@ -1,0 +1,279 @@
+syntax = "proto3";
+package apiserver;
+
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+option go_package = "apiserver/api";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+		title: "Canis Admin API";
+version:"0.0.1"
+}
+};
+
+
+message PublicDIDRequest {
+    string agent_id = 1;
+    string did = 2;
+    string verkey = 3;
+}
+
+message PublicDIDResponse {
+}
+
+message Schema {
+    string id = 1;
+    string name = 2;
+    string version = 3;
+    string type = 4;
+    repeated Attribute attributes = 5;
+}
+
+message Attribute {
+    string name = 1;
+    enum Type {
+        STRING = 0;
+        NUMBER = 1;
+        OBJECT = 2;
+        ARRAY = 3;
+        BOOL = 4;
+        NULL = 5;
+    }
+    Type type = 2;
+}
+
+message CreateSchemaRequest {
+    Schema schema = 1;
+}
+message CreateSchemaResponse {
+    string id = 1;
+}
+
+message ListSchemaRequest {
+    int64 start = 1;
+    int64 page_size = 2;
+    string name = 3;
+    string version = 4;
+}
+
+message ListSchemaResponse {
+    int64 count = 1;
+    repeated Schema schema = 2;
+}
+
+message GetSchemaRequest {
+    string id = 1;
+}
+
+message GetSchemaResponse {
+    Schema schema = 1;
+}
+
+message DeleteSchemaRequest {
+    string id = 1;
+}
+message DeleteSchemaResponse {
+}
+
+message UpdateSchemaRequest {
+    Schema schema = 1;
+}
+message UpdateSchemaResponse {
+}
+
+message Agent {
+    string id = 1;
+    string name = 2;
+    string assigned_schema_id = 3;
+    repeated string endorsable_schema_ids = 4;
+    enum Status {
+        STARTING = 0;
+        RUNNING = 1;
+        ERROR = 2;
+        TERMINATED = 3;
+    }
+    Status status = 5;
+    bool public_did = 6;
+}
+
+message CreateAgentRequest {
+    Agent agent = 1;
+}
+message CreateAgentResponse {
+    string id = 1;
+}
+
+message ListAgentRequest {
+    int64 start = 1;
+    int64 page_size = 2;
+    string name = 3;
+}
+message ListAgentResponse {
+    int64 count = 1;
+    repeated Agent agents = 2;
+}
+
+message GetAgentRequest {
+    string id = 1;
+}
+message GetAgentResponse {
+    Agent agent = 1;
+}
+
+message DeleteAgentRequest {
+    string id = 1;
+}
+message DeleteAgentResponse {
+}
+
+message UpdateAgentRequest {
+    Agent agent = 1;
+}
+message UpdateAgentResponse {
+}
+
+
+message LaunchAgentRequest {
+    string id = 1;
+    bool wait = 2;
+}
+message LaunchAgentResponse {
+    Agent.Status status = 5;
+
+}
+
+message ShutdownAgentRequest {
+    string id = 1;
+}
+
+message ShutdownAgentResponse {
+}
+
+message SeedPublicDIDRequest {
+    string seed = 1;
+}
+
+message SeedPublicDIDResponse {
+}
+
+message CredentialAttribute {
+  string name = 1;
+  string value = 2;
+}
+
+message Credential {
+    string schema_id = 1;
+    string comment = 2;
+    string type = 3;
+    repeated CredentialAttribute attributes = 4;
+}
+
+message IssueCredentialRequest {
+    string agent_id = 1;
+    string external_id = 2;
+    Credential credential = 3;
+}
+
+message IssueCredentialResponse {
+    string credential_id = 1;
+}
+
+message WatchRequest {}
+
+message AgentEvent {
+    enum Type {
+        ADD = 0;
+        UPDATE = 1;
+        DELETE = 2;
+    }
+    Type type = 1;
+    Agent Old = 2;
+    Agent New = 3;
+}
+
+message InvitationRequest {
+  string agent_id = 1;
+  string external_id = 2;
+  string name = 3;
+}
+
+message InvitationResponse {
+  string invitation = 1;
+}
+
+
+service Admin {
+    rpc CreateSchema (CreateSchemaRequest) returns (CreateSchemaResponse) {
+        option (google.api.http) = {
+            post: "/schema"
+            body: "schema"
+        };
+    }
+    rpc ListSchema (ListSchemaRequest) returns (ListSchemaResponse) {
+        option (google.api.http) = {
+            get: "/schema"
+        };
+    }
+    rpc GetSchema (GetSchemaRequest) returns (GetSchemaResponse) {
+        option (google.api.http) = {
+            get: "/schema/{id}"
+        };
+    }
+    rpc DeleteSchema (DeleteSchemaRequest) returns (DeleteSchemaResponse) {
+        option (google.api.http) = {
+            delete: "/schema/{id}"
+        };
+    }
+    rpc UpdateSchema (UpdateSchemaRequest) returns (UpdateSchemaResponse) {
+        option (google.api.http) = {
+            post: "/schema/{schema.id}"
+            body: "schema"
+        };
+    }
+
+    rpc IssueCredential (IssueCredentialRequest) returns (IssueCredentialResponse) {
+        option (google.api.http) = {
+            post: "/agents/{agent_id}/credential/{external_id}/issue"
+            body: "credential"
+        };
+    }
+
+    rpc CreateAgent (CreateAgentRequest) returns (CreateAgentResponse) {
+        option (google.api.http) = {
+            post: "/agents"
+            body: "agent"
+        };
+    }
+    rpc ListAgent (ListAgentRequest) returns (ListAgentResponse) {
+        option (google.api.http) = {
+            get: "/agents"
+        };
+    }
+    rpc GetAgent (GetAgentRequest) returns (GetAgentResponse) {
+        option (google.api.http) = {
+            get: "/agents/{id}"
+        };
+    }
+    rpc GetAgentInvitation (InvitationRequest) returns (InvitationResponse) {
+        option (google.api.http) = {
+            post: "/agents/{agent_id}/invitation/{external_id}"
+        };
+
+    }
+    rpc DeleteAgent (DeleteAgentRequest) returns (DeleteAgentResponse) {
+        option (google.api.http) = {
+            delete: "/agents/{id}"
+        };
+    }
+    rpc UpdateAgent (UpdateAgentRequest) returns (UpdateAgentResponse) {
+        option (google.api.http) = {
+            post: "/agents/{agent.id}"
+            body: "agent"
+        };
+
+    }
+    rpc WatchAgents (WatchRequest) returns (stream AgentEvent) {}
+    rpc SeedPublicDID(SeedPublicDIDRequest) returns (SeedPublicDIDResponse) {}
+}
