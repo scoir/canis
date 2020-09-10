@@ -24,9 +24,8 @@ pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec
 	staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
 
 
-build: bin/canis-apiserver bin/agent bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-lb bin/canis-didcomm-doorman
+build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-lb bin/canis-didcomm-doorman
 build-canis-apiserver: bin/canis-apiserver
-build-canis-scheduler: bin/canis-scheduler
 build-canis-didcomm-issuer: bin/canis-didcomm-issuer
 build-canis-didcomm-lb: bin/canis-didcomm-lb
 
@@ -53,16 +52,7 @@ bin/sirius:
 .PHONY: canis-docker
 package: canis-docker
 
-build-agent: bin/agent
 build-router: bin/router
-
-agent: bin/agent
-bin/agent: canis-apiserver-pb
-	@. ./canis.sh; cd cmd/agent && go build -o $(CANIS_ROOT)/bin/agent
-
-agency: bin/agency bin/router
-bin/agency:
-	@. ./canis.sh; cd cmd/agency && go build -o $(CANIS_ROOT)/bin/agency
 
 router: bin/router
 bin/router:
