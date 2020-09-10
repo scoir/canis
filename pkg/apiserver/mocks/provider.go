@@ -11,6 +11,8 @@ import (
 
 	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
 
+	loadbalancerapi "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+
 	mock "github.com/stretchr/testify/mock"
 
 	vdr "github.com/scoir/canis/pkg/indy/wrapper/vdr"
@@ -77,6 +79,29 @@ func (_m *Provider) GetIssuerClient() (issuerapi.IssuerClient, error) {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(issuerapi.IssuerClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLoadbalancerClient provides a mock function with given fields:
+func (_m *Provider) GetLoadbalancerClient() (loadbalancerapi.LoadbalancerClient, error) {
+	ret := _m.Called()
+
+	var r0 loadbalancerapi.LoadbalancerClient
+	if rf, ok := ret.Get(0).(func() loadbalancerapi.LoadbalancerClient); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(loadbalancerapi.LoadbalancerClient)
 		}
 	}
 

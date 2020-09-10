@@ -188,7 +188,6 @@ func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) 
 		EndorsableSchemaIds: req.Agent.EndorsableSchemaIds,
 		HasPublicDID:        req.Agent.PublicDid,
 	}
-	//TODO:  how do we get this agents Endpoint??
 
 	if a.ID == "" || a.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")

@@ -31,6 +31,7 @@ import (
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
+	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
@@ -200,6 +201,18 @@ func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
 	}
 	cl := issuer.NewIssuerClient(cc)
 	return cl, nil
+}
+
+func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error) {
+	ep := &framework.Endpoint{}
+	err := r.vp.UnmarshalKey("loadbalancer.grpc", ep)
+
+	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to dial grpc for steward client")
+	}
+	lb := loadbalancer.NewLoadbalancerClient(cc)
+	return lb, nil
 }
 
 func (r *Provider) KMS() (kms.KeyManager, error) {

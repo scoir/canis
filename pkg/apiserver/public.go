@@ -1,11 +1,12 @@
 package apiserver
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	"github.com/scoir/canis/pkg/indy/wrapper/crypto"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
@@ -19,11 +20,12 @@ func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 		return errors.Wrap(err, "unable to get public DID.")
 	}
 
-	endpoint := "http://420.69.420.69:6969"
+	endpoint, err := r.loadbalancer.GetEndpoint(context.Background(), &api.EndpointRequest{})
+	if err != nil {
+		return errors.Wrap(err, "unable to retrieve endpoint for new agent")
+	}
 
 	mysig := crypto.NewSigner(did.KeyPair.RawPublicKey(), did.KeyPair.RawPrivateKey())
-	fmt.Println("Steward DID:", did.DID)
-	fmt.Println("Steward Verkey:", did.DID.AbbreviateVerkey())
 
 	agentPublicDID, agentPublicKeys, err := identifiers.CreateDID(&identifiers.MyDIDInfo{MethodName: "scr", Cid: true})
 	if err != nil {
@@ -34,15 +36,10 @@ func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to set nym")
 	}
-	fmt.Println("New Endorser DID:", agentPublicDID.String())
-	fmt.Println("New Endorser Verkey:", agentPublicDID.AbbreviateVerkey())
-	fmt.Println("Place These in Wallet:")
-	fmt.Println("Public:", agentPublicKeys.PublicKey())
-	fmt.Println("Private:", agentPublicKeys.PrivateKey())
-
 	newDIDsig := crypto.NewSigner(agentPublicKeys.RawPublicKey(), agentPublicKeys.RawPrivateKey())
 
-	err = r.client.SetEndpoint(agentPublicDID.DIDVal.MethodSpecificID, agentPublicDID.DIDVal.MethodSpecificID, endpoint, newDIDsig)
+	err = r.client.SetEndpoint(agentPublicDID.DIDVal.MethodSpecificID, agentPublicDID.DIDVal.MethodSpecificID,
+		endpoint.Endpoint, newDIDsig)
 	if err != nil {
 		return errors.Wrap(err, "unable to set endpoint")
 	}
@@ -53,7 +50,7 @@ func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 			PublicKey:  agentPublicKeys.PublicKey(),
 			PrivateKey: agentPublicKeys.PrivateKey(),
 		},
-		Endpoint: endpoint,
+		Endpoint: endpoint.Endpoint,
 	}
 
 	return nil

@@ -10,10 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/transport"
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
+	"google.golang.org/grpc"
 	"nhooyr.io/websocket"
+
+	"github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 )
 
 const (
@@ -92,13 +96,33 @@ func (r *Server) Start() {
 	go r.startHTTP()
 }
 
+func (r *Server) RegisterGRPCHandler(server *grpc.Server) {
+	api.RegisterLoadbalancerServer(server, r)
+}
+
+func (r *Server) GetServerOpts() []grpc.ServerOption {
+	return []grpc.ServerOption{}
+}
+
+func (r *Server) RegisterGRPCGateway(_ *runtime.ServeMux, _ string, _ ...grpc.DialOption) {
+
+}
+
+func (r *Server) APISpec() (http.HandlerFunc, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *Server) GetEndpoint(_ context.Context, _ *api.EndpointRequest) (*api.EndpointResponse, error) {
+	return &api.EndpointResponse{Endpoint: r.wsAddr}, nil
+}
+
 func (r *Server) startWS() {
 	server := &http.Server{Addr: r.wsAddr}
 	server.Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		r.processWsRequest(w, req)
 	})
 
-	fmt.Printf("listening for WS DIDComm messages on %s to queue\n", r.wsAddr)
+	log.Printf("Listening for WS DIDComm messages on %s to queue\n", r.wsAddr)
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
@@ -237,7 +261,7 @@ func (r *Server) startHTTP() {
 
 	srv.Handler = handler
 
-	fmt.Printf("listening for HTTP DIDComm messages on %s to queue\n", r.httpAddr)
+	log.Printf("Listening for HTTP DIDComm messages on %s to queue\n", r.httpAddr)
 	err := srv.ListenAndServe()
 	if err != nil {
 		log.Fatalln("error listening on HTTP", err)
