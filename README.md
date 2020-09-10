@@ -14,23 +14,23 @@ identity standards including [W3C decentralized identifiers](https://w3c.github.
 
 - [**Architecture**](#Architecture)
 - [**Why Canis?**](#why-canis)
-- [**Features**](#features)
-- [**Building Canis**](#building-canis)
+- [**Roadmap**](#Roadmap)
 - [**Development**](#development)
 - [**License**](#license)
 
 ## Architecture
 
-![Architecture](/static/V2.png?raw=true "Canis Architecture")
+![Architecture](./static/v3.png?raw=true "Canis Architecture")
 
-Canis concerns itself levels one, two and three of the ToIP technical stack, it uses Aries to accomplish that although
-we plan to support others, at level one Canis uses Indy Node. Your third party application should be level four.
+Canis concerns itself with levels one, two and three of the [ToIP technical stack](https://github.com/hyperledger/aries-rfcs/tree/master/concepts/0289-toip-stack), [Hyperledger Indy Node](https://github.com/hyperledger/indy-node) at level one and [Hyperledger Aries](https://github.com/hyperledger/aries-framework-go) at levels two and three.
 
-Canis concerns itself levels one, two and three of the ToIP technical stack, it uses Aries to accomplish that although
-we plan to support others, at level one Canis uses Indy Node. Your third party application should be level four.
+The DIDComm load balancer provides a single entry point into Canis, internally this is a [RabbitMQ](https://www.rabbitmq.com/) instance. 
+Incoming DIDComm messages are routed by `@type` to instances of 'Doorman' ([didexchange protocol](https://github.com/hyperledger/aries-rfcs/tree/master/features/0023-did-exchange)), 'Issuer' ([issue credential protocol](https://github.com/hyperledger/aries-rfcs/tree/master/features/0036-issue-credential)) and 'Verifier' ([present proof protocol](https://github.com/hyperledger/aries-rfcs/tree/master/features/0037-present-proof)). 
 
-Canis concerns itself levels one, two and three of the ToIP technical stack, it uses Aries to accomplish that although
-we plan to support others, at level one Canis uses Indy Node. Your third party application should be level four.
+[Hyperledger Ursa](https://github.com/hyperledger/ursa) fulfills any cryptographic operations that need to occur in the 'Issuer' or 'Verifier' instances. 
+
+'Agents' (we use this term loosely) are created ad-hoc, to fulfil the current incoming DIDComm message. 
+The backing wallet storage required for these agents persists beyond the lifecycle of the current message and is configurable with MongoDB or CouchDB.
 
 ## Why Canis?
 
@@ -46,7 +46,7 @@ Canis provides an easy to use RESTful API and extensible data model to allow for
 
 ## Roadmap
 1. **REST API**: Canis can be operated with its RESTful API for maximum flexibility
-1. **Multiple Databases**: Aries today... who knows tomorrow
+1. **Multiple Wallets**: Aries today... who knows tomorrow
 1. **Multiple DID Resolution**: DID resolution can be performed against...
 1. **Multiple VC Formats**: Issue, prove and verify CL, JWT and JSON-LD credentials, even in the same issuance
 1. **Multiple Ledger Support**:  Credential issuing on Indy, and then...
@@ -55,31 +55,10 @@ just starting with the ones we know best
 1. **CLI**: Control your Canis platform from the command line
 1. **Mailbox**: Message routing and storage for agents in support of remote, not-always-on devices
 
-## Building Canis
-Canis requires at least Go 1.14 to compile and docker >= 19.0 to create the containers required to launch Canis using either the
-docker or kubernetes environment.  
 
-It is theoretically possible to run the components of Canis (steward, agent, router, mailbox) locally by hand but that is not
-a recommended approach and bypasses the power of the Canis integrated architecture.
+## Development
 
-Compiling the binaries is as simple as:
-
-```
-% make
-```
-
-After building Canis it is a good idea to run the tests:
-
-```
-% make test
-```
-
-The [Getting Started Guide](/docs/GettingStarted.md) assumes the docker execution environment.  To build
-the canis docker container required for the docker execution environment, ensure docker is installed and run the following:
-
-```
-% make canis-docker
-```
+For development and deployment setup, check the `dev-setup` directory.
 
 ## License
 
