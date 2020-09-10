@@ -166,12 +166,13 @@ message CredentialAttribute {
 message Credential {
     string schema_id = 1;
     string comment = 2;
-    repeated CredentialAttribute attributes = 3;
+    string type = 3;
+    repeated CredentialAttribute attributes = 4;
 }
 
 message IssueCredentialRequest {
     string agent_id = 1;
-    string subject_id = 2;
+    string external_id = 2;
     Credential credential = 3;
 }
 
@@ -234,7 +235,8 @@ service Admin {
 
     rpc IssueCredential (IssueCredentialRequest) returns (IssueCredentialResponse) {
         option (google.api.http) = {
-            post: "/agents/{agent_id}/credential/{subject_id}/issue"
+            post: "/agents/{agent_id}/credential/{external_id}/issue"
+            body: "credential"
         };
     }
 

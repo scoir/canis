@@ -44,7 +44,7 @@ func New(ctx provider) (*Server, error) {
 		return nil, errors.Wrap(err, "unable to access datastore")
 	}
 
-	r.agentStore, err = storageProvider.OpenStore("Agent")
+	r.agentStore, err = storageProvider.OpenStore("canis")
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/pkg/errors"
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
@@ -12,7 +13,15 @@ type CredentialEngine interface {
 	Accept(typ string) bool
 	CreateSchema(issuer *datastore.DID, s *datastore.Schema) (string, error)
 	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
+	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error)
 	IssueCredential(s *datastore.Schema, c *api.Credential) (string, error)
+}
+
+//go:generate mockery -name=CredentialRegistry
+type CredentialRegistry interface {
+	CreateSchema(s *datastore.Schema) (string, error)
+	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
+	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error)
 }
 
 type Option func(opts *Registry)
@@ -60,6 +69,15 @@ func (r *Registry) RegisterSchema(registrant *datastore.DID, s *datastore.Schema
 	err = e.RegisterSchema(registrant, s)
 	return errors.Wrap(err, "error from credential engine")
 
+}
+
+func (r *Registry) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error) {
+	e, err := r.resolveEngine(s.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	return e.CreateCredentialOffer(issuer, s)
 }
 
 func (r *Registry) resolveEngine(method string) (CredentialEngine, error) {

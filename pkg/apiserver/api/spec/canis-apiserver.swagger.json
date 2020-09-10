@@ -123,7 +123,7 @@
         ]
       }
     },
-    "/agents/{agent_id}/credential/{subject_id}/issue": {
+    "/agents/{agent_id}/credential/{external_id}/issue": {
       "post": {
         "operationId": "Admin_IssueCredential",
         "responses": {
@@ -148,10 +148,18 @@
             "type": "string"
           },
           {
-            "name": "subject_id",
+            "name": "external_id",
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiserverCredential"
+            }
           }
         ],
         "tags": [
@@ -537,6 +545,9 @@
           "type": "string"
         },
         "comment": {
+          "type": "string"
+        },
+        "type": {
           "type": "string"
         },
         "attributes": {

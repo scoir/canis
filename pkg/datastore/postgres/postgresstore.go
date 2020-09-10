@@ -41,6 +41,18 @@ type postgresDBStore struct {
 	tableName string
 }
 
+func (p *postgresDBStore) InsertCredential(c *datastore.Credential) (string, error) {
+	panic("implement me")
+}
+
+func (p *postgresDBStore) FindOffer(agentID string, offerID string) (*datastore.Credential, error) {
+	panic("implement me")
+}
+
+func (p *postgresDBStore) GetAgentByPublicDID(DID string) (*datastore.Agent, error) {
+	panic("implement me")
+}
+
 func (p *postgresDBStore) GetAgentConnection(a *datastore.Agent, externalID string) (*datastore.AgentConnection, error) {
 	panic("implement me")
 }
@@ -198,7 +210,7 @@ func (p *postgresDBStore) SetPublicDID(DID *datastore.DID) error {
 
 	_, err = p.pool.Exec(context.Background(),
 		fmt.Sprintf(`UPDATE %s SET data = jsonb_set(data, '{"Public"}', 'true', true) WHERE data -> 'DID' -> 'DIDVal' ->> 'DID' = '%s';`,
-			p.tableName, DID))
+			p.tableName, DID.DID.String()))
 	if err != nil {
 		return err
 	}

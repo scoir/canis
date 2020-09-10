@@ -8,10 +8,23 @@ package ursa
 import "C"
 
 import (
+	"strconv"
+	"strings"
 	"unsafe"
 
 	"github.com/pkg/errors"
+
+	"github.com/scoir/canis/pkg/datastore"
 )
+
+const (
+	DELIMITER = ":"
+	MARKER    = "3"
+)
+
+func CredentialDefinitionID(did *datastore.DID, schemaID uint32, signatureType, tag string) string {
+	return strings.Join([]string{did.DID.MethodID(), MARKER, signatureType, strconv.Itoa(int(schemaID)), tag}, DELIMITER)
+}
 
 type CredentialDefinition struct {
 	fields              []string

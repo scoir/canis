@@ -148,7 +148,7 @@ func TestSetGetPublicDID(t *testing.T) {
 		public, err := store.GetPublicDID()
 		require.NoError(t, err)
 
-		require.Equal(t, "did to be public", public.DID.DIDVal.MethodSpecificID)
+		require.Equal(t, "didtobepublic", public.DID.DIDVal.MethodSpecificID)
 
 		err = prov.CloseStore("test_dids")
 		require.NoError(t, err)
@@ -252,17 +252,6 @@ func TestProviderFailures(t *testing.T) {
 	})
 }
 
-func TestOpenStoreFailures(t *testing.T) {
-	t.Run("no name error", func(t *testing.T) {
-		prov, err := NewProvider(config)
-		require.NoError(t, err)
-
-		_, err = prov.OpenStore("")
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "")
-	})
-}
-
 func TestCloseStore(t *testing.T) {
 	t.Run("no config error", func(t *testing.T) {
 		prov, err := NewProvider(config)
@@ -362,9 +351,9 @@ func TestAgentFailures(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unable to insert agent")
 
-		_, err = store.GetAgentByInvitation("foo")
+		_, err = store.GetAgentByPublicDID("foo")
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "unable to load agent by invitation")
+		require.Contains(t, err.Error(), "unable to load agent by Public DID")
 
 		err = store.DeleteAgent("foo")
 		require.Error(t, err)

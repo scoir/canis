@@ -81,7 +81,7 @@ func getCredentials(w http.ResponseWriter, _ *http.Request) {
 }
 
 func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
-	resp, err := http.Post("http://local.scoir.com:7779/agents/voyager1/invitation", "application/json", strings.NewReader("{}"))
+	resp, err := http.Post("http://local.scoir.com:7779/agents/broward/invitation/subject", "application/json", strings.NewReader("{}"))
 	if err != nil {
 		util.WriteErrorf(w, "Error requesting invitation from issuer: %v", err)
 		return
@@ -89,10 +89,12 @@ func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
 	b, _ := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
 
+	fmt.Println(string(b))
+
 	inviteResponse := &api.InvitationResponse{}
 	err = json.Unmarshal(b, inviteResponse)
 	if err != nil {
-		util.WriteErrorf(w, "Error decoding invitation response: %v, s", err, string(b))
+		util.WriteErrorf(w, "Error decoding invitation response: %v, %s", err, string(b))
 		return
 	}
 
@@ -101,7 +103,7 @@ func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
 	invite := &didexchange.Invitation{}
 	err = json.NewDecoder(strings.NewReader(inviteResponse.Invitation)).Decode(invite)
 	if err != nil {
-		util.WriteErrorf(w, "Error decoding invitation: %v, s", err, string(b))
+		util.WriteErrorf(w, "Error decoding invitation: %v, %s", err, string(b))
 		return
 	}
 

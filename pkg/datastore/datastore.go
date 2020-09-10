@@ -52,14 +52,19 @@ type Store interface {
 	// UpdateSchema update single schema
 	UpdateSchema(s *Schema) error
 
+	// InsertCredential add Crednetial to store
+	InsertCredential(c *Credential) (string, error)
+	//FindOffer finds credential in offer state
+	FindOffer(agentID string, offerID string) (*Credential, error)
+
 	// InsertAgent add agent to store
 	InsertAgent(a *Agent) (string, error)
 	// ListAgent query agents
 	ListAgent(c *AgentCriteria) (*AgentList, error)
 	// GetAgent return single agent
 	GetAgent(id string) (*Agent, error)
-	// GetAgentByInvitation return single agent
-	GetAgentByInvitation(invitationID string) (*Agent, error)
+	// GetAgentByIPublicDID return single agent
+	GetAgentByPublicDID(DID string) (*Agent, error)
 	// DeleteAgent delete single agent
 	DeleteAgent(id string) error
 	// UpdateAgent delete single agent

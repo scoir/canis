@@ -1,8 +1,11 @@
 package indy
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/pkg/errors"
 
@@ -92,6 +95,52 @@ func (r *CredentialEngine) RegisterSchema(registrant *datastore.DID, s *datastor
 	}
 
 	return nil
+}
+
+const (
+	CLSignatureType = "CL"
+	DefaultTag      = "default"
+)
+
+func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error) {
+	schema, err := r.client.GetSchema(s.ExternalSchemaID)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to find schema on ledger to create cred def")
+	}
+
+	credDefID := ursa.CredentialDefinitionID(issuer, schema.SeqNo, CLSignatureType, DefaultTag)
+
+	fmt.Println("looking for", credDefID)
+
+	credDef, err := r.client.GetCredDef(credDefID)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load credential definition to create offer")
+	}
+
+	d, _ := json.MarshalIndent(credDef.Data, " ", " ")
+	fmt.Println(string(d))
+
+	nonce, err := ursa.NewNonce()
+	if err != nil {
+		return nil, errors.Wrap(err, "unexpected error creating nonce")
+	}
+
+	offer := ursa.CredentialOffer{
+		SchemaID:            s.ExternalSchemaID,
+		CredDefID:           credDefID,
+		KeyCorrectnessProof: credDef.Data.(map[string]interface{}),
+		Nonce:               nonce,
+	}
+
+	d, err = json.Marshal(offer)
+	if err != nil {
+		return nil, errors.Wrap(err, "unexpect error marshalling offer into JSON")
+	}
+
+	return &decorator.AttachmentData{
+		Base64: base64.StdEncoding.EncodeToString(d),
+	}, nil
+
 }
 
 func (r *CredentialEngine) IssueCredential(s *datastore.Schema, c *api.Credential) (string, error) {

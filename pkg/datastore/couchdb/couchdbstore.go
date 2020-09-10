@@ -132,6 +132,18 @@ type couchDBStore struct {
 	hostURL string
 }
 
+func (r *couchDBStore) InsertCredential(c *datastore.Credential) (string, error) {
+	panic("implement me")
+}
+
+func (r *couchDBStore) FindOffer(agentID string, offerID string) (*datastore.Credential, error) {
+	panic("implement me")
+}
+
+func (r *couchDBStore) GetAgentByPublicDID(DID string) (*datastore.Agent, error) {
+	panic("implement me")
+}
+
 func (r *couchDBStore) GetAgentConnection(a *datastore.Agent, externalID string) (*datastore.AgentConnection, error) {
 	panic("implement me")
 }
@@ -502,7 +514,7 @@ func (r *couchDBStore) GetAgentByInvitation(invitationID string) (*datastore.Age
 
 	rows, err := r.db.Find(ctx, query)
 	if err != nil {
-		return nil, errors.Wrap(err, "GetAgentByInvitation")
+		return nil, errors.Wrap(err, "GetAgentByPublicDID")
 	}
 
 	a := &datastore.Agent{}

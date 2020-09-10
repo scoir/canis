@@ -10,13 +10,13 @@ import (
 	"testing"
 
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
-	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/stretchr/testify/require"
 
-	mockStore "github.com/scoir/canis/pkg/mock/storage"
+	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/datastore/mocks"
 )
 
-func TestProviderFailures(t *testing.T) {
+func _TestProviderFailures(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		s, err := New(&MockProvider{})
 		require.NoError(t, err)
@@ -30,9 +30,9 @@ type MockProvider struct {
 }
 
 func (r *MockProvider) GetAriesContext() (*ariescontext.Provider, error) {
-	panic("implement me")
+	return nil, nil
 }
 
-func (r *MockProvider) GetStorageProvider() (storage.Provider, error) {
-	return mockStore.NewMockStoreProvider(), nil
+func (r *MockProvider) GetDatastore() datastore.Store {
+	return &mocks.Store{}
 }

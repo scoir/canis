@@ -21,7 +21,7 @@ import (
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
-	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
+	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 	"github.com/scoir/canis/pkg/static"
 )
@@ -455,10 +455,6 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 		},
 		Endpoint: "",
 	}
-	err = r.didStore.InsertDID(d)
-	if err != nil {
-		log.Fatalln(err)
-	}
 
 	err = r.didStore.SetPublicDID(d)
 	if err != nil {
@@ -469,30 +465,33 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 }
 
 func (r *APIServer) IssueCredential(ctx context.Context, req *api.IssueCredentialRequest) (*api.IssueCredentialResponse, error) {
-	agent, err := r.agentStore.GetAgent(req.AgentId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, errors.Wrapf(err, "failed to issue credential, agent error").Error())
+
+	issuerCred := issuer.Credential{
+		SchemaId:   req.Credential.SchemaId,
+		Comment:    req.Credential.Comment,
+		Type:       req.Credential.Type,
+		Attributes: make([]*issuer.CredentialAttribute, len(req.Credential.Attributes)),
 	}
 
-	agentConnection, err := r.agentStore.GetAgentConnection(agent, req.SubjectId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, errors.Wrapf(err, "failed to issue credential, agent connection error").Error())
+	for i, attr := range req.Credential.Attributes {
+		issuerCred.Attributes[i] = &issuer.CredentialAttribute{
+			Name:  attr.Name,
+			Value: attr.Value,
+		}
 	}
 
-	offer := &issuerapi.OfferCredentialRequest{
-		ConnectionId: agentConnection.ConnectionID,
-		SchemaId:     "",
-		Attributes:   nil,
-		Comment:      "",
+	issuerReq := &issuer.IssueCredentialRequest{
+		AgentId:    req.AgentId,
+		SubjectId:  req.ExternalId,
+		Credential: &issuerCred,
 	}
-
-	resp, err := r.issuer.OfferCredential(ctx, offer)
+	issuerResp, err := r.issuer.IssueCredential(ctx, issuerReq)
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to issue credential error").Error())
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to initiate credential offer").Error())
 	}
 
 	return &api.IssueCredentialResponse{
-		CredentialId: resp.CredentialId,
+		CredentialId: issuerResp.CredentialId,
 	}, nil
 
 }

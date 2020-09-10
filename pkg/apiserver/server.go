@@ -24,7 +24,7 @@ type APIServer struct {
 	schemaStore    datastore.Store
 	didStore       datastore.Store
 	client         *vdr.Client
-	schemaRegistry *engine.Registry
+	schemaRegistry engine.CredentialRegistry
 
 	doorman     doorman.DoormanClient
 	issuer      issuer.IssuerClient
@@ -38,7 +38,7 @@ type provider interface {
 	IndyVDR() (*vdr.Client, error)
 	GetDoormanClient() (doorman.DoormanClient, error)
 	GetIssuerClient() (issuer.IssuerClient, error)
-	GetCredentailEngineRegistry() (*engine.Registry, error)
+	GetCredentailEngineRegistry() (engine.CredentialRegistry, error)
 }
 
 func New(ctx provider) (*APIServer, error) {

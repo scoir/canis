@@ -25,6 +25,7 @@ import (
 
 	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
 
 const (
@@ -33,6 +34,7 @@ const (
 	AgentC           = "Agent"
 	AgentConnectionC = "AgentConnection"
 	SchemaC          = "Schema"
+	CredentialC      = "Credential"
 )
 
 type Config struct {
@@ -290,7 +292,6 @@ func (r *mongoDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 		return "", errors.Wrap(err, "unable to insert agent")
 	}
 	return a.ID, nil
-
 }
 
 func (r *mongoDBStore) InsertAgentConnection(a *datastore.Agent, externalID string, conn *didexchange.Connection) error {
@@ -364,12 +365,14 @@ func (r *mongoDBStore) GetAgent(id string) (*datastore.Agent, error) {
 }
 
 // GetAgentByInvitation return single agent
-func (r *mongoDBStore) GetAgentByInvitation(invitationID string) (*datastore.Agent, error) {
+func (r *mongoDBStore) GetAgentByPublicDID(DID string) (*datastore.Agent, error) {
 	agent := &datastore.Agent{}
 
-	err := r.db.Collection(AgentC).FindOne(context.Background(), bson.M{"invitationid": invitationID}).Decode(agent)
+	d := identifiers.ParseDID(DID)
+
+	err := r.db.Collection(AgentC).FindOne(context.Background(), bson.M{"publicdid.did.didval.methodspecificid": d.MethodSpecificID}).Decode(agent)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to load agent by invitation")
+		return nil, errors.Wrap(err, "unable to load agent by Public DID")
 	}
 
 	return agent, nil
@@ -407,4 +410,25 @@ func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string)
 
 	return ac, nil
 
+}
+
+func (r *mongoDBStore) InsertCredential(c *datastore.Credential) (string, error) {
+	res, err := r.db.Collection(CredentialC).InsertOne(context.Background(), c)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to insert credential")
+	}
+	id := res.InsertedID.(primitive.ObjectID)
+	return id.Hex(), nil
+}
+
+func (r *mongoDBStore) FindOffer(agentID string, offerID string) (*datastore.Credential, error) {
+	c := &datastore.Credential{}
+	err := r.db.Collection(CredentialC).FindOne(context.Background(),
+		bson.M{"agentid": agentID, "offerid": offerID, "systemstate": "offered"}).Decode(c)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed load offer").Error())
+	}
+
+	return c, nil
 }

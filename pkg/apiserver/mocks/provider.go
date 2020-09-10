@@ -3,8 +3,13 @@
 package mocks
 
 import (
+	api "github.com/scoir/canis/pkg/didcomm/doorman/api"
+
 	datastore "github.com/scoir/canis/pkg/datastore"
-	manager "github.com/scoir/canis/pkg/datastore/manager"
+
+	engine "github.com/scoir/canis/pkg/credential/engine"
+
+	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -16,32 +21,16 @@ type Provider struct {
 	mock.Mock
 }
 
-// StorageManager provides a mock function with given fields:
-func (_m *Provider) StorageManager() *manager.DataProviderManager {
+// GetCredentailEngineRegistry provides a mock function with given fields:
+func (_m *Provider) GetCredentailEngineRegistry() (engine.CredentialRegistry, error) {
 	ret := _m.Called()
 
-	var r0 *manager.DataProviderManager
-	if rf, ok := ret.Get(0).(func() *manager.DataProviderManager); ok {
+	var r0 engine.CredentialRegistry
+	if rf, ok := ret.Get(0).(func() engine.CredentialRegistry); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*manager.DataProviderManager)
-		}
-	}
-
-	return r0
-}
-
-// StorageProvider provides a mock function with given fields:
-func (_m *Provider) StorageProvider() (datastore.Provider, error) {
-	ret := _m.Called()
-
-	var r0 datastore.Provider
-	if rf, ok := ret.Get(0).(func() datastore.Provider); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(datastore.Provider)
+			r0 = ret.Get(0).(engine.CredentialRegistry)
 		}
 	}
 
@@ -55,8 +44,54 @@ func (_m *Provider) StorageProvider() (datastore.Provider, error) {
 	return r0, r1
 }
 
-// VDR provides a mock function with given fields:
-func (_m *Provider) VDR() (*vdr.Client, error) {
+// GetDoormanClient provides a mock function with given fields:
+func (_m *Provider) GetDoormanClient() (api.DoormanClient, error) {
+	ret := _m.Called()
+
+	var r0 api.DoormanClient
+	if rf, ok := ret.Get(0).(func() api.DoormanClient); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(api.DoormanClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetIssuerClient provides a mock function with given fields:
+func (_m *Provider) GetIssuerClient() (issuerapi.IssuerClient, error) {
+	ret := _m.Called()
+
+	var r0 issuerapi.IssuerClient
+	if rf, ok := ret.Get(0).(func() issuerapi.IssuerClient); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(issuerapi.IssuerClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IndyVDR provides a mock function with given fields:
+func (_m *Provider) IndyVDR() (*vdr.Client, error) {
 	ret := _m.Called()
 
 	var r0 *vdr.Client
@@ -76,4 +111,20 @@ func (_m *Provider) VDR() (*vdr.Client, error) {
 	}
 
 	return r0, r1
+}
+
+// Store provides a mock function with given fields:
+func (_m *Provider) Store() datastore.Store {
+	ret := _m.Called()
+
+	var r0 datastore.Store
+	if rf, ok := ret.Get(0).(func() datastore.Store); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(datastore.Store)
+		}
+	}
+
+	return r0
 }

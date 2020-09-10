@@ -17,11 +17,13 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/scoir/canis/pkg/credential"
+	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/didcomm/issuer/api"
 	"github.com/scoir/canis/pkg/framework"
 )
 
 type Server struct {
+	store       datastore.Store
 	credcl      *issuecredential.Client
 	ctx         *ariescontext.Provider
 	credsup     *credential.Supervisor
@@ -30,6 +32,7 @@ type Server struct {
 
 type provider interface {
 	GetAriesContext() (*ariescontext.Provider, error)
+	GetDatastore() datastore.Store
 }
 
 func New(ctx provider) (*Server, error) {
@@ -53,6 +56,7 @@ func New(ctx provider) (*Server, error) {
 	}
 
 	r := &Server{
+		store:       ctx.GetDatastore(),
 		credcl:      credcl,
 		credsup:     credsup,
 		credHandler: handler,
@@ -62,14 +66,14 @@ func New(ctx provider) (*Server, error) {
 }
 
 func (r *Server) RegisterGRPCHandler(server *grpc.Server) {
-	api.RegisterIssuerServer(server, NewIssuer(r.credHandler, r.credcl))
+	api.RegisterIssuerServer(server, NewIssuer(r.credHandler, r.credcl, r.store))
 }
 
 func (r *Server) GetServerOpts() []grpc.ServerOption {
 	return []grpc.ServerOption{}
 }
 
-func (r *Server) RegisterGRPCGateway(_ *runtime.ServeMux, _ /*endpoint*/ string, _ ...grpc.DialOption) {
+func (r *Server) RegisterGRPCGateway(_ *runtime.ServeMux, _ string, _ ...grpc.DialOption) {
 	//NO-OP
 }
 

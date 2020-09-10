@@ -216,7 +216,7 @@ func (suite *AdminTestSuite) TestCreateSchema() {
 		},
 	}
 
-	a := &datastore.Schema{
+	s := &datastore.Schema{
 		ID:      "123",
 		Name:    "Test Schema",
 		Version: "0.0.1",
@@ -225,9 +225,20 @@ func (suite *AdminTestSuite) TestCreateSchema() {
 			Type: int32(api.Attribute_STRING),
 		}},
 	}
+	s2 := &datastore.Schema{
+		ID:               "123",
+		Name:             "Test Schema",
+		Version:          "0.0.1",
+		ExternalSchemaID: "abc",
+		Attributes: []*datastore.Attribute{{
+			Name: "City",
+			Type: int32(api.Attribute_STRING),
+		}},
+	}
 
 	suite.Store.On("GetSchema", "123").Return(nil, errors.New("not found"))
-	suite.Store.On("InsertSchema", a).Return("123", nil)
+	suite.CredRegistry.On("CreateSchema", s).Return("abc", nil)
+	suite.Store.On("InsertSchema", s2).Return("123", nil)
 
 	resp, err := target.CreateSchema(context.Background(), request)
 	assert.Nil(suite.T(), err)
@@ -242,14 +253,21 @@ func (suite *AdminTestSuite) TestCreateSchemaFails() {
 		},
 	}
 
-	a := &datastore.Schema{
+	s := &datastore.Schema{
 		ID:         "123",
 		Name:       "Test Schema",
 		Attributes: []*datastore.Attribute{},
 	}
+	s2 := &datastore.Schema{
+		ID:               "123",
+		Name:             "Test Schema",
+		ExternalSchemaID: "abc",
+		Attributes:       []*datastore.Attribute{},
+	}
 
 	suite.Store.On("GetSchema", "123").Return(nil, errors.New("not found"))
-	suite.Store.On("InsertSchema", a).Return("", errors.New("Boom"))
+	suite.CredRegistry.On("CreateSchema", s).Return("abc", nil)
+	suite.Store.On("InsertSchema", s2).Return("", errors.New("Boom"))
 
 	resp, err := target.CreateSchema(context.Background(), request)
 	assert.Nil(suite.T(), resp)

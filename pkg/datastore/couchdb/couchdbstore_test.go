@@ -184,7 +184,7 @@ func TestSetGetPublicDID(t *testing.T) {
 		public, err := store.GetPublicDID()
 		require.NoError(t, err)
 
-		require.Equal(t, "did to be public", public.DID.DIDVal.MethodSpecificID)
+		require.Equal(t, "another did", public.DID.DIDVal.MethodSpecificID)
 
 		err = prov.CloseStore("test_getsetdids")
 		require.NoError(t, err)

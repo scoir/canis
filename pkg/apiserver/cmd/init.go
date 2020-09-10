@@ -84,10 +84,6 @@ func saveExistingPublicDID() {
 		},
 		Endpoint: "",
 	}
-	err = didds.InsertDID(d)
-	if err != nil {
-		log.Fatalln(err)
-	}
 
 	err = didds.SetPublicDID(d)
 	if err != nil {

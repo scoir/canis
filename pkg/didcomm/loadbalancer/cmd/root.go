@@ -86,7 +86,7 @@ func initConfig() {
 		log.Fatalln("unable to retrieve default storage provider", err)
 	}
 
-	store, err := sp.OpenStore("issuer")
+	store, err := sp.OpenStore("canis")
 	if err != nil {
 		log.Fatalln("unable to open store")
 	}

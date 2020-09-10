@@ -7,21 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package datastore
 
 import (
+	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	"github.com/mr-tron/base58"
 
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
-
-type Doc interface {
-	GetID() string
-}
-
-type DocGen func() Doc
-
-type DocList struct {
-	Count int
-	Docs  []Doc
-}
 
 type Criteria map[string]interface{}
 
@@ -49,6 +39,7 @@ type Agent struct {
 	Name                string
 	AssignedSchemaId    string
 	EndorsableSchemaIds []string
+	OutstandingOffers   []string
 	Status              StatusType
 	PID                 string
 	HasPublicDID        bool
@@ -122,4 +113,18 @@ func (r *KeyPair) RawPublicKey() []byte {
 func (r *KeyPair) RawPrivateKey() []byte {
 	k, _ := base58.Decode(r.PrivateKey)
 	return k
+}
+
+type Offer struct {
+	Comment    string
+	Type       string
+	Attributes []icprotocol.Attribute
+}
+
+type Credential struct {
+	AgentID           string
+	OfferID           string
+	ExternalSubjectID string
+	Offer             Offer
+	SystemState       string
 }
