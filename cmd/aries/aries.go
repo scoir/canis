@@ -7,13 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"fmt"
 	"log"
+	"strings"
 
+	"github.com/google/tink/go/keyset"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
-	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
-	"github.com/hyperledger/aries-framework-go/pkg/storage/mem"
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock/local"
 
+	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
 	"github.com/scoir/canis/pkg/aries/vdri/indy"
 )
 
@@ -22,9 +23,18 @@ func main() {
 	if err != nil {
 		log.Fatalln("new indy", err)
 	}
+
+	mlk := "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
+	lock, err := local.NewService(strings.NewReader(mlk), nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	mongodb := store.NewProvider("mongodb://172.17.0.1:27017", "canis")
 	framework, err := aries.New(
-		aries.WithStoreProvider(mem.NewProvider()),
+		aries.WithStoreProvider(mongodb),
 		aries.WithVDRI(indyVDRI),
+		aries.WithSecretLock(lock),
 	)
 	if err != nil {
 		log.Fatalln("new framework", err)
@@ -35,12 +45,11 @@ func main() {
 		log.Fatalln("get context", err)
 	}
 
-	registry := ctx.VDRIRegistry()
-
-	doc, err := registry.Create("scoir", vdri.WithServiceEndpoint("http://69.69.69.69:6969"))
+	priv, err := ctx.KMS().Get("mSrVQRv0MJL7MWAWbJUYs2tR7THnsKBybjyW_sBJQXY")
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("no key", err)
 	}
 
-	fmt.Println(doc.ID)
+	log.Println((priv.(*keyset.Handle)).String())
+
 }

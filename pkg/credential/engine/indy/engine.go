@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/google/tink/go/keyset"
+	"github.com/google/tink/go/signature/subtle"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/indy/wrapper/crypto"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	"github.com/scoir/canis/pkg/ursa"
 )
@@ -51,7 +52,17 @@ func (r *CredentialEngine) CreateSchema(issuer *datastore.DID, s *datastore.Sche
 	for i, a := range s.Attributes {
 		attr[i] = a.Name
 	}
-	mysig := crypto.NewSigner(issuer.KeyPair.RawPublicKey(), issuer.KeyPair.RawPrivateKey())
+	kh, err := r.kms.Get(issuer.KeyPair.ID)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to get private key")
+	}
+
+	privKeyHandle := kh.(*keyset.Handle)
+	prim, err := privKeyHandle.Primitives()
+	if err != nil {
+		return "", errors.Wrap(err, "unable to load signer primitives")
+	}
+	mysig := prim.Primary.Primitive.(*subtle.ED25519Signer)
 
 	ischema, err := r.client.CreateSchema(issuer.DID.MethodID(), s.Name, s.Version, attr, mysig)
 	if err != nil {
@@ -66,7 +77,17 @@ func (r *CredentialEngine) RegisterSchema(registrant *datastore.DID, s *datastor
 	if err != nil {
 		return errors.Wrap(err, "unable to find schema on ledger to create cred def")
 	}
-	mysig := crypto.NewSigner(registrant.KeyPair.RawPublicKey(), registrant.KeyPair.RawPrivateKey())
+	kh, err := r.kms.Get(registrant.KeyPair.ID)
+	if err != nil {
+		return errors.Wrap(err, "unable to get private key")
+	}
+
+	privKeyHandle := kh.(*keyset.Handle)
+	prim, err := privKeyHandle.Primitives()
+	if err != nil {
+		return errors.Wrap(err, "unable to load signer primitives")
+	}
+	mysig := prim.Primary.Primitive.(*subtle.ED25519Signer)
 
 	indycd := ursa.NewCredentailDefinition()
 
@@ -143,6 +164,6 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datas
 
 }
 
-func (r *CredentialEngine) IssueCredential(s *datastore.Schema, c *api.Credential) (string, error) {
+func (r *CredentialEngine) IssueCredential(_ *datastore.Schema, _ *api.Credential) (string, error) {
 	panic("implement me")
 }

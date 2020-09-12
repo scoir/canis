@@ -33,6 +33,7 @@ var (
 type Server struct {
 	wsAddr   string
 	httpAddr string
+	external string
 	packager transport.Packager
 	conn     *amqp.Connection
 	ch       *amqp.Channel
@@ -43,7 +44,7 @@ type provider interface {
 	Packager() transport.Packager
 }
 
-func New(prov provider, amqpAddr, host string, httpPort, wsPort int) (*Server, error) {
+func New(prov provider, amqpAddr, host string, httpPort, wsPort int, external string) (*Server, error) {
 
 	var err error
 	conn, err := amqp.Dial(amqpAddr)
@@ -76,6 +77,7 @@ func New(prov provider, amqpAddr, host string, httpPort, wsPort int) (*Server, e
 	return &Server{
 		wsAddr:   fmt.Sprintf("%s:%d", host, wsPort),
 		httpAddr: fmt.Sprintf("%s:%d", host, httpPort),
+		external: external,
 		packager: prov.Packager(),
 		conn:     conn,
 		ch:       ch,
@@ -113,7 +115,7 @@ func (r *Server) APISpec() (http.HandlerFunc, error) {
 }
 
 func (r *Server) GetEndpoint(_ context.Context, _ *api.EndpointRequest) (*api.EndpointResponse, error) {
-	return &api.EndpointResponse{Endpoint: r.wsAddr}, nil
+	return &api.EndpointResponse{Endpoint: r.external}, nil
 }
 
 func (r *Server) startWS() {

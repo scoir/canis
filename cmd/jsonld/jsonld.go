@@ -135,12 +135,11 @@ func flatten() {
 	//log.Fatalln(err)
 	didinfo := &identifiers.MyDIDInfo{
 		DID:        "",
-		Seed:       "",
 		Cid:        true,
 		MethodName: "ioe",
 	}
 
-	did, _, err := identifiers.CreateDID(didinfo)
+	did, err := identifiers.CreateDID(didinfo)
 	if err != nil {
 		log.Fatalln(err)
 	}

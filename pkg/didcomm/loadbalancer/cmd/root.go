@@ -10,7 +10,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock"
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock/local"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -36,6 +39,7 @@ var rootCmd = &cobra.Command{
 
 type Provider struct {
 	vp                   *viper.Viper
+	lock                 secretlock.Service
 	ariesStorageProvider storage.Provider
 }
 
@@ -89,12 +93,23 @@ func initConfig() {
 
 	store, err := sp.OpenStore("canis")
 	if err != nil {
-		log.Fatalln("unable to open store")
+		log.Fatalln("unable to open store", err)
 	}
 	asp, err := store.GetAriesProvider()
 
+	mlk := vp.GetString("masterLockKey")
+	if mlk == "" {
+		mlk = "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
+	}
+
+	lock, err := local.NewService(strings.NewReader(mlk), nil)
+	if err != nil {
+		log.Fatalln("unable to create lock service", err)
+	}
+
 	prov = &Provider{
 		vp:                   vp,
+		lock:                 lock,
 		ariesStorageProvider: asp,
 	}
 }

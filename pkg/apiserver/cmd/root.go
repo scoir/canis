@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -148,14 +147,6 @@ func (r *Provider) IndyVDR() (*vdr.Client, error) {
 		return nil, errors.Wrap(err, "unable to get indy vdr client")
 	}
 
-	status, err := cl.GetPoolStatus()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get pool status")
-	}
-
-	d, _ := json.MarshalIndent(status, " ", " ")
-	fmt.Println(string(d))
-
 	return cl, nil
 }
 
@@ -216,7 +207,7 @@ func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, err
 }
 
 func (r *Provider) KMS() (kms.KeyManager, error) {
-	mgr, err := localkms.New("", r)
+	mgr, err := localkms.New("local-lock://default/master/key/", r)
 	return mgr, errors.Wrap(err, "unable to create locakkms")
 }
 

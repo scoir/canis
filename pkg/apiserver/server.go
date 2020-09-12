@@ -9,6 +9,7 @@ package apiserver
 import (
 	"sync"
 
+	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
@@ -21,6 +22,7 @@ import (
 )
 
 type APIServer struct {
+	keyMgr         kms.KeyManager
 	agentStore     datastore.Store
 	schemaStore    datastore.Store
 	didStore       datastore.Store
@@ -36,6 +38,7 @@ type APIServer struct {
 
 //go:generate mockery -name=provider --structname=Provider
 type provider interface {
+	KMS() (kms.KeyManager, error)
 	Store() datastore.Store
 	IndyVDR() (*vdr.Client, error)
 	GetDoormanClient() (doorman.DoormanClient, error)
@@ -55,6 +58,11 @@ func New(ctx provider) (*APIServer, error) {
 	var err error
 	r := &APIServer{
 		watchers: make([]chan *api.AgentEvent, 0),
+	}
+
+	r.keyMgr, err = ctx.KMS()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get kms")
 	}
 
 	r.schemaStore = ctx.Store()

@@ -11,6 +11,8 @@ import (
 
 	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
 
+	kms "github.com/hyperledger/aries-framework-go/pkg/kms"
+
 	loadbalancerapi "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 
 	mock "github.com/stretchr/testify/mock"
@@ -125,6 +127,29 @@ func (_m *Provider) IndyVDR() (*vdr.Client, error) {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*vdr.Client)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// KMS provides a mock function with given fields:
+func (_m *Provider) KMS() (kms.KeyManager, error) {
+	ret := _m.Called()
+
+	var r0 kms.KeyManager
+	if rf, ok := ret.Get(0).(func() kms.KeyManager); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(kms.KeyManager)
 		}
 	}
 

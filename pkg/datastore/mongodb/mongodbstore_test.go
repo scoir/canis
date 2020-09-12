@@ -8,6 +8,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -52,7 +53,33 @@ func TestMain(m *testing.M) {
 		os.Exit(0)
 	}
 
-	os.Exit(m.Run())
+	res := m.Run()
+	dropTestDatabase()
+
+	os.Exit(res)
+}
+
+func dropTestDatabase() {
+	var err error
+	tM := reflect.TypeOf(bson.M{})
+	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, tM).Build()
+	clientOpts := options.Client().SetRegistry(reg).ApplyURI(mongoStoreDBURL)
+
+	mongoClient, err := mongo.NewClient(clientOpts)
+	if err != nil {
+		log.Fatalln("error dropping database", err)
+	}
+
+	ctx := context.Background()
+	err = mongoClient.Connect(ctx)
+	if err != nil {
+		log.Fatalln("error dropping database", err)
+	}
+	db := mongoClient.Database("test")
+	err = db.Drop(ctx)
+	if err != nil {
+		log.Fatalln("error dropping database", err)
+	}
 }
 
 func waitForMongoDBToStart() error {

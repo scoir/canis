@@ -22,6 +22,7 @@ import (
 type indyClient interface {
 	GetNym(did string) (*vdr.ReadReply, error)
 	GetEndpoint(did string) (*vdr.ReadReply, error)
+	GetPoolStatus() (*vdr.PoolStatus, error)
 	RefreshPool() error
 	Close() error
 }

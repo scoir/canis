@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -33,6 +34,7 @@ import (
 
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
+	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
@@ -81,7 +83,7 @@ func getCredentials(w http.ResponseWriter, _ *http.Request) {
 }
 
 func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
-	resp, err := http.Post("http://local.scoir.com:7779/agents/broward/invitation/subject", "application/json", strings.NewReader("{}"))
+	resp, err := http.Post("http://local.scoir.com:7779/agents/hogwarts/invitation/subject", "application/json", strings.NewReader("{}"))
 	if err != nil {
 		util.WriteErrorf(w, "Error requesting invitation from issuer: %v", err)
 		return
@@ -146,13 +148,17 @@ func connectToVerifier(w http.ResponseWriter, _ *http.Request) {
 func createAriesContext() {
 	wsinbound := "172.17.0.1:3001"
 
-	//wsinbound := "localhost:5672"
-	//amqpInbound, err := amqp.NewInbound(wsinbound, "ws://0.0.0.0:3001", "", "")
+	genesis, err := os.Open("./genesis.txn")
+	if err != nil {
+		log.Fatalln("unable to open genesis file", err)
+	}
+	indyVDRI, err := indy.New("scr", indy.WithIndyVDRGenesisReader(genesis))
 
 	ar, err := aries.New(
 		aries.WithStoreProvider(store.NewProvider("mongodb://172.17.0.1:27017", "subject")),
 		defaults.WithInboundWSAddr(wsinbound, fmt.Sprintf("ws://%s", wsinbound), "", ""),
 		aries.WithOutboundTransports(ws.NewOutbound()),
+		aries.WithVDRI(indyVDRI),
 	)
 	if err != nil {
 		log.Fatalln("Unable to create", err)

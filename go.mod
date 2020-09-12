@@ -2,6 +2,8 @@ module github.com/scoir/canis
 
 go 1.14
 
+replace github.com/hyperledger/aries-framework-go => ../aries-framework-go
+
 require (
 	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect

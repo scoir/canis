@@ -101,17 +101,12 @@ type DIDList struct {
 }
 
 type KeyPair struct {
-	PublicKey  string
-	PrivateKey string
+	ID        string
+	PublicKey string
 }
 
 func (r *KeyPair) RawPublicKey() []byte {
 	k, _ := base58.Decode(r.PublicKey)
-	return k
-}
-
-func (r *KeyPair) RawPrivateKey() []byte {
-	k, _ := base58.Decode(r.PrivateKey)
 	return k
 }
 

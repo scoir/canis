@@ -19,9 +19,8 @@ import (
 )
 
 const (
-	schemaV1    = "https://w3id.org/did/v1"
-	keyType     = "Ed25519VerificationKey2018"
-	serviceType = "IndyAgent"
+	schemaV1 = "https://w3id.org/did/v1"
+	keyType  = "Ed25519VerificationKey2018"
 )
 
 func (r *VDRI) Read(did string, opts ...vdriapi.ResolveOpts) (*diddoc.Doc, error) {
@@ -64,10 +63,10 @@ func (r *VDRI) Read(did string, opts ...vdriapi.ResolveOpts) (*diddoc.Doc, error
 	if err == nil {
 		s := diddoc.Service{
 			ID:              "#agent",
-			Type:            serviceType,
+			Type:            vdriapi.DIDCommServiceType,
 			ServiceEndpoint: serviceEndpoint,
 			Priority:        0,
-			RecipientKeys:   []string{keyID},
+			RecipientKeys:   []string{verkey},
 		}
 
 		svc = append(svc, s)
