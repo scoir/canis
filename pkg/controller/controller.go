@@ -45,17 +45,21 @@ func New(ctx provider, ac AgentController) (*Runner, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create controller")
 	}
+
+	var grpcBridgeHost string
+	var grpcBridgePort int
 	bridge, err := ctx.GetBridgeEndpoint()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to create controller")
+	if err == nil {
+		grpcBridgeHost = bridge.Host
+		grpcBridgePort = bridge.Port
 	}
 
 	r := &Runner{
 		ac:             ac,
 		grpcHost:       grpce.Host,
 		grpcPort:       grpce.Port,
-		grpcBridgeHost: bridge.Host,
-		grpcBridgePort: bridge.Port,
+		grpcBridgeHost: grpcBridgeHost,
+		grpcBridgePort: grpcBridgePort,
 		debug:          false,
 	}
 
@@ -103,6 +107,11 @@ func (r *Runner) launchGRPC() error {
 
 func (r *Runner) launchWebBridge() error {
 	rmux := runtime.NewServeMux()
+	u := fmt.Sprintf("%s:%d", r.grpcBridgeHost, r.grpcBridgePort)
+	if u == ":0" {
+		return nil
+	}
+
 	endpoint := fmt.Sprintf("%s:%d", r.grpcHost, r.grpcPort)
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
@@ -118,8 +127,7 @@ func (r *Runner) launchWebBridge() error {
 	mux.Handle("/swaggerui/", http.StripPrefix("/swaggerui/", fs))
 	mux.Handle("/", rmux)
 
-	u := fmt.Sprintf("%s:%d", r.grpcBridgeHost, r.grpcBridgePort)
-	log.Printf("grpc web gateway listening on %s\n", u)
+	log.Printf("GRPC Web Gateway listening on %s\n", u)
 	return http.ListenAndServe(u, mux)
 }
 

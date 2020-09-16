@@ -7,12 +7,12 @@ SPDX-License-Identifier: Apache-2.0
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	"github.com/spf13/cobra"
 
+	"github.com/scoir/canis/pkg/controller"
 	lb "github.com/scoir/canis/pkg/didcomm/loadbalancer"
 )
 
@@ -24,17 +24,9 @@ var startCmd = &cobra.Command{
 }
 
 func runStart(_ *cobra.Command, _ []string) {
-	amqpUser := prov.vp.GetString("amqp.user")
-	amqpPwd := prov.vp.GetString("amqp.password")
-	amqpHost := prov.vp.GetString("amqp.host")
-	amqpPort := prov.vp.GetInt("amqp.port")
-	amqpVHost := prov.vp.GetString("amqp.vhost")
-	amqpAddr := fmt.Sprintf("amqp://%s:%s@%s:%d/%s", amqpUser, amqpPwd, amqpHost, amqpPort, amqpVHost)
 	host := prov.vp.GetString("inbound.host")
 	httpPort := prov.vp.GetInt("inbound.httpport")
 	wsPort := prov.vp.GetInt("inbound.wsport")
-
-	wait := make(chan bool)
 
 	log.Println("starting didcomm loadbalancer")
 
@@ -50,14 +42,22 @@ func runStart(_ *cobra.Command, _ []string) {
 		log.Fatalln("unable to get aries context", err)
 	}
 
-	srv, err := lb.New(ctx, amqpAddr, host, httpPort, wsPort)
+	srv, err := lb.New(ctx, prov.GetAMQPAddress(), host, httpPort, wsPort)
 	if err != nil {
 		log.Fatalln("unable to launch didcomm loadbalancer ")
 	}
 
 	srv.Start()
 
-	<-wait
+	runner, err := controller.New(prov, srv)
+	if err != nil {
+		log.Fatalln("unable to start didcomm-loadbalancer", err)
+	}
+
+	err = runner.Launch()
+	if err != nil {
+		log.Fatalln("launch errored with", err)
+	}
 }
 
 func init() {

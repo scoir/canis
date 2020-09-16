@@ -88,6 +88,10 @@ canis-didcomm-issuer-pb: pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go
 pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go:pkg/didcomm/issuer/api/canis-didcomm-issuer.proto
 	cd pkg && protoc -I $(CANIS_ROOT)/protoc/include/ -I . -I didcomm/issuer/api/ didcomm/issuer/api/canis-didcomm-issuer.proto --go_out=plugins=grpc:.
 
+canis-didcomm-lb-pb: pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go
+pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go:pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.proto
+	cd pkg && protoc -I/home/pfeairheller/opt/protoc-3.6.1/include -I . -I didcomm/loadbalancer/api/ didcomm/loadbalancer/api/canis-didcomm-loadbalancer.proto --go_out=plugins=grpc:.
+
 demo-web:
 	cd demo && npm run build
 

@@ -58,6 +58,7 @@ services:
     ports:
       - "9001:9001"
       - "9003:9003"
+      - "9996:9996"
     networks:
       - backend
     secrets:

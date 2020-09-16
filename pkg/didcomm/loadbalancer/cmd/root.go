@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -96,4 +97,27 @@ func initConfig() {
 		vp:                   vp,
 		ariesStorageProvider: asp,
 	}
+}
+
+func (r *Provider) GetAMQPAddress() string {
+	amqpUser := r.vp.GetString("amqp.user")
+	amqpPwd := r.vp.GetString("amqp.password")
+	amqpHost := r.vp.GetString("amqp.host")
+	amqpPort := r.vp.GetInt("amqp.port")
+	amqpVHost := r.vp.GetString("amqp.vhost")
+	return fmt.Sprintf("amqp://%s:%s@%s:%d/%s", amqpUser, amqpPwd, amqpHost, amqpPort, amqpVHost)
+}
+
+func (r *Provider) GetGRPCEndpoint() (*framework.Endpoint, error) {
+	ep := &framework.Endpoint{}
+	err := r.vp.UnmarshalKey("loadbalancer.grpc", ep)
+	if err != nil {
+		return nil, errors.Wrap(err, "grpc is not properly configured")
+	}
+
+	return ep, nil
+}
+
+func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
+	return nil, errors.New("not supported")
 }
