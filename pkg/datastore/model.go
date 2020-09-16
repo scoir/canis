@@ -39,7 +39,6 @@ type Agent struct {
 	Name                string
 	AssignedSchemaId    string
 	EndorsableSchemaIds []string
-	OutstandingOffers   []string
 	Status              StatusType
 	PID                 string
 	HasPublicDID        bool

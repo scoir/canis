@@ -36,7 +36,6 @@ import (
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
-	"github.com/scoir/canis/pkg/schema"
 )
 
 const (
@@ -222,10 +221,6 @@ func (r *Provider) GetDIDClient() (*didexchange.Client, error) {
 
 	r.didcl = didcl
 	return r.didcl, nil
-}
-
-func (r *Provider) GetSchemaClient() (*schema.Client, error) {
-	return schema.New(), nil
 }
 
 func (r *Provider) GetCredentialClient() (*issuecredential.Client, error) {

@@ -5,8 +5,9 @@ import (
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/pkg/errors"
-	"github.com/scoir/canis/pkg/apiserver/api"
+
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/ursa"
 )
 
 type CredentialEngine interface {
@@ -14,7 +15,7 @@ type CredentialEngine interface {
 	CreateSchema(issuer *datastore.DID, s *datastore.Schema) (string, error)
 	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
 	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error)
-	IssueCredential(s *datastore.Schema, c *api.Credential) (string, error)
+	IssueCredential(s *datastore.Schema, offer *ursa.CredentialOffer, request *ursa.CredentialRequest, values *ursa.CredentialValues) (*decorator.AttachmentData, error)
 }
 
 //go:generate mockery -name=CredentialRegistry
@@ -22,6 +23,7 @@ type CredentialRegistry interface {
 	CreateSchema(s *datastore.Schema) (string, error)
 	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
 	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error)
+	IssueCredential(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error)
 }
 
 type Option func(opts *Registry)
@@ -36,7 +38,7 @@ type provider interface {
 }
 
 func New(prov provider, opts ...Option) *Registry {
-	reg := &Registry{didStore: prov.Store()}
+	reg := &Registry{didStore: prov.Store(), engines: []CredentialEngine{}}
 
 	for _, opt := range opts {
 		opt(reg)
@@ -78,6 +80,15 @@ func (r *Registry) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Sch
 	}
 
 	return e.CreateCredentialOffer(issuer, s)
+}
+
+func (r *Registry) IssueCredential(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error) {
+	e, err := r.resolveEngine(s.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	return e.IssueCredential(s, nil, nil, nil)
 }
 
 func (r *Registry) resolveEngine(method string) (CredentialEngine, error) {

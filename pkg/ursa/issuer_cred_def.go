@@ -8,6 +8,7 @@ package ursa
 import "C"
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -35,25 +36,44 @@ type CredentialDefinition struct {
 	keyCorrectnessProof string
 }
 
-func (r *CredentialDefinition) KeyCorrectnessProof() (string, error) {
+func (r *CredentialDefinition) KeyCorrectnessProof() (map[string]interface{}, error) {
 	if r.keyCorrectnessProof == "" {
-		return "", errors.New("Finalize must be called after adding fields")
+		return nil, errors.New("Finalize must be called after adding fields")
 	}
-	return r.keyCorrectnessProof, nil
+	proofDef := map[string]interface{}{}
+	err := json.Unmarshal([]byte(r.keyCorrectnessProof), &proofDef)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid cl pubkey")
+	}
+
+	return proofDef, nil
 }
 
-func (r *CredentialDefinition) PrivateKey() (string, error) {
+func (r *CredentialDefinition) PrivateKey() (map[string]interface{}, error) {
 	if r.privateKey == "" {
-		return "", errors.New("Finalize must be called after adding fields")
+		return nil, errors.New("Finalize must be called after adding fields")
 	}
-	return r.privateKey, nil
+	privKeyDef := map[string]interface{}{}
+	err := json.Unmarshal([]byte(r.privateKey), &privKeyDef)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid cl pubkey")
+	}
+
+	return privKeyDef, nil
 }
 
-func (r *CredentialDefinition) PublicKey() (string, error) {
+func (r *CredentialDefinition) PublicKey() (map[string]interface{}, error) {
 	if r.publicKey == "" {
-		return "", errors.New("Finalize must be called after adding fields")
+		return nil, errors.New("Finalize must be called after adding fields")
 	}
-	return r.publicKey, nil
+
+	pubKeyDef := map[string]interface{}{}
+	err := json.Unmarshal([]byte(r.publicKey), &pubKeyDef)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid cl pubkey")
+	}
+
+	return pubKeyDef, nil
 }
 
 func NewCredentailDefinition() *CredentialDefinition {
@@ -83,6 +103,9 @@ func (r *CredentialDefinition) Finalize() error {
 			return errors.Errorf("error adding field %s: %d", field, result)
 		}
 	}
+	cfield := C.CString("master_secret")
+	result = C.ursa_cl_credential_schema_builder_add_attr(builder, cfield)
+	C.free(unsafe.Pointer(cfield))
 
 	result = C.ursa_cl_credential_schema_builder_finalize(builder, &schema)
 	if result != 0 {

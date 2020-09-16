@@ -59,18 +59,10 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 		return
 	}
 
-	attach := request.RequestsAttach[0]
-	cred, _ := attach.Data.JSON.(map[string]interface{})
-	id, _ := cred["id"].(string)
-	if id == "" {
-		log.Println("no ID found in request attachment")
-		return
-	}
-
-	fmt.Printf("offerID: %s, credID: %s, threadID: %s\n", offer.OfferID, id, thid)
+	//TODO:  Somehow verify the request against the original offer
+	fmt.Printf("offerID: %s, threadID: %s\n", offer.OfferID, thid)
 	msg := &icprotocol.IssueCredential{
-		Type:    icprotocol.IssueCredentialMsgType,
-		Comment: fmt.Sprintf("CLR Transcript"),
+		Comment: offer.Offer.Comment,
 		CredentialsAttach: []decorator.Attachment{
 			{Data: decorator.AttachmentData{JSON: "insert indy magic here"}},
 		},
@@ -79,7 +71,7 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	//TODO:  Shouldn't this be built into the Supervisor??
 	log.Println("setting up monitoring for", thid)
 	mon := credential.NewMonitor(r.credsup)
-	mon.WatchThread(thid, r.TranscriptAccepted(id), r.CredentialError)
+	mon.WatchThread(thid, r.TranscriptAccepted(offer.OfferID), r.CredentialError)
 
 	e.Continue(icprotocol.WithIssueCredential(msg))
 }

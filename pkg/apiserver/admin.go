@@ -326,8 +326,8 @@ func (r *APIServer) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) 
 }
 
 func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*api.UpdateAgentResponse, error) {
-	if req.Agent.Id == "" || req.Agent.Name == "" {
-		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
+	if req.Agent.Id == "" {
+		return nil, status.Error(codes.InvalidArgument, "id is required fields")
 	}
 
 	old, err := r.agentStore.GetAgent(req.Agent.Id)
@@ -336,9 +336,15 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 	}
 
 	var upd = *old
-	upd.Name = req.Agent.Name
-	upd.AssignedSchemaId = req.Agent.AssignedSchemaId
-	upd.EndorsableSchemaIds = req.Agent.EndorsableSchemaIds
+
+	if req.Agent.Name != "" {
+		upd.Name = req.Agent.Name
+	}
+
+	if req.Agent.EndorsableSchemaIds != nil {
+		upd.EndorsableSchemaIds = req.Agent.EndorsableSchemaIds
+	}
+
 	upd.HasPublicDID = req.Agent.PublicDid
 	if upd.HasPublicDID && upd.PublicDID == nil {
 		err := r.createAgentPublicDID(&upd)

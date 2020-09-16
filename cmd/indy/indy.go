@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/scoir/canis/pkg/ursa"
 )
 
 func main() {
@@ -79,4 +80,7 @@ func main() {
 
 	d, _ = json.MarshalIndent(rply, " ", " ")
 	fmt.Println(string(d))
+
+	n, err := ursa.NewNonce()
+	fmt.Println(n)
 }

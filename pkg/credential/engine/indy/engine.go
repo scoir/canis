@@ -3,15 +3,14 @@ package indy
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 
 	"github.com/google/tink/go/keyset"
 	"github.com/google/tink/go/signature/subtle"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 
-	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	"github.com/scoir/canis/pkg/ursa"
@@ -19,20 +18,32 @@ import (
 
 const Indy = "indy"
 
+type creddefWalletRecord struct {
+	KeyCorrectnessProof map[string]interface{}
+	PrivateKey          map[string]interface{}
+}
+
 type CredentialEngine struct {
 	client *vdr.Client
 	kms    kms.KeyManager
+	store  storage.Store
 }
 
 type provider interface {
 	IndyVDR() (*vdr.Client, error)
 	KMS() (kms.KeyManager, error)
+	StorageProvider() storage.Provider
 }
 
 func New(prov provider) (*CredentialEngine, error) {
 	eng := &CredentialEngine{}
 
 	var err error
+	eng.store, err = prov.StorageProvider().OpenStore("indy_engine")
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to open store for indy engine")
+	}
+
 	eng.client, err = prov.IndyVDR()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get indy vdr for indy credential engine")
@@ -100,19 +111,26 @@ func (r *CredentialEngine) RegisterSchema(registrant *datastore.DID, s *datastor
 	if err != nil {
 		return errors.Wrap(err, "unable to finalize indy credential definition")
 	}
-	pubd, _ := indycd.PublicKey()
-	pubKeyDef := map[string]interface{}{}
 
-	err = json.Unmarshal([]byte(pubd), &pubKeyDef)
-	if err != nil {
-		return errors.Wrap(err, "invalid cl pubkey")
-	}
-
+	pubKeyDef, _ := indycd.PublicKey()
 	pubKey, _ := pubKeyDef["p_key"].(map[string]interface{})
 
-	_, err = r.client.CreateClaimDef(registrant.DID.MethodID(), schema.SeqNo, pubKey, nil, mysig)
+	credDefId, err := r.client.CreateClaimDef(registrant.DID.MethodID(), schema.SeqNo, pubKey, nil, mysig)
 	if err != nil {
 		return errors.Wrap(err, "unable to create claim def")
+	}
+
+	privKeyDef, _ := indycd.PrivateKey()
+	keyProof, _ := indycd.KeyCorrectnessProof()
+	rec := creddefWalletRecord{
+		PrivateKey:          privKeyDef,
+		KeyCorrectnessProof: keyProof,
+	}
+
+	d, _ := json.Marshal(rec)
+	err = r.store.Put(credDefId, d)
+	if err != nil {
+		return errors.Wrap(err, "error store cred def private key and proof")
 	}
 
 	return nil
@@ -131,15 +149,13 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datas
 
 	credDefID := ursa.CredentialDefinitionID(issuer, schema.SeqNo, CLSignatureType, DefaultTag)
 
-	fmt.Println("looking for", credDefID)
-
-	credDef, err := r.client.GetCredDef(credDefID)
+	d, err := r.store.Get(credDefID)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to load credential definition to create offer")
+		return nil, errors.Wrap(err, "invalid cred def ID for this agent")
 	}
 
-	d, _ := json.MarshalIndent(credDef.Data, " ", " ")
-	fmt.Println(string(d))
+	rec := &creddefWalletRecord{}
+	_ = json.Unmarshal(d, rec)
 
 	nonce, err := ursa.NewNonce()
 	if err != nil {
@@ -149,7 +165,7 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datas
 	offer := ursa.CredentialOffer{
 		SchemaID:            s.ExternalSchemaID,
 		CredDefID:           credDefID,
-		KeyCorrectnessProof: credDef.Data.(map[string]interface{}),
+		KeyCorrectnessProof: rec.KeyCorrectnessProof,
 		Nonce:               nonce,
 	}
 
@@ -164,6 +180,7 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datas
 
 }
 
-func (r *CredentialEngine) IssueCredential(_ *datastore.Schema, _ *api.Credential) (string, error) {
-	panic("implement me")
+func (r *CredentialEngine) IssueCredential(s *datastore.Schema, offer *ursa.CredentialOffer, request *ursa.CredentialRequest,
+	values *ursa.CredentialValues) (*decorator.AttachmentData, error) {
+	return nil, errors.New("not implemented")
 }

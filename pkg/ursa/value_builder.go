@@ -66,7 +66,10 @@ func (r *ValuesBuilder) Finalize() error {
 		C.free(unsafe.Pointer(cattr))
 		C.free(unsafe.Pointer(cval))
 		if result != 0 {
-			return errors.Errorf("error from URSA adding hidden: %d", result)
+			var errJson *C.char
+			C.ursa_get_current_error(&errJson)
+			defer C.free(unsafe.Pointer(errJson))
+			return errors.Errorf("error from URSA adding hidden: %s", C.GoString(errJson))
 		}
 	}
 	for _, h := range r.hidden {

@@ -74,7 +74,7 @@ func (r *VDRI) Read(did string, opts ...vdriapi.ResolveOpts) (*diddoc.Doc, error
 
 	doc := &diddoc.Doc{
 		Context:        []string{schemaV1},
-		ID:             didKey,
+		ID:             did,
 		PublicKey:      []diddoc.PublicKey{*pubKey},
 		Authentication: []diddoc.VerificationMethod{*verMethod},
 		Service:        svc,

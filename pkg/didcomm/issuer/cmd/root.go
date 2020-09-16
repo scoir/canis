@@ -8,12 +8,18 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
+	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock"
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock/local"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -21,9 +27,13 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/scoir/canis/pkg/aries/transport/amqp"
+	"github.com/scoir/canis/pkg/credential/engine"
+	"github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
+	"github.com/scoir/canis/pkg/framework/context"
+	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
 
 var (
@@ -41,6 +51,7 @@ var rootCmd = &cobra.Command{
 
 type Provider struct {
 	vp                   *viper.Viper
+	lock                 secretlock.Service
 	store                datastore.Store
 	ariesStorageProvider storage.Provider
 }
@@ -97,21 +108,32 @@ func initConfig() {
 	if err != nil {
 		log.Fatalln("unable to open store")
 	}
+	mlk := vp.GetString("masterLockKey")
+	if mlk == "" {
+		mlk = "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
+	}
+
+	lock, err := local.NewService(strings.NewReader(mlk), nil)
+	if err != nil {
+		log.Fatalln("error creating lock service")
+	}
+
 	asp, err := store.GetAriesProvider()
 
 	ctx = &Provider{
 		vp:                   vp,
+		lock:                 lock,
 		store:                store,
 		ariesStorageProvider: asp,
 	}
 }
 
-func (r *Provider) GetDatastore() datastore.Store {
+func (r *Provider) Store() datastore.Store {
 	return r.store
 }
 
 // GetStorageProvider todo
-func (r *Provider) GetStorageProvider() storage.Provider {
+func (r *Provider) StorageProvider() storage.Provider {
 	return r.ariesStorageProvider
 }
 
@@ -142,12 +164,22 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	config := &framework.AMQPConfig{}
 	err := r.vp.UnmarshalKey("inbound.amqp", config)
 
+	ariesSub := r.vp.Sub("aries")
+	vdris, err := context.GetAriesVDRIs(ariesSub)
+
 	amqpInbound, err := amqp.NewInbound(config.Endpoint(), external, "issue-credential", "", "")
-	ar, err := aries.New(
+	vopts := []aries.Option{
 		aries.WithStoreProvider(r.ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),
 		aries.WithOutboundTransports(ws.NewOutbound()),
-	)
+		aries.WithSecretLock(r.lock),
+	}
+	for _, vdri := range vdris {
+		vopts = append(vopts, aries.WithVDRI(vdri))
+	}
+
+	ar, err := aries.New(vopts...)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create aries defaults")
 	}
@@ -158,4 +190,32 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	}
 
 	return actx, err
+}
+
+func (r *Provider) IndyVDR() (*vdr.Client, error) {
+	genesisFile := r.vp.GetString("credential.indy.genesisFile")
+	re := strings.NewReader(genesisFile)
+	cl, err := vdr.New(ioutil.NopCloser(re))
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get indy vdr client")
+	}
+
+	return cl, nil
+}
+
+func (r *Provider) KMS() (kms.KeyManager, error) {
+	mgr, err := localkms.New("local-lock://default/master/key/", r)
+	return mgr, errors.Wrap(err, "unable to create locakkms")
+}
+
+func (r *Provider) GetCredentailEngineRegistry() (engine.CredentialRegistry, error) {
+	e, err := indy.New(r)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get credential engine registry")
+	}
+	return engine.New(r, engine.WithEngine(e)), nil
+}
+
+func (r *Provider) SecretLock() secretlock.Service {
+	return r.lock
 }
