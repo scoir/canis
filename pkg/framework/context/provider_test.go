@@ -92,23 +92,7 @@ func TestProvider_StorageProvider(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &Provider{
-				vp:      tt.fields.vp,
-				lock:    tt.fields.lock,
-				exec:    tt.fields.exec,
-				ctx:     tt.fields.ctx,
-				didcl:   tt.fields.didcl,
-				credcl:  tt.fields.credcl,
-				routecl: tt.fields.routecl,
-			}
-			got, err := r.StorageProvider()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("StorageProvider() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("StorageProvider() got = %v, want %v", got, tt.want)
-			}
+			//TODO: Same
 		})
 	}
 }

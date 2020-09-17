@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
-	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
@@ -23,7 +22,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
@@ -46,7 +44,7 @@ type Config struct {
 type Provider struct {
 	client *mongo.Client
 	dbURL  string
-	stores map[string]*mongoDBStore
+	store  *mongoDBStore
 	dbName string
 	sync.RWMutex
 }
@@ -79,16 +77,16 @@ func NewProvider(config *Config) (*Provider, error) {
 	}
 
 	p := &Provider{
+		dbName: config.Database,
 		dbURL:  config.URL,
 		client: mongoClient,
-		dbName: config.Database,
-		stores: map[string]*mongoDBStore{}}
+	}
 
 	return p, nil
 }
 
-// OpenStore opens and returns the collection for given name space.
-func (r *Provider) OpenStore(name string) (datastore.Store, error) {
+// Open opens and returns the collection for given name space.
+func (r *Provider) Open() (datastore.Store, error) {
 	r.Lock()
 	defer r.Unlock()
 
@@ -100,13 +98,9 @@ func (r *Provider) OpenStore(name string) (datastore.Store, error) {
 		db:     db,
 	}
 
-	r.stores[name] = theStore
+	r.store = theStore
 
 	return theStore, nil
-}
-
-func (r *mongoDBStore) GetAriesProvider() (storage.Provider, error) {
-	return store.NewProvider(r.dbURL, r.dbName), nil
 }
 
 // Close closes the provider.
@@ -114,24 +108,9 @@ func (r *Provider) Close() error {
 	r.Lock()
 	defer r.Unlock()
 
-	r.stores = make(map[string]*mongoDBStore)
+	r.store = nil
 
 	return r.client.Disconnect(context.Background())
-}
-
-// CloseStore closes a previously opened store
-func (r *Provider) CloseStore(name string) error {
-	r.Lock()
-	defer r.Unlock()
-
-	_, exists := r.stores[name]
-	if !exists {
-		return nil
-	}
-
-	delete(r.stores, name)
-
-	return nil
 }
 
 // InsertDID add DID to store

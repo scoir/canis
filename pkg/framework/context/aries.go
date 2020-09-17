@@ -104,7 +104,7 @@ func (r *Provider) newProvider() (*kmsProvider, error) {
 	out := &kmsProvider{}
 
 	dc := &framework.DatastoreConfig{}
-	err := r.vp.UnmarshalKey(datastoreKey, dc)
+	err := r.vp.UnmarshalKey("datastore", dc)
 	if err != nil {
 		return nil, errors.Wrap(err, "execution environment is not correctly configured")
 	}

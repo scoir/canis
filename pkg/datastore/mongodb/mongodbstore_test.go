@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
@@ -26,19 +27,19 @@ import (
 )
 
 const (
-	mongoStoreDBURL = "mongodb://localhost:27017"
+	mongoStoreDBURL = "mongodb://localhost:27017/"
 )
 
-var (
-	config = &Config{
+func testConfig() *Config {
+	return &Config{
 		URL:      mongoStoreDBURL,
-		Database: "test",
+		Database: uuid.New().String(),
 	}
-)
+}
 
 //docker run --name some-mongo -d mongo:tag
 // For these unit tests to run, you must ensure you have a Mongo DB instance running at the URL specified in
-// sqlStoreDBURL.
+// mongoStoreDBURL.
 // To run the tests manually, start an instance by running the following command in the terminal
 // docker run -p 27017:27017 --name MongoStoreTest -d mongo:4.2.8
 // delete using
@@ -117,10 +118,10 @@ func waitForMongoDBToStart() error {
 
 func TestInsertListDID(t *testing.T) {
 	t.Run("Test insert / list public did", func(t *testing.T) {
-		prov, err := NewProvider(config)
+		prov, err := NewProvider(testConfig())
 		require.NoError(t, err)
 
-		store, err := prov.OpenStore("test_list")
+		store, err := prov.Open()
 		require.NoError(t, err)
 
 		err = store.InsertDID(&datastore.DID{
@@ -141,20 +142,18 @@ func TestInsertListDID(t *testing.T) {
 		did := didlist.DIDs[0].DID.DIDVal.MethodSpecificID
 		require.Equal(t, "a did", did)
 
-		err = prov.CloseStore("test_list")
-		require.NoError(t, err)
-
 		err = prov.Close()
 		require.NoError(t, err)
+
 	})
 }
 
 func TestSetGetPublicDID(t *testing.T) {
 	t.Run("Test get / set public did", func(t *testing.T) {
-		prov, err := NewProvider(config)
+		prov, err := NewProvider(testConfig())
 		require.NoError(t, err)
 
-		store, err := prov.OpenStore("test_dids")
+		store, err := prov.Open()
 		require.NoError(t, err)
 
 		err = store.InsertDID(&datastore.DID{DID: &identifiers.DID{
@@ -177,9 +176,6 @@ func TestSetGetPublicDID(t *testing.T) {
 
 		require.Equal(t, "didtobepublic", public.DID.DIDVal.MethodSpecificID)
 
-		err = prov.CloseStore("test_dids")
-		require.NoError(t, err)
-
 		err = prov.Close()
 		require.NoError(t, err)
 	})
@@ -187,10 +183,10 @@ func TestSetGetPublicDID(t *testing.T) {
 
 func TestSchema(t *testing.T) {
 	t.Run("Test schema CRUD", func(t *testing.T) {
-		prov, err := NewProvider(config)
+		prov, err := NewProvider(testConfig())
 		require.NoError(t, err)
 
-		store, err := prov.OpenStore("test_schemas")
+		store, err := prov.Open()
 		require.NoError(t, err)
 
 		_, err = store.InsertSchema(&datastore.Schema{ID: "schema id", Name: "schema name"})
@@ -217,9 +213,6 @@ func TestSchema(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, list.Count)
 
-		err = prov.CloseStore("test_schemas")
-		require.NoError(t, err)
-
 		err = prov.Close()
 		require.NoError(t, err)
 	})
@@ -227,10 +220,10 @@ func TestSchema(t *testing.T) {
 
 func TestAgent(t *testing.T) {
 	t.Run("Test Agent CRUD", func(t *testing.T) {
-		prov, err := NewProvider(config)
+		prov, err := NewProvider(testConfig())
 		require.NoError(t, err)
 
-		store, err := prov.OpenStore("test_agents")
+		store, err := prov.Open()
 		require.NoError(t, err)
 
 		_, err = store.InsertAgent(&datastore.Agent{ID: "agent id", Name: "an agent"})
@@ -257,9 +250,6 @@ func TestAgent(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, list.Count)
 
-		err = prov.CloseStore("test_agents")
-		require.NoError(t, err)
-
 		err = prov.Close()
 		require.NoError(t, err)
 	})
@@ -279,38 +269,12 @@ func TestProviderFailures(t *testing.T) {
 	})
 }
 
-func TestCloseStore(t *testing.T) {
-	t.Run("no config error", func(t *testing.T) {
-		prov, err := NewProvider(config)
-		require.NoError(t, err)
-
-		_, err = prov.OpenStore("test_closing")
-		require.NoError(t, err)
-
-		err = prov.CloseStore("test_closing")
-		require.NoError(t, err)
-	})
-
-	t.Run("no mapping found", func(t *testing.T) {
-		prov, err := NewProvider(config)
-		require.NoError(t, err)
-
-		_, err = prov.OpenStore("test_closing")
-		require.NoError(t, err)
-
-		delete(prov.stores, "test_closing")
-
-		err = prov.CloseStore("test_closing")
-		require.NoError(t, err)
-	})
-}
-
 func TestDIDFailures(t *testing.T) {
 	t.Run("connectivity failures", func(t *testing.T) {
-		prov, err := NewProvider(config)
+		prov, err := NewProvider(testConfig())
 		require.NoError(t, err)
 
-		store, err := prov.OpenStore("test_did_failures")
+		store, err := prov.Open()
 		require.NoError(t, err)
 
 		err = prov.client.Disconnect(context.Background())
@@ -332,10 +296,10 @@ func TestDIDFailures(t *testing.T) {
 
 func TestSchemaFailures(t *testing.T) {
 	t.Run("connectivity failures", func(t *testing.T) {
-		prov, err := NewProvider(config)
+		prov, err := NewProvider(testConfig())
 		require.NoError(t, err)
 
-		store, err := prov.OpenStore("test_schema_failures")
+		store, err := prov.Open()
 		require.NoError(t, err)
 
 		err = prov.client.Disconnect(context.Background())
@@ -365,10 +329,10 @@ func TestSchemaFailures(t *testing.T) {
 
 func TestAgentFailures(t *testing.T) {
 	t.Run("connectivity failures", func(t *testing.T) {
-		prov, err := NewProvider(config)
+		prov, err := NewProvider(testConfig())
 		require.NoError(t, err)
 
-		store, err := prov.OpenStore("test_agent_failures")
+		store, err := prov.Open()
 		require.NoError(t, err)
 
 		err = prov.client.Disconnect(context.Background())

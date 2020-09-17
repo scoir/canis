@@ -24,7 +24,6 @@ import (
 
 	"github.com/scoir/canis/pkg/aries/transport/amqp"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
 )
@@ -90,26 +89,31 @@ func initConfig() {
 		log.Fatalln("invalid datastore key in configuration")
 	}
 
-	dm := manager.NewDataProviderManager(dc)
-	sp, err := dm.DefaultStoreProvider()
+	sp, err := dc.StorageProvider()
 	if err != nil {
-		log.Fatalln("unable to retrieve default storage provider", err)
+		log.Fatalln(err)
 	}
 
-	store, err := sp.OpenStore("canis")
+	store, err := sp.Open()
 	if err != nil {
-		log.Fatalln(err, "unable to open canis data store")
+		log.Fatalln("unable to open datastore")
 	}
 
-	asp, err := store.GetAriesProvider()
+	lc := &framework.LedgerStoreConfig{}
+	err = vp.UnmarshalKey("ledgerstore", lc)
 	if err != nil {
-		log.Fatalln(err, "unable to open aries storage provider")
+		log.Fatalln("invalid ledgerstore key in configuration")
+	}
+
+	ls, err := lc.StorageProvider()
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	ctx = &Provider{
 		vp:                   vp,
 		store:                store,
-		ariesStorageProvider: asp,
+		ariesStorageProvider: ls,
 	}
 }
 
