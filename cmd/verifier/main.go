@@ -24,7 +24,6 @@ import (
 	"github.com/scoir/canis/pkg/framework"
 	canisproof "github.com/scoir/canis/pkg/presentproof"
 	"github.com/scoir/canis/pkg/util"
-	mongodbstore "github.com/scoir/aries-storage-mongo/pkg/storage"
 )
 
 var ctx *ariescontext.Provider
