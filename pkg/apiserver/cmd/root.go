@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -33,7 +32,9 @@ import (
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	"github.com/scoir/canis/pkg/framework"
+	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/scoir/canis/pkg/ursa"
 )
 
 var (
@@ -140,21 +141,17 @@ func (r *Provider) Store() datastore.Store {
 	return r.store
 }
 
-func (r *Provider) IndyVDR() (*vdr.Client, error) {
+func (r *Provider) Issuer() ursa.Issuer {
+	return ursa.NewIssuer()
+}
+
+func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
 	genesisFile := r.vp.GetString("genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get indy vdr client")
 	}
-
-	status, err := cl.GetPoolStatus()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get pool status")
-	}
-
-	d, _ := json.MarshalIndent(status, " ", " ")
-	fmt.Println(string(d))
 
 	return cl, nil
 }
@@ -216,7 +213,7 @@ func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, err
 }
 
 func (r *Provider) KMS() (kms.KeyManager, error) {
-	mgr, err := localkms.New("", r)
+	mgr, err := localkms.New("local-lock://default/master/key/", r)
 	return mgr, errors.Wrap(err, "unable to create locakkms")
 }
 

@@ -6,141 +6,119 @@ package ursa
 #include <stdlib.h>
 */
 import "C"
-
 import (
-	"strconv"
-	"strings"
+	"encoding/base64"
+	"encoding/json"
 	"unsafe"
 
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/pkg/errors"
 
-	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
 
-const (
-	DELIMITER = ":"
-	MARKER    = "3"
-)
-
-func CredentialDefinitionID(did *datastore.DID, schemaID uint32, signatureType, tag string) string {
-	return strings.Join([]string{did.DID.MethodID(), MARKER, signatureType, strconv.Itoa(int(schemaID)), tag}, DELIMITER)
+type Credential struct {
+	SchemaID                  string
+	CredDefID                 string
+	Values                    *ValuesBuilder
+	Signature                 json.RawMessage
+	SignatureCorrectnessProof json.RawMessage
 }
 
-type CredentialDefinition struct {
-	fields              []string
-	nonfields           []string
-	publicKey           string
-	revocationKey       string
-	privateKey          string
-	keyCorrectnessProof string
+type Issuer interface {
+	IssueCredential(issuerDID string, schemaID, credDefID, offerNonce string, blindedMasterSecret, blindedMSCorrectnessProof, requestNonce string,
+		credDef *vdr.ClaimDefData, credDefPrivateKey string, values map[string]interface{}) (*decorator.AttachmentData, error)
 }
 
-func (r *CredentialDefinition) KeyCorrectnessProof() (string, error) {
-	if r.keyCorrectnessProof == "" {
-		return "", errors.New("Finalize must be called after adding fields")
+type IssuerServer struct {
+}
+
+func NewIssuer() *IssuerServer {
+	return &IssuerServer{}
+}
+
+func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, offerNonce string, blindedMasterSecret, blindedMSCorrectnessProof, requestNonce string,
+	credDef *vdr.ClaimDefData, credDefPrivateKey string, values map[string]interface{}) (*decorator.AttachmentData, error) {
+
+	var blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof, credentialNonce,
+		credentialIssuanceNonce, credentialValues, credentialPubKey, credentialPrivKey unsafe.Pointer
+	var credSignature, credSignatureCorrectnessProof unsafe.Pointer
+
+	did := C.CString(issuerDID)
+
+	blindedCredentialSecrets, err := BlindedCredentialSecretsFromJSON(blindedMasterSecret)
+	if err != nil {
+		return nil, err
 	}
-	return r.keyCorrectnessProof, nil
-}
 
-func (r *CredentialDefinition) PrivateKey() (string, error) {
-	if r.privateKey == "" {
-		return "", errors.New("Finalize must be called after adding fields")
+	blindedCredentialSecretsCorrectnessProof, err = BlindedCredentialSecretsCorrectnessProofFromJSON(blindedMSCorrectnessProof)
+	if err != nil {
+		return nil, err
 	}
-	return r.privateKey, nil
-}
 
-func (r *CredentialDefinition) PublicKey() (string, error) {
-	if r.publicKey == "" {
-		return "", errors.New("Finalize must be called after adding fields")
+	credentialIssuanceNonce, err = NonceFromJSON(offerNonce)
+	if err != nil {
+		return nil, err
 	}
-	return r.publicKey, nil
-}
 
-func NewCredentailDefinition() *CredentialDefinition {
-	return &CredentialDefinition{}
-}
+	credentialNonce, err = NonceFromJSON(requestNonce)
+	if err != nil {
+		return nil, err
+	}
 
-func (r *CredentialDefinition) AddSchemaFields(f ...string) {
-	r.fields = append(r.fields, f...)
-}
+	builder := NewValuesBuilder()
+	for k, v := range values {
+		builder.AddKnown(k, v)
+	}
+	err = builder.Finalize()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create values")
+	}
+	credentialValues = builder.Values()
+	defer builder.Free()
 
-func (r *CredentialDefinition) AddNonSchemaField(f ...string) {
-	r.nonfields = append(r.nonfields, f...)
-}
+	credentialPubKey, err = CredDefHandle(credDef)
+	if err != nil {
+		return nil, err
+	}
 
-func (r *CredentialDefinition) Finalize() error {
-	var builder, schema, nonbuilder, nonschema unsafe.Pointer
-	result := C.ursa_cl_credential_schema_builder_new(&builder)
+	credentialPrivKey, err = CredentialPrivateKeyFromJSON(credDefPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	result := C.ursa_cl_issuer_sign_credential(did, blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof, credentialIssuanceNonce,
+		credentialNonce, credentialValues, credentialPubKey, credentialPrivKey, &credSignature, &credSignatureCorrectnessProof)
 	if result != 0 {
-		return errors.Errorf("error from URSA creating schema builder: %d", result)
+		return nil, ursaError("signing credentials")
 	}
 
-	for _, field := range r.fields {
-		cfield := C.CString(field)
-		result = C.ursa_cl_credential_schema_builder_add_attr(builder, cfield)
-		C.free(unsafe.Pointer(cfield))
-		if result != 0 {
-			return errors.Errorf("error adding field %s: %d", field, result)
-		}
+	defer func() {
+		C.free(unsafe.Pointer(did))
+		C.free(blindedCredentialSecrets)
+		C.free(blindedCredentialSecretsCorrectnessProof)
+		C.free(credentialNonce)
+		C.free(credentialIssuanceNonce)
+		C.free(credentialPubKey)
+		C.free(credentialPrivKey)
+	}()
+
+	var sigOut, proofOut *C.char
+	result = C.ursa_cl_credential_signature_to_json(credSignature, &sigOut)
+	defer C.free(unsafe.Pointer(sigOut))
+	result = C.ursa_cl_signature_correctness_proof_to_json(credSignatureCorrectnessProof, &proofOut)
+	defer C.free(unsafe.Pointer(proofOut))
+
+	cred := &Credential{
+		SchemaID:                  schemaID,
+		CredDefID:                 credDefID,
+		Values:                    builder,
+		Signature:                 []byte(C.GoString(sigOut)),
+		SignatureCorrectnessProof: []byte(C.GoString(proofOut)),
 	}
 
-	result = C.ursa_cl_credential_schema_builder_finalize(builder, &schema)
-	if result != 0 {
-		return errors.Errorf("error from URSA building schema: %d", result)
-	}
-
-	result = C.ursa_cl_non_credential_schema_builder_new(&nonbuilder)
-	if result != 0 {
-		return errors.Errorf("error from URSA creating non-schema: %d", result)
-	}
-	for _, field := range r.nonfields {
-
-		cfield := C.CString(field)
-		result = C.ursa_cl_non_credential_schema_builder_add_attr(nonbuilder, cfield)
-		C.free(unsafe.Pointer(cfield))
-		if result != 0 {
-			return errors.Errorf("error adding non-schema field: %d", result)
-		}
-	}
-
-	result = C.ursa_cl_non_credential_schema_builder_finalize(nonbuilder, &nonschema)
-	if result != 0 {
-		return errors.Errorf("error from URSA finalizing non-schema: %d", result)
-	}
-
-	var credpub, credpriv, credproof unsafe.Pointer
-
-	credresult := C.ursa_cl_issuer_new_credential_def(schema, nonschema, false, &credpub, &credpriv, &credproof)
-	if credresult != 0 {
-		return errors.Errorf("error from URSA creating cred def: %d", credresult)
-	}
-
-	var proofJson, pubJson, privJson *C.char
-	credresult = C.ursa_cl_credential_public_key_to_json(credpub, &pubJson)
-	if credresult != 0 {
-		return errors.Errorf("error from URSA turning pub key to json: %d", credresult)
-	}
-
-	credresult = C.ursa_cl_credential_private_key_to_json(credpriv, &privJson)
-	if credresult != 0 {
-		return errors.Errorf("error from URSA turning private key to json: %d", credresult)
-	}
-
-	credresult = C.ursa_cl_credential_key_correctness_proof_to_json(credproof, &proofJson)
-	if credresult != 0 {
-		return errors.Errorf("error from URSA turning key correctness proof to json: %d", credresult)
-	}
-
-	C.ursa_cl_credential_schema_free(schema)
-	C.ursa_cl_non_credential_schema_free(nonschema)
-	C.ursa_cl_credential_private_key_free(credpriv)
-	C.ursa_cl_credential_public_key_free(credpub)
-	C.ursa_cl_credential_key_correctness_proof_free(credproof)
-
-	r.publicKey = C.GoString(pubJson)
-	r.privateKey = C.GoString(privJson)
-	r.keyCorrectnessProof = C.GoString(proofJson)
-
-	return nil
-
+	d, _ := json.Marshal(cred)
+	return &decorator.AttachmentData{
+		Base64: base64.StdEncoding.EncodeToString(d),
+	}, nil
 }

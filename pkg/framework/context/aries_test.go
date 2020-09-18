@@ -105,15 +105,6 @@ func TestProvider_GetDIDClient(t *testing.T) {
 	})
 }
 
-func TestProvider_GetSchemaClient(t *testing.T) {
-	t.Run("test the stubbed method", func(t *testing.T) {
-		p := NewProvider(viper.New())
-		sc, err := p.GetSchemaClient()
-		assert.Nil(t, err)
-		assert.NotNil(t, sc)
-	})
-}
-
 func TestProvider_GetCredentialClient(t *testing.T) {
 	t.Run("client already set", func(t *testing.T) {
 		cc := &issuecredential.Client{}

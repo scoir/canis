@@ -52,8 +52,9 @@ type Provider struct {
 }
 
 type mongoDBStore struct {
-	dbURL string
-	db    *mongo.Database
+	dbURL  string
+	dbName string
+	db     *mongo.Database
 }
 
 // NewProvider instantiates Provider
@@ -94,8 +95,9 @@ func (r *Provider) OpenStore(name string) (datastore.Store, error) {
 	db := r.client.Database(r.dbName)
 
 	theStore := &mongoDBStore{
-		dbURL: r.dbURL,
-		db:    db,
+		dbURL:  r.dbURL,
+		dbName: r.dbName,
+		db:     db,
 	}
 
 	r.stores[name] = theStore
@@ -104,7 +106,7 @@ func (r *Provider) OpenStore(name string) (datastore.Store, error) {
 }
 
 func (r *mongoDBStore) GetAriesProvider() (storage.Provider, error) {
-	return store.NewProvider(r.dbURL, r.db.Name()), nil
+	return store.NewProvider(r.dbURL, r.dbName), nil
 }
 
 // Close closes the provider.

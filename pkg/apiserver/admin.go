@@ -8,11 +8,16 @@ package apiserver
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
+	"github.com/mr-tron/base58"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -321,8 +326,8 @@ func (r *APIServer) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) 
 }
 
 func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*api.UpdateAgentResponse, error) {
-	if req.Agent.Id == "" || req.Agent.Name == "" {
-		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
+	if req.Agent.Id == "" {
+		return nil, status.Error(codes.InvalidArgument, "id is required fields")
 	}
 
 	old, err := r.agentStore.GetAgent(req.Agent.Id)
@@ -331,9 +336,15 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 	}
 
 	var upd = *old
-	upd.Name = req.Agent.Name
-	upd.AssignedSchemaId = req.Agent.AssignedSchemaId
-	upd.EndorsableSchemaIds = req.Agent.EndorsableSchemaIds
+
+	if req.Agent.Name != "" {
+		upd.Name = req.Agent.Name
+	}
+
+	if req.Agent.EndorsableSchemaIds != nil {
+		upd.EndorsableSchemaIds = req.Agent.EndorsableSchemaIds
+	}
+
 	upd.HasPublicDID = req.Agent.PublicDid
 	if upd.HasPublicDID && upd.PublicDID == nil {
 		err := r.createAgentPublicDID(&upd)
@@ -431,12 +442,28 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 		return nil, status.Error(codes.FailedPrecondition, "public DID already exists")
 	}
 
-	did, keyPair, err := identifiers.CreateDID(&identifiers.MyDIDInfo{
-		Seed:       req.Seed,
+	edseed, err := identifiers.ConvertSeed(req.Seed)
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to convert seed for apiserver PublicDID").Error())
+	}
+
+	var pubkey ed25519.PublicKey
+	var privkey ed25519.PrivateKey
+	if len(req.Seed) == 0 {
+		pubkey, privkey, err = ed25519.GenerateKey(rand.Reader)
+		if err != nil {
+			return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create new DID for apiserver PublicDID").Error())
+		}
+	} else {
+		privkey = ed25519.NewKeyFromSeed(edseed)
+		pubkey = privkey.Public().(ed25519.PublicKey)
+	}
+
+	did, err := identifiers.CreateDID(&identifiers.MyDIDInfo{
+		PublicKey:  pubkey,
 		Cid:        true,
 		MethodName: "scr",
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create new DID for apiserver PublicDID").Error())
 	}
@@ -446,11 +473,15 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 		log.Fatalln("DID must be registered to be public", err)
 	}
 
+	encPubKey := base58.Encode(pubkey)
+	recKID, err := localkms.CreateKID(pubkey, kms.ED25519Type)
+	kid, _, err := r.keyMgr.ImportPrivateKey(privkey, kms.ED25519Type, kms.WithKeyID(recKID))
+
 	var d = &datastore.DID{
 		DID: did,
 		KeyPair: &datastore.KeyPair{
-			PublicKey:  keyPair.PublicKey(),
-			PrivateKey: keyPair.PrivateKey(),
+			ID:        kid,
+			PublicKey: encPubKey,
 		},
 		Endpoint: "",
 	}

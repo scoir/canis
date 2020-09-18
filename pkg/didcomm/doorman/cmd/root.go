@@ -10,10 +10,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
+	"github.com/hyperledger/aries-framework-go/pkg/secretlock/local"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -24,6 +26,7 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
+	"github.com/scoir/canis/pkg/framework/context"
 )
 
 var (
@@ -146,12 +149,30 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	config := &framework.AMQPConfig{}
 	err := r.vp.UnmarshalKey("inbound.amqp", config)
 
+	mlk := r.vp.GetString("masterLockKey")
+	if mlk == "" {
+		mlk = "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
+	}
+
+	lock, err := local.NewService(strings.NewReader(mlk), nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create lock service")
+	}
+	ariesSub := r.vp.Sub("aries")
+	vdris, err := context.GetAriesVDRIs(ariesSub)
+
 	amqpInbound, err := amqp.NewInbound(config.Endpoint(), external, "didexchange", "", "")
-	ar, err := aries.New(
+	vopts := []aries.Option{
 		aries.WithStoreProvider(r.ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),
 		aries.WithOutboundTransports(ws.NewOutbound()),
-	)
+		aries.WithSecretLock(lock),
+	}
+	for _, vdri := range vdris {
+		vopts = append(vopts, aries.WithVDRI(vdri))
+	}
+
+	ar, err := aries.New(vopts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create aries defaults")
 	}

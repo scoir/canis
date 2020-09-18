@@ -28,11 +28,24 @@ type Bouncer interface {
 	Unregister(ch chan service.StateMsg)
 }
 
+type msg struct {
+	did   string
+	label string
+}
+
+func (r *msg) PublicDID() string {
+	return r.did
+}
+
+func (r *msg) Label() string {
+	return r.label
+}
+
 type bouncer struct {
 	supe  *Supervisor
 	didcl *didclient.Client
 
-	validInviteIDs         map[string]bool
+	validInviteIDs         map[string]*msg
 	invitationToConnection map[string]string
 }
 
@@ -53,7 +66,7 @@ func NewBouncer(ctx provider) (Bouncer, error) {
 	r := &bouncer{
 		supe:                   supe,
 		didcl:                  didcl,
-		validInviteIDs:         map[string]bool{},
+		validInviteIDs:         map[string]*msg{},
 		invitationToConnection: map[string]string{},
 	}
 
@@ -66,8 +79,8 @@ func NewBouncer(ctx provider) (Bouncer, error) {
 }
 
 func (r *bouncer) InvitationMsg(e didservice.DIDCommAction, invite *didexchange.Invitation) {
-	if r.validInviteIDs[invite.ID] {
-		e.Continue(didservice.Empty{})
+	if m, ok := r.validInviteIDs[invite.ID]; ok {
+		e.Continue(m)
 		delete(r.validInviteIDs, invite.ID)
 		return
 	}
@@ -77,9 +90,9 @@ func (r *bouncer) InvitationMsg(e didservice.DIDCommAction, invite *didexchange.
 
 func (r *bouncer) RequestMsg(e didservice.DIDCommAction, request *didexchange.Request) {
 	iID := e.Message.ParentThreadID()
-	if r.validInviteIDs[iID] {
-		log.Println("received valid request from", request.Connection.DID)
-		e.Continue(didservice.Empty{})
+	if m, ok := r.validInviteIDs[iID]; ok {
+		log.Println("received valid request from", request.Connection.DID, m.did)
+		e.Continue(m)
 		delete(r.validInviteIDs, iID)
 		return
 	}
@@ -88,7 +101,7 @@ func (r *bouncer) RequestMsg(e didservice.DIDCommAction, request *didexchange.Re
 }
 
 func (r *bouncer) EstablishConnection(invitation *didclient.Invitation, timeout time.Duration) (*didclient.Connection, error) {
-	r.validInviteIDs[invitation.ID] = true
+	r.validInviteIDs[invitation.ID] = &msg{}
 	connectionID, err := r.didcl.HandleInvitation(invitation)
 	if err != nil {
 		return nil, err
@@ -110,7 +123,7 @@ func (r *bouncer) CreateInvitation(name string) (*didclient.Invitation, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create invitation in bouncer")
 	}
-	r.validInviteIDs[invite.ID] = true
+	r.validInviteIDs[invite.ID] = &msg{label: name}
 	return invite, nil
 }
 
@@ -119,7 +132,7 @@ func (r *bouncer) CreateInvitationNotify(name string, success NotifySuccess, ner
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create invitation in bouncer")
 	}
-	r.validInviteIDs[invitation.ID] = true
+	r.validInviteIDs[invitation.ID] = &msg{label: name}
 
 	go func() {
 		conn, err := r.waitForInvitation(invitation.ID, "completed")
@@ -138,7 +151,7 @@ func (r *bouncer) CreateInvitationWithDIDNotify(name, did string, success Notify
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create invitation in bouncer")
 	}
-	r.validInviteIDs[invitation.ID] = true
+	r.validInviteIDs[invitation.ID] = &msg{did: did, label: name}
 
 	go func() {
 		conn, err := r.waitForInvitation(invitation.ID, "completed")

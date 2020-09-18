@@ -15,26 +15,33 @@ type CredentialRegistry struct {
 }
 
 // CreateCredentialOffer provides a mock function with given fields: issuer, s
-func (_m *CredentialRegistry) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error) {
+func (_m *CredentialRegistry) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error) {
 	ret := _m.Called(issuer, s)
 
-	var r0 *decorator.AttachmentData
-	if rf, ok := ret.Get(0).(func(*datastore.DID, *datastore.Schema) *decorator.AttachmentData); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*datastore.DID, *datastore.Schema) string); ok {
 		r0 = rf(issuer, s)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*decorator.AttachmentData)
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *decorator.AttachmentData
+	if rf, ok := ret.Get(1).(func(*datastore.DID, *datastore.Schema) *decorator.AttachmentData); ok {
+		r1 = rf(issuer, s)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*decorator.AttachmentData)
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*datastore.DID, *datastore.Schema) error); ok {
-		r1 = rf(issuer, s)
+	var r2 error
+	if rf, ok := ret.Get(2).(func(*datastore.DID, *datastore.Schema) error); ok {
+		r2 = rf(issuer, s)
 	} else {
-		r1 = ret.Error(1)
+		r2 = ret.Error(2)
 	}
 
-	return r0, r1
+	return r0, r1, r2
 }
 
 // CreateSchema provides a mock function with given fields: s
@@ -51,6 +58,29 @@ func (_m *CredentialRegistry) CreateSchema(s *datastore.Schema) (string, error) 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*datastore.Schema) error); ok {
 		r1 = rf(s)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IssueCredential provides a mock function with given fields: issuer, s, offerID, requestAttachment, values
+func (_m *CredentialRegistry) IssueCredential(issuer *datastore.DID, s *datastore.Schema, offerID string, requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error) {
+	ret := _m.Called(issuer, s, offerID, requestAttachment, values)
+
+	var r0 *decorator.AttachmentData
+	if rf, ok := ret.Get(0).(func(*datastore.DID, *datastore.Schema, string, decorator.AttachmentData, map[string]interface{}) *decorator.AttachmentData); ok {
+		r0 = rf(issuer, s, offerID, requestAttachment, values)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*decorator.AttachmentData)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.DID, *datastore.Schema, string, decorator.AttachmentData, map[string]interface{}) error); ok {
+		r1 = rf(issuer, s, offerID, requestAttachment, values)
 	} else {
 		r1 = ret.Error(1)
 	}

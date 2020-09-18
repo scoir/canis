@@ -5,23 +5,27 @@ import (
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/pkg/errors"
-	"github.com/scoir/canis/pkg/apiserver/api"
+
 	"github.com/scoir/canis/pkg/datastore"
 )
 
+//go:generate mockery -name=CredentialEngine
 type CredentialEngine interface {
 	Accept(typ string) bool
 	CreateSchema(issuer *datastore.DID, s *datastore.Schema) (string, error)
 	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
-	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error)
-	IssueCredential(s *datastore.Schema, c *api.Credential) (string, error)
+	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error)
+	IssueCredential(issuerDID *datastore.DID, s *datastore.Schema, offerID string,
+		requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error)
 }
 
 //go:generate mockery -name=CredentialRegistry
 type CredentialRegistry interface {
 	CreateSchema(s *datastore.Schema) (string, error)
 	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
-	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error)
+	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error)
+	IssueCredential(issuer *datastore.DID, s *datastore.Schema, offerID string, requestAttachment decorator.AttachmentData,
+		values map[string]interface{}) (*decorator.AttachmentData, error)
 }
 
 type Option func(opts *Registry)
@@ -36,7 +40,7 @@ type provider interface {
 }
 
 func New(prov provider, opts ...Option) *Registry {
-	reg := &Registry{didStore: prov.Store()}
+	reg := &Registry{didStore: prov.Store(), engines: []CredentialEngine{}}
 
 	for _, opt := range opts {
 		opt(reg)
@@ -71,13 +75,23 @@ func (r *Registry) RegisterSchema(registrant *datastore.DID, s *datastore.Schema
 
 }
 
-func (r *Registry) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error) {
+func (r *Registry) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error) {
+	e, err := r.resolveEngine(s.Type)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return e.CreateCredentialOffer(issuer, s)
+}
+
+func (r *Registry) IssueCredential(issuer *datastore.DID, s *datastore.Schema, offerID string, requestAttachment decorator.AttachmentData,
+	values map[string]interface{}) (*decorator.AttachmentData, error) {
 	e, err := r.resolveEngine(s.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	return e.CreateCredentialOffer(issuer, s)
+	return e.IssueCredential(issuer, s, offerID, requestAttachment, values)
 }
 
 func (r *Registry) resolveEngine(method string) (CredentialEngine, error) {
@@ -87,7 +101,7 @@ func (r *Registry) resolveEngine(method string) (CredentialEngine, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("credential type %s not supported for engine", method)
+	return nil, fmt.Errorf("credential type %s not supported by any engine", method)
 }
 
 // WithEngine adds did method implementation for store.

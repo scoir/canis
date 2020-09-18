@@ -22,6 +22,7 @@ func TestNew(t *testing.T) {
 		p.On("GetIssuerClient").Return(nil, nil)
 		p.On("GetLoadbalancerClient").Return(nil, nil)
 		p.On("GetCredentailEngineRegistry").Return(nil, nil)
+		p.On("KMS").Return(nil, nil)
 
 		server, err := New(p)
 		assert.Nil(t, err)
@@ -35,6 +36,7 @@ func TestNew(t *testing.T) {
 		ds := &dsstore.Store{}
 
 		p.On("Store").Return(ds, nil).Times(3)
+		p.On("KMS").Return(nil, nil)
 		p.On("IndyVDR").Return(nil, errors.New("Boom"))
 
 		steward, err := New(p)

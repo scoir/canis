@@ -41,7 +41,7 @@ func TestServer_GetEndpoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &Server{
-				wsAddr: tt.fields.wsAddr,
+				external: tt.fields.wsAddr,
 			}
 			got, err := r.GetEndpoint(tt.args.in0, tt.args.in1)
 			if (err != nil) != tt.wantErr {

@@ -39,7 +39,6 @@ type Agent struct {
 	Name                string
 	AssignedSchemaId    string
 	EndorsableSchemaIds []string
-	OutstandingOffers   []string
 	Status              StatusType
 	PID                 string
 	HasPublicDID        bool
@@ -101,17 +100,12 @@ type DIDList struct {
 }
 
 type KeyPair struct {
-	PublicKey  string
-	PrivateKey string
+	ID        string
+	PublicKey string
 }
 
 func (r *KeyPair) RawPublicKey() []byte {
 	k, _ := base58.Decode(r.PublicKey)
-	return k
-}
-
-func (r *KeyPair) RawPrivateKey() []byte {
-	k, _ := base58.Decode(r.PrivateKey)
 	return k
 }
 
@@ -124,6 +118,8 @@ type Offer struct {
 type Credential struct {
 	AgentID           string
 	OfferID           string
+	SchemaID          string
+	RegistryOfferID   string
 	ExternalSubjectID string
 	Offer             Offer
 	SystemState       string

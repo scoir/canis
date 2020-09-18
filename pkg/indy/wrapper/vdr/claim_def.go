@@ -30,13 +30,34 @@ type ClaimDefData struct {
 }
 
 func (r *ClaimDefData) PKey() string {
-	d, _ := json.MarshalIndent(r.Primary, " ", " ")
+	d, _ := json.Marshal(r.Primary)
 	return string(d)
 }
 
 func (r *ClaimDefData) RKey() string {
-	d, _ := json.MarshalIndent(r.Revocation, " ", " ")
+	d, _ := json.Marshal(r.Revocation)
 	return string(d)
+}
+
+func (r *ClaimDefData) UnmarshalReadReply(rply *ReadReply) error {
+	m, ok := rply.Data.(map[string]interface{})
+	if !ok {
+		return errors.New("bad Data format of read reply")
+	}
+
+	p, ok := m["primary"].(map[string]interface{})
+	if !ok {
+		return errors.New("bad primary format of read reply")
+	}
+
+	r.Primary = p
+
+	rev, ok := m["revocation"].(map[string]interface{})
+	if ok {
+		r.Revocation = rev
+	}
+
+	return nil
 }
 
 func NewGetClaimDef(origin string, ref uint32) *Request {

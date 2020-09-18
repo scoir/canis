@@ -36,3 +36,7 @@ func (r *MockIndyClient) RefreshPool() error {
 func (r *MockIndyClient) Close() error {
 	return r.CloseErr
 }
+
+func (r *MockIndyClient) GetPoolStatus() (*vdr.PoolStatus, error) {
+	return &vdr.PoolStatus{}, nil
+}

@@ -27,11 +27,13 @@ func runStart(_ *cobra.Command, _ []string) {
 	host := prov.vp.GetString("inbound.host")
 	httpPort := prov.vp.GetInt("inbound.httpport")
 	wsPort := prov.vp.GetInt("inbound.wsport")
+	external := prov.vp.GetString("inbound.external")
 
 	log.Println("starting didcomm loadbalancer")
 
 	ar, err := aries.New(
 		aries.WithStoreProvider(prov.ariesStorageProvider),
+		aries.WithSecretLock(prov.lock),
 	)
 	if err != nil {
 		log.Fatalln("unable to initialize aries", err)
@@ -42,7 +44,7 @@ func runStart(_ *cobra.Command, _ []string) {
 		log.Fatalln("unable to get aries context", err)
 	}
 
-	srv, err := lb.New(ctx, prov.GetAMQPAddress(), host, httpPort, wsPort)
+	srv, err := lb.New(ctx, prov.GetAMQPAddress(), host, httpPort, wsPort, external)
 	if err != nil {
 		log.Fatalln("unable to launch didcomm loadbalancer ")
 	}

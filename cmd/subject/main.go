@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -26,6 +28,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
+	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	vstore "github.com/hyperledger/aries-framework-go/pkg/store/verifiable"
 	"github.com/pkg/errors"
 	goji "goji.io"
@@ -33,10 +36,13 @@ import (
 
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
+	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
+	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	canisproof "github.com/scoir/canis/pkg/presentproof"
+	"github.com/scoir/canis/pkg/ursa"
 	"github.com/scoir/canis/pkg/util"
 )
 
@@ -46,6 +52,9 @@ var issuerConnection *didexchange.Connection
 var verifierConnection *didexchange.Connection
 var credHandler *credentialHandler
 var pofHandler *proofHandler
+var prover *ursa.Prover
+var vdrclient *vdr.Client
+var subjectStore storage.Store
 
 func main() {
 	arieslog.SetLevel("aries-framework/out-of-band/service", arieslog.CRITICAL)
@@ -81,7 +90,7 @@ func getCredentials(w http.ResponseWriter, _ *http.Request) {
 }
 
 func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
-	resp, err := http.Post("http://local.scoir.com:7779/agents/broward/invitation/subject", "application/json", strings.NewReader("{}"))
+	resp, err := http.Post("http://local.scoir.com:7779/agents/hogwarts/invitation/subject", "application/json", strings.NewReader("{}"))
 	if err != nil {
 		util.WriteErrorf(w, "Error requesting invitation from issuer: %v", err)
 		return
@@ -114,6 +123,7 @@ func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	d, _ := json.MarshalIndent(issuerConnection, " ", " ")
+	_ = subjectStore.Put("issuer", d)
 	util.WriteSuccess(w, d)
 }
 
@@ -140,19 +150,28 @@ func connectToVerifier(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	d, _ := json.MarshalIndent(verifierConnection, " ", " ")
+	_ = subjectStore.Put("verifier", d)
+
 	util.WriteSuccess(w, d)
 }
 
 func createAriesContext() {
 	wsinbound := "172.17.0.1:3001"
 
-	//wsinbound := "localhost:5672"
-	//amqpInbound, err := amqp.NewInbound(wsinbound, "ws://0.0.0.0:3001", "", "")
+	genesis, err := os.Open("./genesis.txn")
+	if err != nil {
+		log.Fatalln("unable to open genesis file", err)
+	}
+	vdrclient, err = vdr.New(genesis)
 
+	storeProv := store.NewProvider("mongodb://172.17.0.1:27017", "subject")
+	subjectStore, _ = storeProv.OpenStore("connections")
+	indyVDRI, err := indy.New("scr", indy.WithIndyClient(vdrclient))
 	ar, err := aries.New(
-		aries.WithStoreProvider(store.NewProvider("mongodb://172.17.0.1:27017", "subject")),
+		aries.WithStoreProvider(storeProv),
 		defaults.WithInboundWSAddr(wsinbound, fmt.Sprintf("ws://%s", wsinbound), "", ""),
 		aries.WithOutboundTransports(ws.NewOutbound()),
+		aries.WithVDRI(indyVDRI),
 	)
 	if err != nil {
 		log.Fatalln("Unable to create", err)
@@ -193,6 +212,29 @@ func createAriesContext() {
 	err = psup.Start(pofHandler)
 	if err != nil {
 		log.Fatalln("unable to start proof supervisor", err)
+	}
+
+	prover, err = ursa.NewProver(ctx)
+	if err != nil {
+		log.Fatalln("unable to create Ursa prover")
+	}
+
+	d, err := subjectStore.Get("issuer")
+	if err == nil {
+		issuerConnection = &didexchange.Connection{}
+		err = json.Unmarshal(d, issuerConnection)
+		if err != nil {
+			log.Fatalln("issuer conneciton stored but not valid")
+		}
+	}
+
+	d, err = subjectStore.Get("verifier")
+	if err == nil {
+		verifierConnection = &didexchange.Connection{}
+		err = json.Unmarshal(d, verifierConnection)
+		if err != nil {
+			log.Fatalln("verifier conneciton stored but not valid")
+		}
 	}
 
 }
@@ -240,10 +282,60 @@ func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icpro
 
 	answer := "Y"
 	if strings.HasPrefix(strings.ToUpper(answer), "Y") {
-		err := r.credcl.AcceptOffer(e.Message.ID())
+		msID, err := prover.CreateMasterSecret("master_secret_id")
 		if err != nil {
-			log.Println("Error accepting offer", err)
+			log.Println("error creating master secret", err)
+			return
 		}
+
+		offer := &ursa.CredentialOffer{}
+		bits, _ := d.OffersAttach[0].Data.Fetch()
+		err = json.Unmarshal(bits, offer)
+		if err != nil {
+			log.Println("extract offer from protocol message", err)
+			return
+		}
+
+		rply, err := vdrclient.GetCredDef(offer.CredDefID)
+		if err != nil {
+			log.Println("unable to retrieve cred def from ledger", err)
+			return
+		}
+
+		credDef := &vdr.ClaimDefData{}
+		err = credDef.UnmarshalReadReply(rply)
+		if err != nil {
+			log.Println("unable to marshal get cred def from ledger", err)
+			return
+		}
+
+		credReq, credReqMeta, err := prover.CreateCredentialRequest(issuerConnection.MyDID, credDef, offer, msID)
+		if err != nil {
+			log.Println("unable to create ursa credential request", err)
+			return
+		}
+
+		x, _ := json.MarshalIndent(credReqMeta, " ", " ")
+		fmt.Println(string(x))
+
+		b, err := json.Marshal(credReq)
+		if err != nil {
+			log.Println(err, "unexpect error marshalling offer into JSON")
+			return
+		}
+
+		msg := &icprotocol.RequestCredential{
+			Type:    icprotocol.RequestCredentialMsgType,
+			Comment: d.Comment,
+			RequestsAttach: []decorator.Attachment{
+				{Data: decorator.AttachmentData{
+					Base64: base64.StdEncoding.EncodeToString(b),
+				}},
+			},
+		}
+		e.Continue(icprotocol.WithRequestCredential(msg))
+	} else {
+		e.Stop(errors.New("not accepted"))
 	}
 
 }

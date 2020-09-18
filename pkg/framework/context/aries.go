@@ -19,6 +19,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/messaging/msghandler"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
+	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
@@ -28,13 +29,13 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage/mem"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 
 	mongodbstore "github.com/scoir/canis/pkg/aries/storage/mongodb/store"
 	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
-	"github.com/scoir/canis/pkg/schema"
 )
 
 const (
@@ -42,6 +43,32 @@ const (
 	wsinboundKey        = "wsinbound"
 	defaultMasterKeyURI = "local-lock://default/master/key/"
 )
+
+func GetAriesVDRIs(vp *viper.Viper) ([]vdriapi.VDRI, error) {
+	var vdri []map[string]interface{}
+	err := vp.UnmarshalKey("vdri", &vdri)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get vdri")
+	}
+
+	var out []vdriapi.VDRI
+	for _, v := range vdri {
+		typ, _ := v["type"].(string)
+		switch typ {
+		case "indy":
+			method, _ := v["method"].(string)
+			genesisFile, _ := v["genesisFile"].(string)
+			re := strings.NewReader(genesisFile)
+			indyVDRI, err := indy.New(method, indy.WithIndyVDRGenesisReader(ioutil.NopCloser(re)))
+			if err != nil {
+				return nil, errors.Wrap(err, "unable to initialize configured indy vdri provider")
+			}
+			out = append(out, indyVDRI)
+		}
+	}
+
+	return out, nil
+}
 
 type AgentConfig struct {
 	framework.Endpoint
@@ -194,10 +221,6 @@ func (r *Provider) GetDIDClient() (*didexchange.Client, error) {
 
 	r.didcl = didcl
 	return r.didcl, nil
-}
-
-func (r *Provider) GetSchemaClient() (*schema.Client, error) {
-	return schema.New(), nil
 }
 
 func (r *Provider) GetCredentialClient() (*issuecredential.Client, error) {

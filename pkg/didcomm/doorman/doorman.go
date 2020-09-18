@@ -76,7 +76,8 @@ func (r *Doorman) GetInvitation(_ context.Context, request *api.InvitationReques
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("agent with id %s not found", request.AgentId))
 	}
 
-	invite, err := r.bouncer.CreateInvitationNotify(request.Name, r.accepted(agent, request.ExternalId), failed)
+	did := agent.PublicDID.DID.String()
+	invite, err := r.bouncer.CreateInvitationWithDIDNotify(request.Name, did, r.accepted(agent, request.ExternalId), failed)
 	if err != nil {
 		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", request.AgentId))
 	}

@@ -1,8 +1,11 @@
 package identifiers
 
 import (
+	"crypto/ed25519"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestAbbreviateVerkey(t *testing.T) {
@@ -44,6 +47,7 @@ func TestAbbreviateVerkey(t *testing.T) {
 func TestCreateDID(t *testing.T) {
 	type args struct {
 		info *MyDIDInfo
+		seed string
 	}
 	tests := []struct {
 		name    string
@@ -56,10 +60,10 @@ func TestCreateDID(t *testing.T) {
 			args: args{
 				info: &MyDIDInfo{
 					DID:        "",
-					Seed:       "b2352b32947e188eb72871093ac6217e",
 					Cid:        true,
 					MethodName: "sov",
 				},
+				seed: "b2352b32947e188eb72871093ac6217e",
 			},
 			want: &DID{
 				DIDVal: DIDValue{
@@ -75,10 +79,10 @@ func TestCreateDID(t *testing.T) {
 			args: args{
 				info: &MyDIDInfo{
 					DID:        "",
-					Seed:       "b2352b32947e188eb72871093ac6217e",
 					Cid:        false,
 					MethodName: "",
 				},
+				seed: "b2352b32947e188eb72871093ac6217e",
 			},
 			want: &DID{
 				DIDVal: DIDValue{
@@ -92,7 +96,14 @@ func TestCreateDID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _, err := CreateDID(tt.args.info)
+
+			if tt.args.seed != "" {
+				edseed, err := ConvertSeed(tt.args.seed)
+				require.NoError(t, err)
+				privkey := ed25519.NewKeyFromSeed(edseed)
+				tt.args.info.PublicKey = privkey.Public().(ed25519.PublicKey)
+			}
+			got, err := CreateDID(tt.args.info)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateDID() error = %v, wantErr %v", err, tt.wantErr)
 				return

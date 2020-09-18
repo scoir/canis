@@ -8,6 +8,7 @@ package ursa
 import "C"
 import (
 	"encoding/json"
+	"fmt"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -30,6 +31,7 @@ func NewNonce() (string, error) {
 	str := C.GoString(d)
 	defer C.free(unsafe.Pointer(d))
 
+	fmt.Println(str)
 	var out string
 	err := json.Unmarshal([]byte(str), &out)
 	if err != nil {

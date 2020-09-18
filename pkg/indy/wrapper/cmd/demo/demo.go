@@ -1,12 +1,15 @@
 package main
 
 import (
+	"crypto/ed25519"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/mr-tron/base58"
 	"github.com/scoir/canis/pkg/indy/wrapper/crypto"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
@@ -80,18 +83,31 @@ func writeDemoTest() {
 	d, _ := json.MarshalIndent(status, " ", " ")
 	fmt.Println(string(d))
 
-	did, keyPair, err := identifiers.CreateDID(&identifiers.MyDIDInfo{Seed: TrusteeSeed[0:32], Cid: true, MethodName: "sov"})
+	seed, err := identifiers.ConvertSeed(TrusteeSeed[0:32])
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	mysig := crypto.NewSigner(keyPair.RawPublicKey(), keyPair.RawPrivateKey())
+	var pubkey ed25519.PublicKey
+	var privkey ed25519.PrivateKey
+	privkey = ed25519.NewKeyFromSeed(seed)
+	pubkey = privkey.Public().(ed25519.PublicKey)
+	did, err := identifiers.CreateDID(&identifiers.MyDIDInfo{PublicKey: pubkey, Cid: true, MethodName: "sov"})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	mysig := crypto.NewSigner(pubkey, privkey)
 
 	fmt.Println("Steward DID:", did.String())
 	fmt.Println("Steward Verkey:", did.Verkey)
 	fmt.Println("Steward Short Verkey:", did.AbbreviateVerkey())
+	someRandomPubkey, someRandomPrivkey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	someRandomDID, someRandomKP, err := identifiers.CreateDID(&identifiers.MyDIDInfo{MethodName: "sov", Cid: true})
+	someRandomDID, err := identifiers.CreateDID(&identifiers.MyDIDInfo{PublicKey: someRandomPubkey, MethodName: "sov", Cid: true})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -103,10 +119,10 @@ func writeDemoTest() {
 	fmt.Println("New Endorser DID:", someRandomDID.String())
 	fmt.Println("New Endorser Verkey:", someRandomDID.AbbreviateVerkey())
 	fmt.Println("Place These in Wallet:")
-	fmt.Println("Public:", someRandomKP.PublicKey())
-	fmt.Println("Private:", someRandomKP.PrivateKey())
+	fmt.Println("Public:", base58.Encode(someRandomPubkey))
+	fmt.Println("Private:", base58.Encode(someRandomPrivkey))
 
-	newDIDsig := crypto.NewSigner(someRandomKP.RawPublicKey(), someRandomKP.RawPrivateKey())
+	newDIDsig := crypto.NewSigner(someRandomPubkey, someRandomPrivkey)
 
 	err = client.SetEndpoint(someRandomDID.DIDVal.MethodSpecificID, someRandomDID.DIDVal.MethodSpecificID, "http://420.69.420.69:6969", newDIDsig)
 	if err != nil {

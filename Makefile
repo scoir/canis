@@ -21,7 +21,7 @@ tools:
 
 swagger_pack: pkg/static/canis-apiserver_swagger.go
 pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec/canis-apiserver.swagger.json
-	staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
+	@staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
 
 
 build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-lb bin/canis-didcomm-doorman
@@ -31,18 +31,22 @@ build-canis-didcomm-lb: bin/canis-didcomm-lb
 
 canis-apiserver: bin/canis-apiserver
 bin/canis-apiserver: canis-apiserver-pb swagger_pack
+	@echo 'building canis-apiserver...'
 	@. ./canis.sh; cd cmd/canis-apiserver && go build -o $(CANIS_ROOT)/bin/canis-apiserver
 
 canis-didcomm-issuer: bin/canis-didcomm-issuer
 bin/canis-didcomm-issuer: $(DIDCOMM_ISSUER_FILES)
+	@echo 'building canis-didcomm-issuer...'
 	@. ./canis.sh; cd cmd/canis-didcomm-issuer && go build -o $(CANIS_ROOT)/bin/canis-didcomm-issuer
 
 canis-didcomm-doorman: bin/canis-didcomm-doorman
 bin/canis-didcomm-doorman: $(DIDCOMM_DOORMAN_FILES)
+	@echo 'building canis-didcomm-doorman...'
 	@. ./canis.sh; cd cmd/canis-didcomm-doorman && go build -o $(CANIS_ROOT)/bin/canis-didcomm-doorman
 
 canis-didcomm-lb: bin/canis-didcomm-lb
 bin/canis-didcomm-lb: $(DIDCOMM_LB_FILES)
+	@echo 'building canis-didcomm-lb...'
 	@. ./canis.sh; cd cmd/canis-didcomm-lb && go build -o $(CANIS_ROOT)/bin/canis-didcomm-lb
 
 sirius: bin/sirius
@@ -59,7 +63,7 @@ bin/router:
 	@. ./canis.sh; cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
 
 canis-docker: build
-	@echo "Building canis docker image"
+	@echo "building canis docker image..."
 	@docker build -f ./docker/canis/Dockerfile --no-cache -t canis/canis:latest .
 
 canis-apiserver-pb: pkg/apiserver/api/canis-apiserver.pb.go
