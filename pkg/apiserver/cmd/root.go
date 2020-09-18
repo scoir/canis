@@ -27,7 +27,6 @@ import (
 	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
@@ -99,20 +98,25 @@ func initConfig() {
 		log.Fatalln("invalid datastore key in configuration")
 	}
 
-	dm := manager.NewDataProviderManager(dc)
-	sp, err := dm.DefaultStoreProvider()
+	sp, err := dc.StorageProvider()
 	if err != nil {
-		log.Fatalln("unable to get default data store", err)
+		log.Fatalln(err)
 	}
 
-	store, err := sp.OpenStore("canis")
+	store, err := sp.Open()
 	if err != nil {
-		log.Fatalln("unable to get default data store", err)
+		log.Fatalln("unable to open datastore")
 	}
 
-	asp, err := store.GetAriesProvider()
+	lc := &framework.LedgerStoreConfig{}
+	err = vp.UnmarshalKey("ledgerstore", lc)
 	if err != nil {
-		log.Fatalln("unable to load aries storage provider", err)
+		log.Fatalln("invalid ledgerstore key in configuration")
+	}
+
+	ls, err := lc.StorageProvider()
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	mlk := vp.GetString("masterLockKey")
@@ -129,7 +133,7 @@ func initConfig() {
 		vp:                   vp,
 		lock:                 lock,
 		store:                store,
-		ariesStorageProvider: asp,
+		ariesStorageProvider: ls,
 	}
 }
 

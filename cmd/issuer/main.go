@@ -31,10 +31,10 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
+	mongodbstore "github.com/scoir/aries-storage-mongo/pkg/storage"
 	goji "goji.io"
 	"goji.io/pat"
 
-	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
 	"github.com/scoir/canis/pkg/clr"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
@@ -96,7 +96,7 @@ func createAriesContext() {
 	wsinbound := "0.0.0.0:2001"
 
 	ar, err := aries.New(
-		aries.WithStoreProvider(store.NewProvider("mongodb://172.17.0.1:27017", "issuer")),
+		aries.WithStoreProvider(mongodbstore.NewProvider("mongodb://172.17.0.1:27017", mongodbstore.WithDBPrefix("issuer"))),
 		defaults.WithInboundWSAddr(wsinbound, fmt.Sprintf("ws://%s", wsinbound), "", ""),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 	)

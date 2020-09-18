@@ -24,9 +24,18 @@ inbound:
 datastore:
   database: mongo
   mongo:
-     url: "mongodb://172.17.0.1:27017"
-     database: "canis"
+    url: "mongodb://172.17.0.1:27017"
+    database: "canis"
 
+###############################################################
+#
+#  Ledger-store configuration
+#
+###############################################################
+ledgerstore:
+  database: couchdb #mysql
+  couchdb:
+    url: "localhost:5984" #root:my-secret-pw@tcp(127.0.0.1:3306)
 
 ###############################################################
 #

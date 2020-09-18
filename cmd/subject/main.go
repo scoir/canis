@@ -31,11 +31,11 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	vstore "github.com/hyperledger/aries-framework-go/pkg/store/verifiable"
 	"github.com/pkg/errors"
+	mongodbstore "github.com/scoir/aries-storage-mongo/pkg/storage"
 	goji "goji.io"
 	"goji.io/pat"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
-	"github.com/scoir/canis/pkg/aries/storage/mongodb/store"
 	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
@@ -164,7 +164,7 @@ func createAriesContext() {
 	}
 	vdrclient, err = vdr.New(genesis)
 
-	storeProv := store.NewProvider("mongodb://172.17.0.1:27017", "subject")
+	storeProv := mongodbstore.NewProvider("mongodb://172.17.0.1:27017", mongodbstore.WithDBPrefix("subject"))
 	subjectStore, _ = storeProv.OpenStore("connections")
 	indyVDRI, err := indy.New("scr", indy.WithIndyClient(vdrclient))
 	ar, err := aries.New(

@@ -8,7 +8,6 @@ package datastore
 
 import (
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
-	"github.com/hyperledger/aries-framework-go/pkg/storage"
 )
 
 const (
@@ -20,13 +19,10 @@ const (
 // Provider storage provider interface
 //go:generate mockery -name=Provider
 type Provider interface {
-	// OpenStore opens a store with given name space and returns the handle
-	OpenStore(name string) (Store, error)
+	// Open opens a store
+	Open() (Store, error)
 
-	// CloseStore closes store of given name space
-	CloseStore(name string) error
-
-	// Close closes all stores created under this store provider
+	// Close closes a store
 	Close() error
 }
 
@@ -73,7 +69,4 @@ type Store interface {
 	InsertAgentConnection(a *Agent, externalID string, conn *didexchange.Connection) error
 	// GetAgentConnection return single connection between an agent and an external subject
 	GetAgentConnection(a *Agent, externalID string) (*AgentConnection, error)
-
-	// GetAriesProvider returns a pre-configured storage provider for use in an Aries context
-	GetAriesProvider() (storage.Provider, error)
 }

@@ -24,7 +24,7 @@ type credKeys struct {
 
 func NewClient() (*Client, error) {
 	//provider := conf.GetAriesContext()
-	//store, err := provider.StorageProvider().OpenStore("cred-defs")
+	//store, err := provider.StorageProvider().Open("cred-defs")
 	//if err != nil {
 	//	return nil, errors.Wrap(err, "can't get storage for credential client")
 	//}

@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
 )
 
@@ -79,23 +78,16 @@ func initConfig() {
 		os.Exit(1)
 	}
 
-	dc := &framework.DatastoreConfig{}
-	err := vp.UnmarshalKey("datastore", dc)
+	lc := &framework.LedgerStoreConfig{}
+	err := vp.UnmarshalKey("ledgerstore", lc)
 	if err != nil {
-		log.Fatalln("invalid datastore key in configuration")
+		log.Fatalln("invalid ledgerstore key in configuration")
 	}
 
-	dm := manager.NewDataProviderManager(dc)
-	sp, err := dm.DefaultStoreProvider()
+	ls, err := lc.StorageProvider()
 	if err != nil {
-		log.Fatalln("unable to retrieve default storage provider", err)
+		log.Fatalln(err)
 	}
-
-	store, err := sp.OpenStore("canis")
-	if err != nil {
-		log.Fatalln("unable to open store", err)
-	}
-	asp, err := store.GetAriesProvider()
 
 	mlk := vp.GetString("masterLockKey")
 	if mlk == "" {
@@ -110,7 +102,7 @@ func initConfig() {
 	prov = &Provider{
 		vp:                   vp,
 		lock:                 lock,
-		ariesStorageProvider: asp,
+		ariesStorageProvider: ls,
 	}
 }
 
