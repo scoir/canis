@@ -1,0 +1,25 @@
+mode: atomic
+github.com/scoir/canis/pkg/framework/config.go:18.36,20.2 1 1
+github.com/scoir/canis/pkg/framework/config.go:30.40,32.2 1 0
+github.com/scoir/canis/pkg/framework/datastore_config.go:21.41,22.20 1 0
+github.com/scoir/canis/pkg/framework/datastore_config.go:23.15,24.26 1 0
+github.com/scoir/canis/pkg/framework/datastore_config.go:25.10,26.12 1 0
+github.com/scoir/canis/pkg/framework/datastore_config.go:30.45,31.20 1 0
+github.com/scoir/canis/pkg/framework/datastore_config.go:32.15,33.23 1 0
+github.com/scoir/canis/pkg/framework/datastore_config.go:37.73,41.20 3 1
+github.com/scoir/canis/pkg/framework/datastore_config.go:48.2,48.16 1 0
+github.com/scoir/canis/pkg/framework/datastore_config.go:52.2,52.16 1 0
+github.com/scoir/canis/pkg/framework/datastore_config.go:42.15,43.41 1 0
+github.com/scoir/canis/pkg/framework/datastore_config.go:44.10,45.68 1 1
+github.com/scoir/canis/pkg/framework/datastore_config.go:48.16,50.3 1 0
+github.com/scoir/canis/pkg/framework/ledgerstore_config.go:21.73,25.20 3 1
+github.com/scoir/canis/pkg/framework/ledgerstore_config.go:34.2,34.16 1 0
+github.com/scoir/canis/pkg/framework/ledgerstore_config.go:38.2,38.16 1 0
+github.com/scoir/canis/pkg/framework/ledgerstore_config.go:26.15,27.37 1 0
+github.com/scoir/canis/pkg/framework/ledgerstore_config.go:28.17,29.44 1 0
+github.com/scoir/canis/pkg/framework/ledgerstore_config.go:30.10,31.70 1 1
+github.com/scoir/canis/pkg/framework/ledgerstore_config.go:34.16,36.3 1 0
+github.com/scoir/canis/pkg/framework/simple.go:14.76,16.2 1 0
+github.com/scoir/canis/pkg/framework/simple.go:18.81,20.2 1 0
+github.com/scoir/canis/pkg/framework/simple.go:22.68,24.2 1 0
+github.com/scoir/canis/pkg/framework/simple.go:26.70,28.2 1 0

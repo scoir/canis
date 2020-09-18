@@ -29,9 +29,9 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage/mem"
 	"github.com/pkg/errors"
+	mongodbstore "github.com/scoir/aries-storage-mongo/pkg/storage"
 	"github.com/spf13/viper"
 
-	mongodbstore "github.com/scoir/canis/pkg/aries/storage/mongodb/store"
 	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
@@ -110,7 +110,7 @@ func (r *Provider) newProvider() (*kmsProvider, error) {
 	}
 	switch dc.Database {
 	case "mongo":
-		out.sp = mongodbstore.NewProvider(dc.Mongo.URL, dc.Mongo.Database)
+		out.sp = mongodbstore.NewProvider(dc.Mongo.URL)
 	case "postgres":
 		//out.sp = pgstore.NewProvider(dc.Postgres.Connection)
 	default:

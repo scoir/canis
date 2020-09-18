@@ -14,8 +14,8 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-kivik/couchdb v2.0.0+incompatible
-	github.com/go-kivik/kivik v2.0.0+incompatible
+	github.com/go-kivik/couchdb v2.0.0+incompatible // indirect
+	github.com/go-kivik/kivik v2.0.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/google/gofuzz v1.1.0 // indirect
@@ -25,8 +25,8 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
 	github.com/hyperledger/aries-framework-go v0.1.4
 	github.com/imdario/mergo v0.3.9 // indirect
-	github.com/jackc/pgx/v4 v4.8.0
-	github.com/lib/pq v1.7.0
+	github.com/jackc/pgx/v4 v4.8.0 // indirect
+	github.com/lib/pq v1.7.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/mr-tron/base58 v1.2.0
@@ -36,15 +36,16 @@ require (
 	github.com/piprate/json-gold v0.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
+	github.com/scoir/aries-storage-mongo v0.0.0-20200918045916-fdae3c3a3af4
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.4.0
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.6.1
-	github.com/syndtr/goleveldb v1.0.0
+	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/unidoc/unipdf/v3 v3.10.1
 	github.com/vektra/mockery v1.1.2 // indirect
-	go.mongodb.org/mongo-driver v1.3.4
+	go.mongodb.org/mongo-driver v1.4.1
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/sys v0.0.0-20200812155832-6a926be9bd1d // indirect
