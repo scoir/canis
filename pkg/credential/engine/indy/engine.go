@@ -1,17 +1,20 @@
 package indy
 
+import "C"
 import (
 	"encoding/base64"
 	"encoding/json"
 
 	"github.com/google/tink/go/keyset"
 	"github.com/google/tink/go/signature/subtle"
+	"github.com/google/uuid"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	"github.com/scoir/canis/pkg/ursa"
 )
@@ -24,15 +27,34 @@ type creddefWalletRecord struct {
 }
 
 type CredentialEngine struct {
-	client *vdr.Client
+	client VDRClient
 	kms    kms.KeyManager
-	store  storage.Store
+	store  store
+	issuer UrsaIssuer
 }
 
 type provider interface {
-	IndyVDR() (*vdr.Client, error)
+	IndyVDR() (indy.IndyVDRClient, error)
 	KMS() (kms.KeyManager, error)
 	StorageProvider() storage.Provider
+	Issuer() ursa.Issuer
+}
+
+type UrsaIssuer interface {
+	IssueCredential(issuerDID string, schemaID, credDefID, offerNonce string, blindedMasterSecret, blindedMSCorrectnessProof, requestNonce string,
+		credDef *vdr.ClaimDefData, credDefPrivateKey string, values map[string]interface{}) (*decorator.AttachmentData, error)
+}
+
+type store interface {
+	Get(k string) ([]byte, error)
+	Put(k string, v []byte) error
+}
+
+type VDRClient interface {
+	CreateSchema(issuerDID, name, version string, attrs []string, signer vdr.Signer) (string, error)
+	CreateClaimDef(from string, ref uint32, pubKey, revocation map[string]interface{}, signer vdr.Signer) (string, error)
+	GetCredDef(credDefID string) (*vdr.ReadReply, error)
+	GetSchema(schemaID string) (*vdr.ReadReply, error)
 }
 
 func New(prov provider) (*CredentialEngine, error) {
@@ -50,6 +72,7 @@ func New(prov provider) (*CredentialEngine, error) {
 	}
 
 	eng.kms, err = prov.KMS()
+	eng.issuer = prov.Issuer()
 
 	return eng, nil
 }
@@ -141,25 +164,22 @@ const (
 	DefaultTag      = "default"
 )
 
-func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (*decorator.AttachmentData, error) {
+func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error) {
 	schema, err := r.client.GetSchema(s.ExternalSchemaID)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to find schema on ledger to create cred def")
+		return "", nil, errors.Wrap(err, "unable to find schema on ledger to create cred def")
 	}
 
 	credDefID := ursa.CredentialDefinitionID(issuer, schema.SeqNo, CLSignatureType, DefaultTag)
 
-	d, err := r.store.Get(credDefID)
+	rec, err := r.getCredDefRecord(credDefID)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid cred def ID for this agent")
+		return "", nil, errors.Wrap(err, "unable to retrieve credential info from wallet")
 	}
-
-	rec := &creddefWalletRecord{}
-	_ = json.Unmarshal(d, rec)
 
 	nonce, err := ursa.NewNonce()
 	if err != nil {
-		return nil, errors.Wrap(err, "unexpected error creating nonce")
+		return "", nil, errors.Wrap(err, "unexpected error creating nonce")
 	}
 
 	offer := ursa.CredentialOffer{
@@ -169,18 +189,84 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datas
 		Nonce:               nonce,
 	}
 
-	d, err = json.Marshal(offer)
+	offerID := uuid.New().String()
+	d, err := json.Marshal(offer)
 	if err != nil {
-		return nil, errors.Wrap(err, "unexpect error marshalling offer into JSON")
+		return "", nil, errors.Wrap(err, "unexpect error marshalling offer into JSON")
+	}
+	err = r.store.Put(offerID, d)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "unexpected error saving offer")
 	}
 
-	return &decorator.AttachmentData{
+	return offerID, &decorator.AttachmentData{
 		Base64: base64.StdEncoding.EncodeToString(d),
 	}, nil
 
 }
 
-func (r *CredentialEngine) IssueCredential(s *datastore.Schema, offer *ursa.CredentialOffer, request *ursa.CredentialRequest,
-	values *ursa.CredentialValues) (*decorator.AttachmentData, error) {
-	return nil, errors.New("not implemented")
+func (r *CredentialEngine) getCredDefRecord(credDefID string) (*creddefWalletRecord, error) {
+	d, err := r.store.Get(credDefID)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid cred def ID for this agent")
+	}
+
+	rec := &creddefWalletRecord{}
+	_ = json.Unmarshal(d, rec)
+	return rec, nil
+}
+
+func (r *CredentialEngine) IssueCredential(issuerDID *datastore.DID, s *datastore.Schema, offerID string,
+	requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error) {
+
+	request := ursa.CredentialRequest{}
+	d, err := requestAttachment.Fetch()
+	if err != nil {
+		return nil, errors.New("invalid attachment for issuing indy credential")
+	}
+	err = json.Unmarshal(d, &request)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid attachment JSON for issuing indy credential")
+	}
+
+	offer := &ursa.CredentialOffer{}
+	d, err = r.store.Get(offerID)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load existing indy offer")
+	}
+	err = json.Unmarshal(d, &offer)
+	if err != nil {
+		return nil, errors.Wrap(err, "unexpected error decoding indy stored offer")
+	}
+
+	rply, err := r.client.GetCredDef(offer.CredDefID)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to retrieve cred def ledger record")
+	}
+	credDef := &vdr.ClaimDefData{}
+	err = credDef.UnmarshalReadReply(rply)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid reply from indy retrieving cred def ledger record")
+	}
+
+	rec, err := r.getCredDefRecord(offer.CredDefID)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to retrieve credential info from wallet")
+	}
+
+	credDefPrivateKey, _ := json.Marshal(rec.PrivateKey)
+
+	return r.issuer.IssueCredential(
+		issuerDID.DID.MethodID(),
+		s.ExternalSchemaID,
+		offer.CredDefID,
+		offer.Nonce,
+		request.BlindedMS,
+		request.BlindedMSCorrectnessProof,
+		request.Nonce,
+		credDef,
+		string(credDefPrivateKey),
+		values,
+	)
+
 }

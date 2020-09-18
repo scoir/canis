@@ -289,8 +289,8 @@ func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icpro
 		}
 
 		offer := &ursa.CredentialOffer{}
-		b64, _ := base64.StdEncoding.DecodeString(d.OffersAttach[0].Data.Base64)
-		err = json.Unmarshal(b64, offer)
+		bits, _ := d.OffersAttach[0].Data.Fetch()
+		err = json.Unmarshal(bits, offer)
 		if err != nil {
 			log.Println("extract offer from protocol message", err)
 			return
@@ -303,7 +303,7 @@ func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icpro
 		}
 
 		credDef := &vdr.ClaimDefData{}
-		err = credDef.MarshalReadReply(rply)
+		err = credDef.UnmarshalReadReply(rply)
 		if err != nil {
 			log.Println("unable to marshal get cred def from ledger", err)
 			return

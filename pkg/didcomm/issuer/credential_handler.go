@@ -1,6 +1,7 @@
 package issuer
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -11,13 +12,15 @@ import (
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 
 	"github.com/scoir/canis/pkg/credential"
+	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
 )
 
 type credHandler struct {
-	ctx     *ariescontext.Provider
-	credsup *credential.Supervisor
-	store   datastore.Store
+	ctx      *ariescontext.Provider
+	store    datastore.Store
+	credsup  *credential.Supervisor
+	registry engine.CredentialRegistry
 }
 
 type prop interface {
@@ -42,11 +45,6 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	props := e.Properties.(prop)
 	myDID := props.MyDID()
 
-	if len(request.RequestsAttach) != 1 {
-		log.Println("invalid request attachments")
-		return
-	}
-
 	agent, err := r.store.GetAgentByPublicDID(myDID)
 	if err != nil {
 		log.Println("unable to find agent for credential request", err)
@@ -59,13 +57,41 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 		return
 	}
 
+	schema, err := r.store.GetSchema(offer.SchemaID)
+	if err != nil {
+		log.Printf("unable to find schema with ID %s: (%v)\n", offer.SchemaID, err)
+		return
+	}
+
+	values := map[string]interface{}{}
+	for _, attr := range offer.Offer.Attributes {
+		//TODO:  do we have to consider mime-type here and convert?
+		values[attr.Name] = attr.Value
+	}
+
+	var credentialAttachments []decorator.Attachment
+	for _, requestAttachment := range request.RequestsAttach {
+
+		attachmentData, err := r.registry.IssueCredential(agent.PublicDID, schema, offer.RegistryOfferID, requestAttachment.Data, values)
+		if err != nil {
+			log.Println("registry error creating credential", err)
+			continue
+		}
+
+		credentialAttachments = append(credentialAttachments, decorator.Attachment{Data: *attachmentData})
+	}
+
+	if len(credentialAttachments) == 0 {
+		log.Println("no credentials to issue")
+		e.Stop(errors.New("no credentials to issue"))
+		return
+	}
+
 	//TODO:  Somehow verify the request against the original offer
 	fmt.Printf("offerID: %s, threadID: %s\n", offer.OfferID, thid)
 	msg := &icprotocol.IssueCredential{
-		Comment: offer.Offer.Comment,
-		CredentialsAttach: []decorator.Attachment{
-			{Data: decorator.AttachmentData{JSON: "insert indy magic here"}},
-		},
+		Comment:           offer.Offer.Comment,
+		CredentialsAttach: credentialAttachments,
 	}
 
 	//TODO:  Shouldn't this be built into the Supervisor??

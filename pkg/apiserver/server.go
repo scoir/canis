@@ -18,6 +18,7 @@ import (
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
 
@@ -40,7 +41,7 @@ type APIServer struct {
 type provider interface {
 	KMS() (kms.KeyManager, error)
 	Store() datastore.Store
-	IndyVDR() (*vdr.Client, error)
+	IndyVDR() (indy.IndyVDRClient, error)
 	GetDoormanClient() (doorman.DoormanClient, error)
 	GetIssuerClient() (issuer.IssuerClient, error)
 	GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error)

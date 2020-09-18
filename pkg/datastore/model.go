@@ -118,6 +118,8 @@ type Offer struct {
 type Credential struct {
 	AgentID           string
 	OfferID           string
+	SchemaID          string
+	RegistryOfferID   string
 	ExternalSubjectID string
 	Offer             Offer
 	SystemState       string

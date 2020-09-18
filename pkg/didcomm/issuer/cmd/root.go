@@ -33,7 +33,9 @@ import (
 	"github.com/scoir/canis/pkg/datastore/manager"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
+	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/scoir/canis/pkg/ursa"
 )
 
 var (
@@ -192,7 +194,11 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	return actx, err
 }
 
-func (r *Provider) IndyVDR() (*vdr.Client, error) {
+func (r *Provider) Issuer() ursa.Issuer {
+	return ursa.NewIssuer()
+}
+
+func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
 	genesisFile := r.vp.GetString("credential.indy.genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))

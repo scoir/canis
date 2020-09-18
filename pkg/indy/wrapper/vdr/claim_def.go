@@ -39,7 +39,7 @@ func (r *ClaimDefData) RKey() string {
 	return string(d)
 }
 
-func (r *ClaimDefData) MarshalReadReply(rply *ReadReply) error {
+func (r *ClaimDefData) UnmarshalReadReply(rply *ReadReply) error {
 	m, ok := rply.Data.(map[string]interface{})
 	if !ok {
 		return errors.New("bad Data format of read reply")

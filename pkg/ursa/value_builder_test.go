@@ -41,8 +41,8 @@ func TestCredentialValues_AddValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewValues()
-			r.AddValue(tt.args.name, tt.args.raw)
+			r := NewValuesBuilder()
+			r.AddKnown(tt.args.name, tt.args.raw)
 			result, err := json.MarshalIndent(r, " ", " ")
 			require.NoError(t, err)
 			m := map[string]interface{}{}

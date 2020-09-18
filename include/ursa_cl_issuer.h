@@ -423,6 +423,33 @@ ErrorCode ursa_cl_blinded_credential_secrets_to_json(const void *blinded_credent
                                                      const char **blinded_credential_secrets_json_p);
 
 /**
+ * Creates and returns blinded credential secrets from json.
+ *
+ * Note: Blinded credential secrets instance deallocation must be performed
+ * by calling ursa_cl_blinded_credential_secrets_free
+ *
+ * # Arguments
+ * * `blinded_credential_secrets_json` - Reference that contains blinded credential secret json.
+ * * `blinded_credential_secrets_p` - Reference that will contain blinded credential secret instance pointer.
+ */
+ErrorCode ursa_cl_blinded_credential_secrets_from_json(const char *blinded_credential_secrets_json,
+                                                       const void **blinded_credential_secrets_p);
+
+
+/**
+ * Creates and returns blinded credential secrets correctness proof json.
+ *
+ * Note: Blinded credential secrets correctness proof instance deallocation must be performed
+ * by calling ursa_cl_blinded_credential_secrets_correctness_proof_free.
+ *
+ * # Arguments
+ * * `blinded_credential_secrets_correctness_proof_json` - Reference that contains blinded credential secrets correctness proof json.
+ * * `blinded_credential_secrets_correctness_proof_p` - Reference that will contain blinded credential secret correctness proof instance pointer.
+ */
+ErrorCode ursa_cl_blinded_credential_secrets_correctness_proof_from_json(const char *blinded_credential_secrets_correctness_proof_json,
+                                                                         const void **blinded_credential_secrets_correctness_proof_p);
+
+/**
  * Deallocates credential secrets blinding factors instance.
  *
  * # Arguments
@@ -627,3 +654,14 @@ ErrorCode ursa_cl_credential_signature_to_json(const void *credential_signature,
  *
  */
 void ursa_get_current_error(const char **error_json_p);
+
+
+/**
+ * Returns json representation of signature correctness proof.
+ *
+ * # Arguments
+ * * `signature_correctness_proof` - Reference that contains signature correctness proof instance pointer.
+ * * `signature_correctness_proof_json_p` - Reference that will contain signature correctness proof json.
+ */
+ErrorCode ursa_cl_signature_correctness_proof_to_json(const void *signature_correctness_proof,
+                                                      const char **signature_correctness_proof_json_p);

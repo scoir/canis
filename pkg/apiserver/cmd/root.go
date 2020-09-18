@@ -32,7 +32,9 @@ import (
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	"github.com/scoir/canis/pkg/framework"
+	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/scoir/canis/pkg/ursa"
 )
 
 var (
@@ -139,7 +141,11 @@ func (r *Provider) Store() datastore.Store {
 	return r.store
 }
 
-func (r *Provider) IndyVDR() (*vdr.Client, error) {
+func (r *Provider) Issuer() ursa.Issuer {
+	return ursa.NewIssuer()
+}
+
+func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
 	genesisFile := r.vp.GetString("genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))

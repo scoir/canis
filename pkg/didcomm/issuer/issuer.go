@@ -69,9 +69,10 @@ func New(ctx provider) (*Server, error) {
 
 	store := ctx.Store()
 	handler := &credHandler{
-		ctx:     actx,
-		credsup: credsup,
-		store:   store,
+		ctx:      actx,
+		credsup:  credsup,
+		store:    store,
+		registry: reg,
 	}
 	err = credsup.Start(handler)
 	if err != nil {
@@ -122,7 +123,7 @@ func (r *Server) IssueCredential(_ context.Context, req *api.IssueCredentialRequ
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load schema: %v", err))
 	}
 
-	attachment, err := r.registry.CreateCredentialOffer(agent.PublicDID, schema)
+	registryOfferID, attachment, err := r.registry.CreateCredentialOffer(agent.PublicDID, schema)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating credential offer: %v", err))
 	}
@@ -154,6 +155,8 @@ func (r *Server) IssueCredential(_ context.Context, req *api.IssueCredentialRequ
 	cred := &datastore.Credential{
 		AgentID:           agent.ID,
 		OfferID:           id,
+		RegistryOfferID:   registryOfferID,
+		SchemaID:          schema.ID,
 		ExternalSubjectID: req.SubjectId,
 		Offer: datastore.Offer{
 			Comment:    req.Credential.Comment,

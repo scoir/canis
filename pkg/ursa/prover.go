@@ -94,12 +94,12 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 	}
 
 	var keyCorrectnessProof unsafe.Pointer
-	credentialPubKey, err := buildFromParts(credDef.PKey(), credDef.RKey())
+	credentialPubKey, err := CredDefHandle(credDef)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to build credential public key")
 	}
 	credValuesBuilder := NewValuesBuilder()
-	credValuesBuilder.AddHidden("master_secret", string(val)) //TODO: find master secret
+	credValuesBuilder.AddHiddenDec("master_secret", string(val)) //Could this not need encoding inside values builder?
 	err = credValuesBuilder.Finalize()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to finalize builder")
@@ -107,29 +107,17 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 
 	kp := offer.KeyCorrectnessProof
 	d, _ := json.Marshal(kp)
-	cproof := C.CString(string(d))
-	fmt.Println(string(d))
-	result := C.ursa_cl_credential_key_correctness_proof_from_json(cproof, &keyCorrectnessProof)
-	if result != 0 {
-		var errJson *C.char
-		C.ursa_get_current_error(&errJson)
-		defer C.free(unsafe.Pointer(errJson))
-		return nil, nil, errors.Errorf("error from URSA getting correctness proof from json: %s", C.GoString(errJson))
+	keyCorrectnessProof, err = CredentialKeyCorrectnessProofFromJSON(string(d))
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "unable to get correctness proof from JSON")
 	}
 
-	C.free(unsafe.Pointer(cproof))
-
-	cnonce := C.CString(fmt.Sprintf(`"%s"`, offer.Nonce))
-	result = C.ursa_cl_nonce_from_json(cnonce, &nonce)
-	if result != 0 {
-		var errJson *C.char
-		C.ursa_get_current_error(&errJson)
-		defer C.free(unsafe.Pointer(errJson))
-		return nil, nil, errors.Errorf("error from URSA getting nonce from json: %s", C.GoString(errJson))
+	nonce, err = NonceFromJSON(offer.Nonce)
+	if err != nil {
+		return nil, nil, err
 	}
-	C.free(unsafe.Pointer(cnonce))
 
-	result = C.ursa_cl_prover_blind_credential_secrets(
+	result := C.ursa_cl_prover_blind_credential_secrets(
 		credentialPubKey,
 		keyCorrectnessProof,
 		credValuesBuilder.Values(),
@@ -188,21 +176,4 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 	md.MasterSecretBlindingData = C.GoString(blindingFactorsJson)
 
 	return cr, md, nil
-}
-
-func buildFromParts(pKey string, rKey string) (unsafe.Pointer, error) {
-	var out unsafe.Pointer
-	j := fmt.Sprintf(`{"p_key": %s, "r_key": %s}`, pKey, rKey)
-
-	cj := C.CString(j)
-	defer C.free(unsafe.Pointer(cj))
-	result := C.ursa_cl_credential_public_key_from_json(cj, &out)
-	if result != 0 {
-		var errJson *C.char
-		C.ursa_get_current_error(&errJson)
-		defer C.free(unsafe.Pointer(errJson))
-		return nil, errors.Errorf("error from URSA generating cred public key: %s", C.GoString(errJson))
-	}
-
-	return out, nil
 }
