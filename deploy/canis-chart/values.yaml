@@ -78,5 +78,17 @@ tolerations: []
 
 affinity: {}
 
+datastore:
+  database: mongo
+  mongo:
+    url: "mongodb://172.16.1.1:27017"
+    database: "canis"
+
+ledgerstore:
+  database: mongodb
+  url: "mongodb://172.16.1.1:27017"
+
+
+
 loadbalancerIP: ""
 adminIP: ""

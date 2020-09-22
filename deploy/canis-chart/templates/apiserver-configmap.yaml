@@ -12,20 +12,16 @@ data:
     #
     ###############################################################
     datastore:
-      database: mongo
-      mongo:
-        url: "mongodb://172.16.1.1:27017"
-        database: "canis"
-    
+      {{- toYaml .Values.datastore | nindent 6 }}
+
     ###############################################################
     #
     #  Ledger-store configuration
     #
     ###############################################################
     ledgerstore:
-      database: mongodb
-      url: "mongodb://172.16.1.1:27017"
-    
+      {{- toYaml .Values.ledgerstore | nindent 6 }}
+
     ###############################################################
     #
     #  Wallet configuration
