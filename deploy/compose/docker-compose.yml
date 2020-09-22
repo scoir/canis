@@ -35,6 +35,23 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
+  canis-didcomm-verifier:
+    image: canis/canis
+    command: "canis-didcomm-verifier start"
+    ports:
+      - "7777:7777"
+    networks:
+      - backend
+    secrets:
+      - source: canis-didcomm-verifier-config
+        target: /etc/canis/canis-didcomm-config.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
   canis-didcomm-doorman:
     image: canis/canis
     command: "canis-didcomm-doorman start"
@@ -85,6 +102,8 @@ secrets:
     file: ./canis-scheduler.yaml
   canis-didcomm-issuer-config:
     file: ./canis-didcomm-issuer.yaml
+  canis-didcomm-verifier-config:
+    file: ./canis-didcomm-verifier.yaml
   canis-didcomm-doorman-config:
     file: ./canis-didcomm-doorman.yaml
   canis-didcomm-lb-config:
