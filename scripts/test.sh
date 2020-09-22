@@ -20,7 +20,7 @@ docker run -p 5432:5432 --name PostgresStoreTest -e POSTGRES_PASSWORD=mysecretpa
 docker run -p 27017:27017 --name MongoStoreTest -d mongo:4.2.8 >/dev/null || true
 docker run -p 5984:5984 -d --name CouchDBStoreTest couchdb:2.3.1 >/dev/null || true
 
-for d in $(go list ./pkg/... | grep -v vendor); do
+for d in $(go list ./pkg/... | grep -v vendor | grep -v mocks | grep -v cmd); do
   go test -race -coverprofile=profile.out -covermode=atomic $d
   if [ -f profile.out ]; then
     cat profile.out >>coverage.txt
