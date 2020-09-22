@@ -66,6 +66,11 @@ canis-docker: build
 	@echo "building canis docker image..."
 	@docker build -f ./docker/canis/Dockerfile --no-cache -t canis/canis:latest .
 
+canis-docker-publish: canis-docker
+	@echo "publishing canis to registry..."
+	@docker tag canis/canis registry.hyades.svc.cluster.local:5000/canis
+	@docker push registry.hyades.svc.cluster.local:5000/canis
+
 canis-apiserver-pb: pkg/apiserver/api/canis-apiserver.pb.go
 pkg/apiserver/api/canis-apiserver.pb.go:pkg/apiserver/api/canis-apiserver.proto
 	cd pkg && protoc -I $(CANIS_ROOT)/protoc/include/ -I . -I apiserver/api/ apiserver/api/canis-apiserver.proto --go_out=plugins=grpc:.

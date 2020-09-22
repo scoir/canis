@@ -15,9 +15,6 @@ inbound:
     host: 172.17.0.1
     port: 5672
     vhost: canis
-protocol:
-  store: couchdb
-  url: "localhost:5984"
 
 ###############################################################
 #
@@ -36,9 +33,8 @@ datastore:
 #
 ###############################################################
 ledgerstore:
-  database: couchdb
-  couchdb:
-    url: "localhost:5984"
+  database: mongodb
+  url: "mongodb://172.17.0.1:27017"
 
 ###############################################################
 #

@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canis-apiserver-config
+  labels:
+    app: canis-apiserver-config
+data:
+  canis-apiserver-config.yaml: |-
+    ###############################################################
+    #
+    #  Datastore configuration
+    #
+    ###############################################################
+    datastore:
+      database: mongo
+      mongo:
+        url: "mongodb://172.16.1.1:27017"
+        database: "canis"
+    
+    ###############################################################
+    #
+    #  Ledger-store configuration
+    #
+    ###############################################################
+    ledgerstore:
+      database: mongodb
+      url: "mongodb://172.16.1.1:27017"
+    
+    ###############################################################
+    #
+    #  Wallet configuration
+    #
+    ###############################################################
+    wallet:
+      masterLockKey: "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
+    
+    ###############################################################
+    #
+    #  API Server
+    #
+    ###############################################################
+    api:
+      grpc:
+        host: 0.0.0.0
+        port: 7778
+      grpcBridge:
+        host: 0.0.0.0
+        port: 7779
+    
+    ###############################################################
+    #
+    #  Doorman configuration
+    #
+    ###############################################################
+    doorman:
+      grpc:
+        host: 172.16.1.1
+        port: 8886
+    
+    ###############################################################
+    #
+    #  Issuer configuration
+    #
+    ###############################################################
+    issuer:
+      grpc:
+        host: 172.16.1.1
+        port: 7776
+    
+    ###############################################################
+    #
+    #  Loadbalancer configuration
+    #
+    ###############################################################
+    loadbalancer:
+      grpc:
+        host: 172.16.1.1
+        port: 9996
+    
+    ###############################################################
+    #
+    #  Indy VDR Configuration
+    #
+    ###############################################################
+    genesisFile: |
+      {"reqSignature":{},"txn":{"data":{"data":{"alias":"Node1","blskey":"2oPuTAkHLJLsscCKTEyuRCtHAXPGomBhFjJqS2YHQNtUKkeSc4ys1EUAoU98We6RQTm3uhP4ARN6VSDQdhetKFf6hr3DpqNb9dL9BXVXTnMtHciZpAXV4Coh1Rz5r7zDmLMWtU7qtbLmrvWaEB3zbVCBLyPeZ6RjF3eTmEmoBtckRiD","blskey_pop":"RQjd7MUtCsUYinoC2y5FyT7Fr8SWQma9dKbTxH2AGy8yB8Cb2DvzEuvDnP5SaiAUSpgrJ1owccXEjvJxyqn1HoPaPERBjHJ48JPaSZzaub4LmXHgYTcFaCexYCwKRXd8sWU3AsDJ3a82BzHAUquwnxH4kGD8wsNrkEbWnDdeKoCrqd","client_ip":"35.224.99.102","client_port":9702,"node_ip":"35.224.99.102","node_port":9701,"services":["VALIDATOR"]},"dest":"FuxdMbhuxEugEBh6hiTm76YNa4EwYGAzL4gDUL9KwbPc"},"metadata":{"from":"R8KnorqJWasDTKNjox32Xg"},"type":"0"},"txnMetadata":{"seqNo":1,"txnId":"fea82e10e894419fe2bea7d96296a6d46f50f93f9eeda954ec461b2ed2950b62"},"ver":"1"}
+      {"reqSignature":{},"txn":{"data":{"data":{"alias":"Node2","blskey":"3M34rpSASrCgZBbBDF6RPd1fhB6iTzc5t75yrBJXYpu4bnAa3ar8UAMrHCj72y6bhcjvzfjYa4rpZC7DW294b7t3WNJC6Lq6qwh1Rkb5KvWTzmCWDPuvncgmMYc4tSg4jcMaeuneyGZxmt8atyYEYZZgEeBubFazdqvuWSXB3WzjUVh","blskey_pop":"REymi2q9vQxvQ3tVjfpnjqBSfWFUbfF6iCydRfJ2LGq2FFvYnah3sAVaPJj8LKGcR8PmtZrH1AE4tpJbkUHozGLHXAxgw5zPt6pLyArXXiZywetAyEDaGWY6qBovDL53LuRdo9NQwur3F8Q42jnrofM5B9aULisMADFwSJCVo6sxbq","client_ip":"35.194.29.172","client_port":9702,"node_ip":"35.194.29.172","node_port":9701,"services":["VALIDATOR"]},"dest":"3JDGqHHDxHXe8TA1crUBd7ZLgZ5XquVwT3ja7Xc1BnSu"},"metadata":{"from":"9136GRDo6kb6WTV5kw8KqT"},"type":"0"},"txnMetadata":{"seqNo":2,"txnId":"1ac8aece2a18ced660fef8694b61aac3af08ba875ce3026a160acbc3a3af35fc"},"ver":"1"}
+      {"reqSignature":{},"txn":{"data":{"data":{"alias":"Node3","blskey":"iqVrQSMkesY79DkWUDe9ct65Tr5ZC7tjqcaHg1V4VUeWjpP9c7ivRN1ojLj5hCZvS6QWir9HJ9AfN7NRgjppYY14QMsmSJP7tqKhuUVjyjLU67spH82sxS38BR6ny7VSbsUzhw2e6yeLcGaCQ8pC2sks8ms9i9RpzfM98HEotTrBK9","blskey_pop":"RLisTdzY9cewdbcP5zNFZWNivQbDSmivNXKmihuLdBwLPuftgpXWJ6GrtvnG77H1ers8MivyA31CoSEjMcLAU7fsMDdiPpbtnyous5yGsjTBqUeNrsnEjzewAxsr7LtVYpX6AADjqwbALdrDy4oH95VkJfGgsufVuoNnhiqvptemrX","client_ip":"35.188.30.114","client_port":9702,"node_ip":"35.188.30.114","node_port":9701,"services":["VALIDATOR"]},"dest":"FJi3TSTvtuvi34dxCxFFJWJadS7nKvQPS6b75T4WKrBF"},"metadata":{"from":"TwFHEwvwrET8oH2ReFVVVV"},"type":"0"},"txnMetadata":{"seqNo":3,"txnId":"7e9f355dffa78ed24668f0e0e369fd8c224076571c51e2ea8be5f26479edebe4"},"ver":"1"}
+      {"reqSignature":{},"txn":{"data":{"data":{"alias":"Node4","blskey":"qG71w4bEMzKcTBAnLHXipezdqLYY8qSkMXkTGe6tV7r9dR1vFYjNEZGzqYuyf6xdH1GAtaAjSdE254M1heFeQ7X6ZteiatNyzwGnadXA2iUDY96xJccMhD7xLFZPzUUtVp7ksNyVvtbpjozBGgRs3EhjtKZWtamfLCVhJSNzRDc8dT","blskey_pop":"RDNaF5fLZy6vuam4W8gdjw4u29jjzDdDUWM2eGz8kVB2RHayN21YJRhNeMCVB8htKutbSbC9sJkF2pJ4q4TDnMES19tBGQgiCzRipYdkpWkUxFrwimEZvzx9oGAZ1c4qSDvrLBDC8FMbYFZW9YFNPEc64zTNPKKBUube5qVoiMa8a3","client_ip":"104.197.31.122","client_port":9702,"node_ip":"104.197.31.122","node_port":9701,"services":["VALIDATOR"]},"dest":"C7xodbAn5hx7tai7Vx9uujipMaBWQNc1216zPifxHZ5n"},"metadata":{"from":"HNZ34m5NNY1UwCjFEDaBAc"},"type":"0"},"txnMetadata":{"seqNo":4,"txnId":"aa5e817d7cc626170eca175822029339a444eb0ee8f0bd20d3b0b76e566fb008"},"ver":"1"}

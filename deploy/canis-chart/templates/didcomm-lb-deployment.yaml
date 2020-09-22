@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: canis-didcomm-lb
+  name: canis-didcomm-lb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: canis-didcomm-lb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        component: canis-didcomm-lb
+        name: canis-didcomm-lb
+    spec:
+      containers:
+        - image: registry.hyades.svc.cluster.local:5000/canis
+          imagePullPolicy: "Always"
+          name: canis-didcomm-lb
+          command:
+            - canis-didcomm-lb
+            - start
+          ports:
+            - name: ws-didcomm
+              containerPort: 9001
+              protocol: TCP
+            - name: http-didcomm
+              containerPort: 9003
+              protocol: TCP
+            - name: grpc
+              containerPort: 9996
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - mountPath: "/etc/canis"
+              name: canis-didcomm-lb-config
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+        - name: canis-didcomm-lb-config
+          configMap:
+            name: canis-didcomm-lb-config

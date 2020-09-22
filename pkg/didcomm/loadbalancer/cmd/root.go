@@ -51,7 +51,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/canis/canis-didcomm-lb-config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/canis/canis-lb-config.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -65,7 +65,7 @@ func initConfig() {
 		vp.SetConfigType("yaml")
 		vp.AddConfigPath("/etc/canis/")
 		vp.AddConfigPath("./deploy/compose/")
-		vp.SetConfigName("canis-didcomm-lb-config")
+		vp.SetConfigName("canis-lb-config")
 	}
 
 	vp.SetEnvPrefix("CANIS")

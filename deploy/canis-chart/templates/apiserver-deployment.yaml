@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: canis-apiserver
+  name: canis-apiserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: canis-apiserver
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        component: canis-apiserver
+        name: canis-apiserver
+    spec:
+      containers:
+        - image: registry.hyades.svc.cluster.local:5000/canis
+          imagePullPolicy: "Always"
+          name: canis-apiserver
+          command:
+            - canis-apiserver
+            - start
+          ports:
+            - name: grpc
+              containerPort: 7778
+              protocol: TCP
+            - name: grpc-bridge
+              containerPort: 7779
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - mountPath: "/etc/canis"
+              name: canis-apiserver-config
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+        - name: canis-apiserver-config
+          configMap:
+            name: canis-apiserver-config

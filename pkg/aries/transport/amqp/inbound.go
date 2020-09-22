@@ -74,7 +74,7 @@ func (i *Inbound) Start(prov transport.Provider) error {
 	} else {
 		conn, err = amqp.Dial(i.internalAddr)
 		if err != nil {
-			return errors.Wrap(err, "unable to connect to RabbitMQ")
+			return errors.Wrapf(err, "unable to connect to RabbitMQ at %s", i.internalAddr)
 		}
 	}
 

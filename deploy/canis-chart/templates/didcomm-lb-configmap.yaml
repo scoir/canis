@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canis-didcomm-lb-config
+  labels:
+    app: canis-didcomm-lb-config
+data:
+  canis-lb-config.yaml: |-
+    ###############################################################
+    #
+    #  DIDComm Load Balancer
+    #
+    ###############################################################
+    inbound:
+      host: 0.0.0.0
+      httpPort: 9003
+      wsPort: 9001
+      external: "ws://172.16.1.1:{{if ne .Values.loadbalancerIP ""}}9001{{ else }}30001{{end}}"
+
+    ###############################################################
+    #
+    #  AMQP Server (rabbitMQ)
+    #
+    ###############################################################
+    amqp:
+      user: canis
+      password: canis
+      host: 172.16.1.1
+      port: 5672
+      vhost: canis
+
+    ###############################################################
+    #
+    #  Datastore configuration
+    #
+    ###############################################################
+    datastore:
+      database: mongo
+      mongo:
+        url: "mongodb://172.16.1.1:27017"
+        database: "canis"
+
+    ###############################################################
+    #
+    #  GRPC Server
+    #
+    ###############################################################
+    loadbalancer:
+      grpc:
+        host: 0.0.0.0
+        port: 9996
+
+    ###############################################################
+    #
+    #  Ledger-store configuration
+    #
+    ###############################################################
+    ledgerstore:
+      database: mongodb
+      url: "mongodb://172.16.1.1:27017"

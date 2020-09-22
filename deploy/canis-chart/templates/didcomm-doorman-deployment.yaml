@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: canis-didcomm-doorman
+  name: canis-didcomm-doorman
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: canis-didcomm-doorman
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        component: canis-didcomm-doorman
+        name: canis-didcomm-doorman
+    spec:
+      containers:
+        - image: registry.hyades.svc.cluster.local:5000/canis
+          imagePullPolicy: "Always"
+          name: canis-didcomm-doorman
+          command:
+            - canis-didcomm-doorman
+            - start
+          ports:
+            - containerPort: 8886
+          resources: {}
+          volumeMounts:
+            - mountPath: "/etc/canis"
+              name: canis-didcomm-doorman-config
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+        - name: canis-didcomm-doorman-config
+          configMap:
+            name: canis-didcomm-doorman-config
