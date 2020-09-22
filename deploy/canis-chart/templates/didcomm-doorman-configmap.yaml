@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: canis-didcomm-doorman-config
+  name: {{ include "canis.fullname" . }}-didcomm-doorman-config
   labels:
-    app: canis-didcomm-doorman-config
+    app: {{ include "canis.fullname" . }}-didcomm-doorman
 data:
   canis-doorman-config.yaml: |-
     ###############################################################

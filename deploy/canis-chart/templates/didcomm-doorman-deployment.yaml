@@ -1,26 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-doorman
   labels:
-    name: canis-didcomm-doorman
-  name: canis-didcomm-doorman
+    name: {{ include "canis.fullname" . }}-didcomm-doorman
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: canis-didcomm-doorman
+      name: {{ include "canis.fullname" . }}-didcomm-doorman
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        component: canis-didcomm-doorman
-        name: canis-didcomm-doorman
+        name: {{ include "canis.fullname" . }}-didcomm-doorman
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
-        - image: registry.hyades.svc.cluster.local:5000/canis
-          imagePullPolicy: "Always"
-          name: canis-didcomm-doorman
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: didcomm-doorman
           command:
             - canis-didcomm-doorman
             - start
@@ -31,10 +34,10 @@ spec:
           resources: {}
           volumeMounts:
             - mountPath: "/etc/canis"
-              name: canis-didcomm-doorman-config
+              name: didcomm-doorman-config
       restartPolicy: Always
       serviceAccountName: ""
       volumes:
-        - name: canis-didcomm-doorman-config
+        - name: didcomm-doorman-config
           configMap:
-            name: canis-didcomm-doorman-config
+            name: {{ include "canis.fullname" . }}-didcomm-doorman-config

@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-issuer
   labels:
-    name: canis-didcomm-issuer
-  name: canis-didcomm-issuer
+    name: {{ include "canis.fullname" . }}-didcomm-issuer
 spec:
   ports:
     - name: grpc
@@ -11,6 +11,6 @@ spec:
       protocol: TCP
       targetPort: 7776
   selector:
-    name: canis-didcomm-issuer
+    name: {{ include "canis.fullname" . }}-didcomm-issuer
   sessionAffinity: None
   type: ClusterIP

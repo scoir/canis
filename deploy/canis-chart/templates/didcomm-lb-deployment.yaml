@@ -1,26 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-lb
   labels:
-    name: canis-didcomm-lb
-  name: canis-didcomm-lb
+    name: {{ include "canis.fullname" . }}-didcomm-lb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: canis-didcomm-lb
+      name: {{ include "canis.fullname" . }}-didcomm-lb
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        component: canis-didcomm-lb
-        name: canis-didcomm-lb
+        name: {{ include "canis.fullname" . }}-didcomm-lb
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
-        - image: registry.hyades.svc.cluster.local:5000/canis
-          imagePullPolicy: "Always"
-          name: canis-didcomm-lb
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: didcomm-lb
           command:
             - canis-didcomm-lb
             - start
@@ -37,10 +40,10 @@ spec:
           resources: {}
           volumeMounts:
             - mountPath: "/etc/canis"
-              name: canis-didcomm-lb-config
+              name: didcomm-lb-config
       restartPolicy: Always
       serviceAccountName: ""
       volumes:
-        - name: canis-didcomm-lb-config
+        - name: didcomm-lb-config
           configMap:
-            name: canis-didcomm-lb-config
+            name: {{ include "canis.fullname" . }}-didcomm-lb-config

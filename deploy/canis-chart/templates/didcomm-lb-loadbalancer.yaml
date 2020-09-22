@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-lb-external
   labels:
-    name: canis-didcomm-lb-external
-  name: canis-didcomm-lb-external
+    name: {{ include "canis.fullname" . }}-didcomm-lb-external
 spec:
   ports:
     - name: ws-didcomm
@@ -16,7 +16,7 @@ spec:
       protocol: TCP
       targetPort: 9003
   selector:
-    name: canis-didcomm-lb
+    name: {{ include "canis.fullname" . }}-didcomm-lb
   sessionAffinity: None
   type: LoadBalancer
   loadBalancerIP: {{ .Values.loadbalancerIP }}
@@ -25,8 +25,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    name: canis-didcomm-lb-external
-  name: canis-didcomm-lb-external
+    name: {{ include "canis.fullname" . }}-didcomm-lb-external
+  name: {{ include "canis.fullname" . }}-didcomm-lb-external
 spec:
   ports:
     - name: ws-didcomm
@@ -40,7 +40,7 @@ spec:
       targetPort: 9003
       nodePort: 30003
   selector:
-    name: canis-didcomm-lb
+    name: {{ include "canis.fullname" . }}-didcomm-lb
   sessionAffinity: None
   type: NodePort
 {{ end }}

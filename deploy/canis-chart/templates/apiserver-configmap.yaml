@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: canis-apiserver-config
+  name: {{ include "canis.fullname" . }}-apiserver-config
   labels:
-    app: canis-apiserver-config
+    app: {{ include "canis.fullname" . }}-canis-apiserver
 data:
   canis-apiserver-config.yaml: |-
     ###############################################################

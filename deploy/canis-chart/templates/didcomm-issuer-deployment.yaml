@@ -1,26 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-issuer
   labels:
-    name: canis-didcomm-issuer
-  name: canis-didcomm-issuer
+    name: {{ include "canis.fullname" . }}-didcomm-issuer
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: canis-didcomm-issuer
+      name: {{ include "canis.fullname" . }}-didcomm-issuer
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        component: canis-didcomm-issuer
-        name: canis-didcomm-issuer
+        name: {{ include "canis.fullname" . }}-didcomm-issuer
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
-        - image: registry.hyades.svc.cluster.local:5000/canis
-          imagePullPolicy: "Always"
-          name: canis-didcomm-issuer
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: didcomm-issuer
           command:
             - canis-didcomm-issuer
             - start
@@ -31,10 +34,10 @@ spec:
           resources: {}
           volumeMounts:
             - mountPath: "/etc/canis"
-              name: canis-didcomm-issuer-config
+              name: didcomm-issuer-config
       restartPolicy: Always
       serviceAccountName: ""
       volumes:
-        - name: canis-didcomm-issuer-config
+        - name: didcomm-issuer-config
           configMap:
-            name: canis-didcomm-issuer-config
+            name: {{ include "canis.fullname" . }}-didcomm-issuer-config

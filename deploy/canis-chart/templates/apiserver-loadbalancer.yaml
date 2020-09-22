@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: {{ include "canis.fullname" . }}-apiserver
   labels:
-    name: canis-apiserver
-  name: canis-apiserver
+    name: {{ include "canis.fullname" . }}-apiserver
 spec:
   ports:
     - name: grpc
@@ -16,7 +16,7 @@ spec:
       protocol: TCP
       targetPort: 7779
   selector:
-    name: canis-apiserver
+    name: {{ include "canis.fullname" . }}-apiserver
   sessionAffinity: None
   type: LoadBalancer
   loadBalancerIP: {{ .Values.adminIP }}
@@ -25,8 +25,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    name: canis-apiserver
-  name: canis-apiserver
+    name: {{ include "canis.fullname" . }}-apiserver
+  name: {{ include "canis.fullname" . }}-apiserver
 spec:
   ports:
   - name: grpc
@@ -40,7 +40,7 @@ spec:
     protocol: TCP
     targetPort: 7779
   selector:
-    name: canis-apiserver
+    name: {{ include "canis.fullname" . }}-apiserver
   sessionAffinity: None
   type: NodePort
 {{ end }}

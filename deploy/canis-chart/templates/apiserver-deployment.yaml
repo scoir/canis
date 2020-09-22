@@ -1,26 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: {{ include "canis.fullname" . }}-apiserver
   labels:
-    name: canis-apiserver
-  name: canis-apiserver
+    name: {{ include "canis.fullname" . }}-apiserver
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: canis-apiserver
+      name: {{ include "canis.fullname" . }}-apiserver
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        component: canis-apiserver
-        name: canis-apiserver
+        name: {{ include "canis.fullname" . }}-apiserver
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
-        - image: registry.hyades.svc.cluster.local:5000/canis
-          imagePullPolicy: "Always"
-          name: canis-apiserver
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: apiserver
           command:
             - canis-apiserver
             - start
@@ -34,10 +37,10 @@ spec:
           resources: {}
           volumeMounts:
             - mountPath: "/etc/canis"
-              name: canis-apiserver-config
+              name: apiserver-config
       restartPolicy: Always
       serviceAccountName: ""
       volumes:
-        - name: canis-apiserver-config
+        - name: apiserver-config
           configMap:
-            name: canis-apiserver-config
+            name: {{ include "canis.fullname" . }}-apiserver-config

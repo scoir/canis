@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-doorman
   labels:
-    name: canis-didcomm-doorman
-  name: canis-didcomm-doorman
+    name: {{ include "canis.fullname" . }}-didcomm-doorman
 spec:
   ports:
     - name: grpc
@@ -11,6 +11,6 @@ spec:
       protocol: TCP
       targetPort: 8886
   selector:
-    name: canis-didcomm-doorman
+    name: {{ include "canis.fullname" . }}-didcomm-doorman
   sessionAffinity: None
   type: ClusterIP
