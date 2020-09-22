@@ -13,22 +13,24 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
-	"github.com/scoir/canis/pkg/credential/engine"
+	cengine "github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	pengine "github.com/scoir/canis/pkg/presentproof/engine"
 )
 
 type APIServer struct {
-	keyMgr         kms.KeyManager
-	agentStore     datastore.Store
-	schemaStore    datastore.Store
-	didStore       datastore.Store
-	client         vdrClient
-	schemaRegistry engine.CredentialRegistry
+	keyMgr               kms.KeyManager
+	agentStore           datastore.Store
+	schemaStore          datastore.Store
+	didStore             datastore.Store
+	client               vdrClient
+	schemaRegistry       cengine.CredentialRegistry
+	presentationRegistry pengine.PresentationRegistry
 
 	doorman      doorman.DoormanClient
 	issuer       issuer.IssuerClient
@@ -45,7 +47,8 @@ type provider interface {
 	GetDoormanClient() (doorman.DoormanClient, error)
 	GetIssuerClient() (issuer.IssuerClient, error)
 	GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error)
-	GetCredentailEngineRegistry() (engine.CredentialRegistry, error)
+	GetCredentialEngineRegistry() (cengine.CredentialRegistry, error)
+	GetPresentationEngineRegistry() (pengine.PresentationRegistry, error)
 }
 
 type vdrClient interface {
@@ -90,9 +93,14 @@ func New(ctx provider) (*APIServer, error) {
 		return nil, errors.Wrap(err, "unable to get loadbalancer client")
 	}
 
-	r.schemaRegistry, err = ctx.GetCredentailEngineRegistry()
+	r.schemaRegistry, err = ctx.GetCredentialEngineRegistry()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load credential engine registry")
+	}
+
+	r.presentationRegistry, err = ctx.GetPresentationEngineRegistry()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load presentation engine registry")
 	}
 
 	return r, nil

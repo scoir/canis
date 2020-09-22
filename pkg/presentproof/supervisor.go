@@ -35,13 +35,13 @@ type provider interface {
 }
 
 func New(ctx provider) (*Supervisor, error) {
-	credcli, err := ctx.GetPresentProofClient()
+	ppcli, err := ctx.GetPresentProofClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create present proof client in supervisor")
 	}
 
 	r := &Supervisor{
-		ppcli:   credcli,
+		ppcli:   ppcli,
 		actions: make(map[string]chan service.DIDCommAction),
 	}
 
@@ -87,7 +87,7 @@ func (r *Supervisor) startActionListener(aCh chan service.DIDCommAction) {
 			continue
 		}
 
-		log.Println("unhandled message type in credential supervisor:", e.Message.Type())
+		log.Println("unhandled message type in proof supervisor:", e.Message.Type())
 	}
 }
 
@@ -129,7 +129,7 @@ func (r *Supervisor) execPresentationPreview(ch chan service.DIDCommAction, f Ha
 		pres := &presentproof.Presentation{}
 		err := e.Message.Decode(pres)
 		if err != nil {
-			log.Println("invalid credential presentation object")
+			log.Println("invalid proof presentation object")
 		}
 
 		f.PresentationPreviewMsg(e, pres)
@@ -137,8 +137,8 @@ func (r *Supervisor) execPresentationPreview(ch chan service.DIDCommAction, f Ha
 }
 
 func (r *Supervisor) startMessageListener() {
-	credMsgCh := make(chan service.StateMsg)
-	_ = r.ppcli.RegisterMsgEvent(credMsgCh)
+	proofMsgCh := make(chan service.StateMsg)
+	_ = r.ppcli.RegisterMsgEvent(proofMsgCh)
 	go func(ch chan service.StateMsg) {
 		for msg := range ch {
 			if msg.Type == service.PostState {
@@ -150,5 +150,5 @@ func (r *Supervisor) startMessageListener() {
 				log.Println("PROOF MSG:", msg.ProtocolName, msg.StateID, thid, pthid)
 			}
 		}
-	}(credMsgCh)
+	}(proofMsgCh)
 }

@@ -21,7 +21,8 @@ func TestNew(t *testing.T) {
 		p.On("GetDoormanClient").Return(nil, nil)
 		p.On("GetIssuerClient").Return(nil, nil)
 		p.On("GetLoadbalancerClient").Return(nil, nil)
-		p.On("GetCredentailEngineRegistry").Return(nil, nil)
+		p.On("GetCredentialEngineRegistry").Return(nil, nil)
+		p.On("GetPresentationEngineRegistry").Return(nil, nil)
 		p.On("KMS").Return(nil, nil)
 
 		server, err := New(p)

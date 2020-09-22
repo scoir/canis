@@ -45,7 +45,7 @@ type Server struct {
 type provider interface {
 	Store() datastore.Store
 	GetAriesContext() (*ariescontext.Provider, error)
-	GetCredentailEngineRegistry() (engine.CredentialRegistry, error)
+	GetCredentialEngineRegistry() (engine.CredentialRegistry, error)
 }
 
 func New(ctx provider) (*Server, error) {
@@ -57,7 +57,7 @@ func New(ctx provider) (*Server, error) {
 		log.Fatalln("unable to get credential client")
 	}
 
-	reg, err := ctx.GetCredentailEngineRegistry()
+	reg, err := ctx.GetCredentialEngineRegistry()
 	if err != nil {
 		log.Fatalln("unable to initialize credential engine registry", err)
 	}
