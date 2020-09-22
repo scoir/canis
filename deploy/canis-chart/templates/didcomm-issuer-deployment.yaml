@@ -25,7 +25,9 @@ spec:
             - canis-didcomm-issuer
             - start
           ports:
-            - containerPort: 7776
+            - name: grpc
+              containerPort: 7776
+              protocol: TCP
           resources: {}
           volumeMounts:
             - mountPath: "/etc/canis"

@@ -25,7 +25,9 @@ spec:
             - canis-didcomm-doorman
             - start
           ports:
-            - containerPort: 8886
+            - name: grpc
+              containerPort: 8886
+              protocol: TCP
           resources: {}
           volumeMounts:
             - mountPath: "/etc/canis"
