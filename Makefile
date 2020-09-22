@@ -1,6 +1,7 @@
 .PHONY := clean test tools agency
 
 CANIS_ROOT=$(abspath .)
+SIRIUS_FILES = $(wildcard pkg/sirius/**/*.go cmd/sirius/*.go)
 DIDCOMM_LB_FILES = $(wildcard pkg/didcomm/loadbalancer/*.go pkg/didcomm/loadbalancer/**/*.go cmd/canis-didcomm-lb/*.go)
 DIDCOMM_ISSUER_FILES = $(wildcard pkg/didcomm/issuer/*.go pkg/didcomm/issuer/**/*.go cmd/canis-didcomm-issuer/*.go)
 DIDCOMM_DOORMAN_FILES = $(wildcard pkg/didcomm/doorman/*.go pkg/didcomm/doorman/**/*.go cmd/canis-didcomm-doorman/*.go)
@@ -50,7 +51,8 @@ bin/canis-didcomm-lb: $(DIDCOMM_LB_FILES)
 	@. ./canis.sh; cd cmd/canis-didcomm-lb && go build -o $(CANIS_ROOT)/bin/canis-didcomm-lb
 
 sirius: bin/sirius
-bin/sirius:
+bin/sirius: $(SIRIUS_FILES)
+	@echo 'building sirius...'
 	@. ./canis.sh; cd cmd/sirius && go build -o $(CANIS_ROOT)/bin/sirius
 
 .PHONY: canis-docker

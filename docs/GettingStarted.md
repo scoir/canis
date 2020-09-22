@@ -3,7 +3,7 @@
 You start a Canis cluster using the `sirius` command line tool.  The basic command structure is:
 
 ```
-% sirius start --config <path-to-yaml>
+% bin/sirius init --config ./config/sirius.yaml --seed "b2352b32947e188eb72871093ac6217e"
 ```
 
 ## Configuration
