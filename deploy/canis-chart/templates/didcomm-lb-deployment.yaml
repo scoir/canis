@@ -29,13 +29,13 @@ spec:
             - start
           ports:
             - name: ws-didcomm
-              containerPort: 9001
+              containerPort: {{ .Values.loadbalancer.inbound.wsPort }}
               protocol: TCP
             - name: http-didcomm
-              containerPort: 9003
+              containerPort: {{ .Values.loadbalancer.inbound.httpPort }}
               protocol: TCP
             - name: grpc
-              containerPort: 9996
+              containerPort: {{ .Values.loadbalancer.grpc.port }}
               protocol: TCP
           resources: {}
           volumeMounts:

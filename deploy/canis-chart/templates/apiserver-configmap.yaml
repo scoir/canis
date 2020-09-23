@@ -28,7 +28,7 @@ data:
     #
     ###############################################################
     wallet:
-      masterLockKey: "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
+      masterLockKey: {{ .Values.wallet.masterLockKey }}
     
     ###############################################################
     #
@@ -38,10 +38,10 @@ data:
     api:
       grpc:
         host: 0.0.0.0
-        port: 7778
+        port: {{ .Values.apiserver.grpc.port }}
       grpcBridge:
         host: 0.0.0.0
-        port: 7779
+        port: {{ .Values.apiserver.grpcBridge.port }}
     
     ###############################################################
     #
@@ -51,7 +51,7 @@ data:
     doorman:
       grpc:
         host: canis-didcomm-doorman
-        port: 8886
+        port: {{ .Values.doorman.grpc.port }}
     
     ###############################################################
     #
@@ -61,7 +61,7 @@ data:
     issuer:
       grpc:
         host: canis-didcomm-issuer
-        port: 7776
+        port: {{ .Values.issuer.grpc.port }}
     
     ###############################################################
     #
@@ -71,7 +71,7 @@ data:
     loadbalancer:
       grpc:
         host: canis-didcomm-lb
-        port: 9996
+        port: {{ .Values.loadbalancer.grpc.port }}
     
     ###############################################################
     #

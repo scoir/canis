@@ -13,9 +13,9 @@ data:
     ###############################################################
     inbound:
       host: 0.0.0.0
-      httpPort: 9003
-      wsPort: 9001
-      external: "ws://172.16.1.1:{{if ne .Values.loadbalancerIP ""}}9001{{ else }}30001{{end}}"
+      httpPort: {{ .Values.loadbalancer.inbound.httpPort }}
+      wsPort: {{ .Values.loadbalancer.inbound.wsPort }}
+      external: "ws://{{ .Values.loadbalancer.inbound.external.host }}:{{if ne .Values.loadbalancerIP ""}}{{ .Values.loadbalancer.inbound.wsPort }}{{ else }}{{ .Values.loadbalancer.inbound.external.wsPort }}{{end}}"
 
     ###############################################################
     #
@@ -23,11 +23,7 @@ data:
     #
     ###############################################################
     amqp:
-      user: canis
-      password: canis
-      host: 172.16.1.1
-      port: 5672
-      vhost: canis
+      {{- toYaml .Values.amqp | nindent 6 }}
 
     ###############################################################
     #
@@ -45,7 +41,7 @@ data:
     loadbalancer:
       grpc:
         host: 0.0.0.0
-        port: 9996
+        port: {{ .Values.loadbalancer.grpc.port }}
 
     ###############################################################
     #

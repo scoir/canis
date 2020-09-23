@@ -8,13 +8,13 @@ metadata:
 spec:
   ports:
     - name: grpc
-      port: 7778
+      port: {{ .Values.apiserver.grpc.port }}
       protocol: TCP
       targetPort: 7777
     - name: grpc-bridge
-      port: 7779
+      port: {{ .Values.apiserver.grpcBridge.port }}
       protocol: TCP
-      targetPort: 7779
+      targetPort: {{ .Values.apiserver.grpcBridge.port }}
   selector:
     name: {{ include "canis.fullname" . }}-apiserver
   sessionAffinity: None
@@ -30,15 +30,15 @@ metadata:
 spec:
   ports:
   - name: grpc
-    port: 7778
+    port: {{ .Values.apiserver.grpc.port }}
     nodePort: 30778
     protocol: TCP
-    targetPort: 7778
+    targetPort: {{ .Values.apiserver.grpc.port }}
   - name: grpc-bridge
-    port: 7779
+    port: {{ .Values.apiserver.grpcBridge.port }}
     nodePort: 30779
     protocol: TCP
-    targetPort: 7779
+    targetPort: {{ .Values.apiserver.grpcBridge.port }}
   selector:
     name: {{ include "canis.fullname" . }}-apiserver
   sessionAffinity: None

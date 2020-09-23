@@ -14,15 +14,11 @@ data:
     api:
       grpc:
         host: 0.0.0.0
-        port: 7776
+        port: {{ .Values.issuer.grpc.port }}
     inbound:
       external: ws://0.0.0.0:3001
       amqp:
-        user: canis
-        password: canis
-        host: 172.16.1.1
-        port: 5672
-        vhost: canis
+        {{- toYaml .Values.amqp | nindent 8 }}
     
     ###############################################################
     #

@@ -29,7 +29,7 @@ spec:
             - start
           ports:
             - name: grpc
-              containerPort: 7776
+              containerPort: {{ .Values.issuer.grpc.port }}
               protocol: TCP
           resources: {}
           volumeMounts:

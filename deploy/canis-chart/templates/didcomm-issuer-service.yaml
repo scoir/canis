@@ -7,9 +7,9 @@ metadata:
 spec:
   ports:
     - name: grpc
-      port: 7776
+      port: {{ .Values.issuer.grpc.port }}
       protocol: TCP
-      targetPort: 7776
+      targetPort: {{ .Values.issuer.grpc.port }}
   selector:
     name: {{ include "canis.fullname" . }}-didcomm-issuer
   sessionAffinity: None

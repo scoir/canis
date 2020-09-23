@@ -29,7 +29,7 @@ spec:
             - start
           ports:
             - name: grpc
-              containerPort: 8886
+              containerPort: {{ .Values.doorman.grpc.port }}
               protocol: TCP
           resources: {}
           volumeMounts:

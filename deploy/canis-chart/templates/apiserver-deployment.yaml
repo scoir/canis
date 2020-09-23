@@ -29,10 +29,10 @@ spec:
             - start
           ports:
             - name: grpc
-              containerPort: 7778
+              containerPort: {{ .Values.apiserver.grpc.port }}
               protocol: TCP
             - name: grpc-bridge
-              containerPort: 7779
+              containerPort: {{ .Values.apiserver.grpcBridge.port }}
               protocol: TCP
           resources: {}
           volumeMounts:

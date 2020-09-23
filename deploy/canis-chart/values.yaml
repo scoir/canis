@@ -81,6 +81,9 @@ affinity: {}
 loadbalancerIP: ""
 adminIP: ""
 
+wallet:
+  masterLockKey: "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
+
 datastore:
   database: mongo
   mongo:
@@ -90,3 +93,38 @@ datastore:
 ledgerstore:
   database: mongodb
   url: "mongodb://172.16.1.1:27017"
+
+amqp:
+  user: canis
+  password: canis
+  host: 172.16.1.1
+  port: 5672
+  vhost: canis
+
+
+apiserver:
+  grpc:
+    port: 7778
+  grpcBridge:
+    port: 7779
+
+doorman:
+  grpc:
+    port: 8886
+
+
+issuer:
+  grpc:
+    port: 7776
+
+loadbalancer:
+  grpc:
+    port: 9996
+  inbound:
+    wsPort: 9001
+    httpPort: 9003
+    external:
+      wsPort: 30001
+      httpPort: 30003
+      host: 172.16.1.1
+

@@ -7,9 +7,9 @@ metadata:
 spec:
   ports:
     - name: grpc
-      port: 8886
+      port: {{ .Values.doorman.grpc.port }}
       protocol: TCP
-      targetPort: 8886
+      targetPort: {{ .Values.doorman.grpc.port }}
   selector:
     name: {{ include "canis.fullname" . }}-didcomm-doorman
   sessionAffinity: None
