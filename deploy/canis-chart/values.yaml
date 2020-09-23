@@ -78,6 +78,9 @@ tolerations: []
 
 affinity: {}
 
+loadbalancerIP: ""
+adminIP: ""
+
 datastore:
   database: mongo
   mongo:
@@ -87,8 +90,3 @@ datastore:
 ledgerstore:
   database: mongodb
   url: "mongodb://172.16.1.1:27017"
-
-
-
-loadbalancerIP: ""
-adminIP: ""

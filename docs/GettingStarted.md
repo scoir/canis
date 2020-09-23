@@ -1,5 +1,18 @@
 # Basics
 
+```
+. canis.sh
+make canis-docker
+```
+
+Install RabbitMQ
+
+```
+sudo rabbitmqctl add_user canis canis
+sudo rabbitmqctl add_vhost canis
+sudo rabbitmqctl set_permissions -p "canis" "canis" ".*" ".*" ".*"
+```
+
 You start a Canis cluster using the `sirius` command line tool.  The basic command structure is:
 
 ```
