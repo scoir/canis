@@ -20,9 +20,14 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      serviceAccountName: {{ include "canis.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           name: didcomm-lb
           command:
             - canis-didcomm-lb
@@ -42,7 +47,6 @@ spec:
             - mountPath: "/etc/canis"
               name: didcomm-lb-config
       restartPolicy: Always
-      serviceAccountName: ""
       volumes:
         - name: didcomm-lb-config
           configMap:

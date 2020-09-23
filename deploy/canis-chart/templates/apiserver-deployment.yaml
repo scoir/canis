@@ -20,9 +20,14 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      serviceAccountName: {{ include "canis.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           name: apiserver
           command:
             - canis-apiserver
@@ -39,7 +44,6 @@ spec:
             - mountPath: "/etc/canis"
               name: apiserver-config
       restartPolicy: Always
-      serviceAccountName: ""
       volumes:
         - name: apiserver-config
           configMap:
