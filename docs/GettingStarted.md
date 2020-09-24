@@ -1,136 +1,100 @@
+#Introduction
+
+This getting started guide is for running Canis in a docker environment using `docker-compose`.  The intended user for
+this approach is a developer or devops engineer testing Canis locally to see its capabilities.  It is certainly possible that
+the `docker-compose` configuration could be used against a Swarm environment but that has not been thoroughly tested.  Any PRs to make
+this work would be greatly appreciated.
+
 # Basics
 
-```
-. canis.sh
-make canis-docker
-```
-
-Install RabbitMQ
-
-```
-sudo rabbitmqctl add_user canis canis
-sudo rabbitmqctl add_vhost canis
-sudo rabbitmqctl set_permissions -p "canis" "canis" ".*" ".*" ".*"
-```
-
-You start a Canis cluster using the `sirius` command line tool.  The basic command structure is:
+Assuming you built the Canis docker container locally according to [dev-setup/README.md](../dev-setup/README.md) you need to set up
+a few dependencies to get Canis running.  Canis relies on [RabbitMQ](https://www.rabbitmq.com/) to buffer DIDComm messages to the various components of the system that 
+handle them.  You need an installation of RabbitMQ running that you can configure to accept messages from Canis.  The default configuration
+expects a user named `canis` with a password of `canis` with access to a vhost named... you guessed it...  `canis`.  Once you have a
+RabbitMQ available you can run the following commands to create the necessary user, vhost and permissions.    
 
 ```
-% bin/sirius init --config ./config/sirius.yaml --seed "b2352b32947e188eb72871093ac6217e"
+% sudo rabbitmqctl add_user canis canis
+% sudo rabbitmqctl add_vhost canis
+% sudo rabbitmqctl set_permissions -p "canis" "canis" ".*" ".*" ".*"
 ```
 
-## Configuration
+### Datastore and Ledgerstore
 
-Canis has a pluggable architecture using a configuration file to tell Canis what database and execution
-environment you will be using.  Other plug-ins include verifiable data registries, wallet storage engines and credential formats.
-
-Canis requires a database and execution environment configured at a minimum.  The sample configuration located at [config/docker/canis.yaml](/config/docker/canis.yaml) assumes a MongoDB database
-and the docker execution environment.  
-
-### Datastore
-
-The following section from the sample configuration tells Canis to use MongoDB running on localhost listening on its standard port.
-
-``` yaml
-datastore:
-  database: mongo
-  mongo:
+The next dependency you need to set up for the default configuration is MongoDB for the datastore (canis data model) and the 
+ledgerstore (Aries wallet).  (Canis also supports CouchDB and MySQL).  The configuration for the datastore looks like the following:
+ 
+ ```yaml
+ datastore:
+   database: mongo
+   mongo:
      url: "mongodb://172.17.0.1:27017"
      database: "canis"
 ```
 
-For Canis running in a docker container to connect to a database running on your docker host you need to find the address
-of the `docker0` interface and replace `172.17.0.1` with your address.  On Linux, run the following:
-
-```sh
-% ifconfig docker0
-docker0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-        inet 172.17.0.1  netmask 255.255.0.0  broadcast 172.17.255.255
-        inet6 fe80::42:3eff:fed4:ee43  prefixlen 64  scopeid 0x20<link>
-        ether 02:42:3e:d4:ee:43  txqueuelen 0  (Ethernet)
-        RX packets 45435  bytes 9418865 (9.4 MB)
-        RX errors 0  dropped 0  overruns 0  frame 0
-        TX packets 38735  bytes 67489173 (67.4 MB)
-        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
-
-```
-
-Use the address from `inet` in your configuration.
-
-### Execution Environment
-
-The sample configuration uses the docker execution environment configured in the following section:
+The configuration for the ledger store is:
 
 ```yaml
-execution:
-  runtime: docker
-  docker:
-    home: /tmp/canis
+ledgerstore:
+  database: mongodb
+  url: "mongodb://172.17.0.1:27017"
 ```
 
-The value of `home` must already exist and be a directory to which you have write access.
+You will need to update the IP address to point to your instance of mongodb.  If you are running mongodb on your docker host, 
+you can get the IP address of your docker interface and replace the IP address of the mongodb urls in the configuration files.
+  The follow command will list the IP address of the docker network interface on your machine.  
 
-### Steward
+`
+% `ip addr show docker0 | grep -Po 'inet \K[\d.]+'`
+`
 
-The Steward is the root of trust in a Canis cluster.  It also hosts the Admin API on both a gRPC port and an HTTP port.
-Those ports are configured in the following section:
+If mongodb is hosted elsewhere use that IP address instead.  Authentication can also be added to the mongodb URLs in the config files as needed.
 
-```yaml
-steward:
-  dbpath: /tmp/canis/steward
+## Ledger Genesis Transactions
 
-  wsinbound:
-    host: 0.0.0.0
-    port: 7777
-  grpc:
-    host: 0.0.0.0
-    port: 7778
-  grpcBridge:
-    host: 0.0.0.0
-    port: 7779
-```
-
+The default configuration of canis uses an [Indy Node Network](https://github.com/hyperledger/indy-node) as the verifiable data registry
+against which it verifies DIDs.  When configured to use Indy style credentials, it also uses this ledger to anchor schema and credential 
+definitions for issuance and verification.
+ 
+TODO:  How to get the genesis file of your indy network and replace the transactions current in the config files.
 
 ## Launch Canis
 
-To start your cluster run:
+Once you finsh setting your configuration, you can start Canis locally using the following `docker-compose` command:
 
-```sh
-% sirius start --config config/docker/canis.yaml
+```
+% docker-compose up
 ```
 
-To check the status of the components of a canis cluster run the status command.  The output should resemble:
+You output should begin with
 
-```sh 
-% sirius status --config config/docker/canis.yaml
-NAME      ID             STATUS    TIME
-steward   7311b8deabe9   RUNNING   5s
-
-Agents running: 0
 ```
+Starting compose_canis-apiserver_1       ... done
+Starting compose_canis-didcomm-issuer_1  ... done
+Starting compose_canis-didcomm-doorman_1 ... done
+Starting compose_canis-didcomm-lb_1      ... done
+```
+
+## Ledger Access
+
+Once all the services have started, you will need to tell your instance of canis what DID to use when interacting with the ledger.  You
+use the `sirius` command line tool to seed your Canis instance.  Use the following command with the seed used to generate a DID 
+with at least ENDORSER role on your Indy network configured above.
+
+```
+% bin/sirius init --config ./config/sirius-compose.yaml --seed "<seed for DID with admin role>"
+```
+
 
 ### Admin API
 
-Once the Steward is running, a Swagger UI is available to browse and test the Admin API.  The UI is available
-on the `grpcBridge` port listed above.  Point your browser at:
+Once Canis is running, a Swagger UI is available to browse and test the Admin API.  The UI is available
+on the `grpcBridge` port listed in your config.  Point your browser at:
 
 
 [http://localhost:7779/swaggerui/](http://localhost:7779/swaggerui/)
 
 
-To test agents, run the `POST /agents` endpoint to create an agent.  Take the ID used to create the agent and
-then execute `POST /agents/{id}/launch` to launch an agent container.  Running the status command should indicate that
-one agent is now running:
-
-```sh 
-% sirius status --config config/docker/canis.yaml
-NAME      ID             STATUS    TIME
-steward   7311b8deabe9   RUNNING   4m
-
-Agents running: 1
-```
-
-
-
-
-
+To test agents, run the `POST /agents` endpoint to create an agent.  To get an invitation that can be used to establish a 
+connection with your new agent, you can `POST /agents/{agent_id}/invitation/{external_id}` with `agent_id` being the ID of the agent
+you created and `external_id` being the external system ID to associate to this connection.
