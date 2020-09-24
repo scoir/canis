@@ -34,7 +34,7 @@ require (
 	github.com/piprate/json-gold v0.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
-	github.com/scoir/aries-storage-mongo v0.0.0-20200918045916-fdae3c3a3af4
+	github.com/scoir/aries-storage-mongo v0.0.0-20200924155006-8a599355491e
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.4.0

@@ -16,7 +16,11 @@ data:
         host: 0.0.0.0
         port: {{ .Values.doorman.grpc.port }}
     inbound:
-      external: "ws://{{ .Values.loadbalancer.inbound.external.host }}:{{if ne .Values.loadbalancerIP ""}}{{ .Values.loadbalancer.inbound.wsPort }}{{ else }}{{ .Values.loadbalancer.inbound.external.wsPort }}{{end}}"
+      {{if eq .Values.loadbalancer.external.type "loadbalancer"}}
+      external: "ws://{{ .Values.loadbalancer.external.loadbalancer.host}}:{{ .Values.loadbalancer.inbound.wsPort }}"
+      {{ else }}
+      external: "ws://{{ .Values.loadbalancer.external.nodePort.host }}:{{ .Values.loadbalancer.external.nodePort.wsPort }}"
+      {{ end }}
       amqp:
         {{- toYaml .Values.amqp | nindent 8 }}
 

@@ -31,7 +31,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	vstore "github.com/hyperledger/aries-framework-go/pkg/store/verifiable"
 	"github.com/pkg/errors"
-	mongodbstore "github.com/scoir/aries-storage-mongo/pkg/storage"
+	mongodbstore "github.com/scoir/aries-storage-mongo/pkg"
 	goji "goji.io"
 	"goji.io/pat"
 
@@ -90,6 +90,10 @@ func getCredentials(w http.ResponseWriter, _ *http.Request) {
 }
 
 func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
+	//UNCOMMENT FOR MINIKUBE ENV
+	//resp, err := http.Post("http://192.168.99.100:30779/agents/hogwarts/invitation/subject", "application/json", strings.NewReader("{}"))
+
+	//UNCOMMENT FOR DOCKER COMPOSE ENV
 	resp, err := http.Post("http://local.scoir.com:7779/agents/hogwarts/invitation/subject", "application/json", strings.NewReader("{}"))
 	if err != nil {
 		util.WriteErrorf(w, "Error requesting invitation from issuer: %v", err)
@@ -156,9 +160,9 @@ func connectToVerifier(w http.ResponseWriter, _ *http.Request) {
 }
 
 func createAriesContext() {
-	wsinbound := "172.17.0.1:3001"
+	wsinbound := "172.16.1.1:3001"
 
-	genesis, err := os.Open("./genesis.txn")
+	genesis, err := os.Open("./deploy/canis-chart/indy/genesis.txn")
 	if err != nil {
 		log.Fatalln("unable to open genesis file", err)
 	}

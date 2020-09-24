@@ -46,7 +46,6 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-loadbalancerIP: ""
 adminIP: ""
 
 wallet:
@@ -91,8 +90,12 @@ loadbalancer:
   inbound:
     wsPort: 9001
     httpPort: 9003
-    external:
+  external:
+    type: "nodePort"
+    loadbalancer:
+      host: ""
+    nodePort:
       wsPort: 30001
       httpPort: 30003
-      host: 172.16.1.1
+      host: 192.168.99.100
 

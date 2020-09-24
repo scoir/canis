@@ -1,4 +1,4 @@
-{{ if ne .Values.loadbalancerIP "" }}
+{{if eq .Values.loadbalancer.external.type "loadbalancer"}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -19,7 +19,7 @@ spec:
     name: {{ include "canis.fullname" . }}-didcomm-lb
   sessionAffinity: None
   type: LoadBalancer
-  loadBalancerIP: {{ .Values.loadbalancerIP }}
+  loadBalancerIP: {{ .Values.loadbalancer.external.loadbalancer.host }}
 {{ else }}
 apiVersion: v1
 kind: Service
@@ -33,12 +33,12 @@ spec:
       port: {{ .Values.loadbalancer.inbound.wsPort }}
       protocol: TCP
       targetPort: {{ .Values.loadbalancer.inbound.wsPort }}
-      nodePort: {{ .Values.loadbalancer.inbound.external.wsPort }}
+      nodePort: {{ .Values.loadbalancer.external.nodePort.wsPort }}
     - name: http-didcomm
       port: {{ .Values.loadbalancer.inbound.httpPort }}
       protocol: TCP
       targetPort: {{ .Values.loadbalancer.inbound.httpPort }}
-      nodePort: {{ .Values.loadbalancer.inbound.external.httpPort }}
+      nodePort: {{ .Values.loadbalancer.external.nodePort.httpPort }}
   selector:
     name: {{ include "canis.fullname" . }}-didcomm-lb
   sessionAffinity: None
