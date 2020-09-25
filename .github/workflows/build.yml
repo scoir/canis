@@ -27,7 +27,7 @@ jobs:
 
     - name: Upload coverage to Codecov
       timeout-minutes: 5
-      run: "bash <(curl -s https://codecov.io/bash)"
+      run: bash < curl -s https://codecov.io/bash
 
   publish:
     name: Publish Docker Image
