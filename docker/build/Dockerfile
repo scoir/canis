@@ -1,10 +1,9 @@
 FROM scoir/indy-libs:latest
 
-RUN apt-get update
+RUN apt-get -y update
 RUN apt-get -y upgrade
 
-RUN apt-get install -y build-essential
-RUN apt-get install -y wget
+RUN apt-get install -y build-essential wget git curl
 
 RUN wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz -q -P /tmp -nH
 
