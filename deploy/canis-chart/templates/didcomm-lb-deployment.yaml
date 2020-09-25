@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-lb
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-lb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ include "canis.fullname" . }}-didcomm-lb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ include "canis.fullname" . }}-didcomm-lb
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "canis.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          name: didcomm-lb
+          command:
+            - canis-didcomm-lb
+            - start
+          ports:
+            - name: ws-didcomm
+              containerPort: {{ .Values.loadbalancer.inbound.wsPort }}
+              protocol: TCP
+            - name: http-didcomm
+              containerPort: {{ .Values.loadbalancer.inbound.httpPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.loadbalancer.grpc.port }}
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - mountPath: "/etc/canis"
+              name: didcomm-lb-config
+      restartPolicy: Always
+      volumes:
+        - name: didcomm-lb-config
+          configMap:
+            name: {{ include "canis.fullname" . }}-didcomm-lb-config

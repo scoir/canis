@@ -29,7 +29,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage/mem"
 	"github.com/pkg/errors"
-	mongodbstore "github.com/scoir/aries-storage-mongo/pkg/storage"
+	mongodbstore "github.com/scoir/aries-storage-mongo/pkg"
 	"github.com/spf13/viper"
 
 	"github.com/scoir/canis/pkg/aries/vdri/indy"

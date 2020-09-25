@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-issuer
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-issuer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ include "canis.fullname" . }}-didcomm-issuer
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ include "canis.fullname" . }}-didcomm-issuer
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "canis.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          name: didcomm-issuer
+          command:
+            - canis-didcomm-issuer
+            - start
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.issuer.grpc.port }}
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - mountPath: "/etc/canis"
+              name: didcomm-issuer-config
+      restartPolicy: Always
+      volumes:
+        - name: didcomm-issuer-config
+          configMap:
+            name: {{ include "canis.fullname" . }}-didcomm-issuer-config

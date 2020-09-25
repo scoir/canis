@@ -1,6 +1,7 @@
 .PHONY := clean test tools agency
 
 CANIS_ROOT=$(abspath .)
+SIRIUS_FILES = $(wildcard pkg/sirius/**/*.go cmd/sirius/*.go)
 DIDCOMM_LB_FILES = $(wildcard pkg/didcomm/loadbalancer/*.go pkg/didcomm/loadbalancer/**/*.go cmd/canis-didcomm-lb/*.go)
 DIDCOMM_ISSUER_FILES = $(wildcard pkg/didcomm/issuer/*.go pkg/didcomm/issuer/**/*.go cmd/canis-didcomm-issuer/*.go)
 DIDCOMM_VERIFIER_FILES = $(wildcard pkg/didcomm/verifier/*.go pkg/didcomm/verifier/**/*.go cmd/canis-didcomm-verifier/*.go)
@@ -56,7 +57,8 @@ bin/canis-didcomm-lb: $(DIDCOMM_LB_FILES)
 	@. ./canis.sh; cd cmd/canis-didcomm-lb && go build -o $(CANIS_ROOT)/bin/canis-didcomm-lb
 
 sirius: bin/sirius
-bin/sirius:
+bin/sirius: $(SIRIUS_FILES)
+	@echo 'building sirius...'
 	@. ./canis.sh; cd cmd/sirius && go build -o $(CANIS_ROOT)/bin/sirius
 
 .PHONY: canis-docker
@@ -71,6 +73,11 @@ bin/router:
 canis-docker: build
 	@echo "building canis docker image..."
 	@docker build -f ./docker/canis/Dockerfile --no-cache -t canis/canis:latest .
+
+canis-docker-publish: canis-docker
+	@echo "publishing canis to registry..."
+	@docker tag canis/canis registry.hyades.svc.cluster.local:5000/canis
+	@docker push registry.hyades.svc.cluster.local:5000/canis
 
 canis-apiserver-pb: pkg/apiserver/api/canis-apiserver.pb.go
 pkg/apiserver/api/canis-apiserver.pb.go:pkg/apiserver/api/canis-apiserver.proto

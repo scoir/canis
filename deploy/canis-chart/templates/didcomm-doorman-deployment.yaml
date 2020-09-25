@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-doorman
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-doorman
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ include "canis.fullname" . }}-didcomm-doorman
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ include "canis.fullname" . }}-didcomm-doorman
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "canis.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          name: didcomm-doorman
+          command:
+            - canis-didcomm-doorman
+            - start
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.doorman.grpc.port }}
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - mountPath: "/etc/canis"
+              name: didcomm-doorman-config
+      restartPolicy: Always
+      volumes:
+        - name: didcomm-doorman-config
+          configMap:
+            name: {{ include "canis.fullname" . }}-didcomm-doorman-config

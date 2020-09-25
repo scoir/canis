@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-issuer-config
+  labels:
+    app: {{ include "canis.fullname" . }}-didcomm-issuer
+data:
+  canis-issuer-config.yaml: |-
+    ###############################################################
+    #
+    #  DIDComm Server
+    #
+    ###############################################################
+    api:
+      grpc:
+        host: 0.0.0.0
+        port: {{ .Values.issuer.grpc.port }}
+    inbound:
+      external: ws://0.0.0.0:3001
+      amqp:
+        {{- toYaml .Values.amqp | nindent 8 }}
+    
+    ###############################################################
+    #
+    #  Datastore configuration
+    #
+    ###############################################################
+    datastore:
+      {{- toYaml .Values.datastore | nindent 6 }}
+    
+    ###############################################################
+    #
+    #  Ledger-store configuration
+    #
+    ###############################################################
+    ledgerstore:
+      {{- toYaml .Values.ledgerstore | nindent 6 }}
+    
+    ###############################################################
+    #
+    #  Credential Engine Registry Configuration
+    #
+    ###############################################################
+    credential:
+      engine: indy
+      indy:
+        genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 10}}
+    
+    ###############################################################
+    #
+    #  Aries VDRI Configuration
+    #
+    ###############################################################
+    aries:
+      vdri:
+        - type: indy
+          method: "scr"
+          genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 10}}
+    

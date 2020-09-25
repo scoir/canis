@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-lb-config
+  labels:
+    app: {{ include "canis.fullname" . }}-didcomm-lb
+data:
+  canis-lb-config.yaml: |-
+    ###############################################################
+    #
+    #  DIDComm Load Balancer
+    #
+    ###############################################################
+    inbound:
+      host: 0.0.0.0
+      httpPort: {{ .Values.loadbalancer.inbound.httpPort }}
+      wsPort: {{ .Values.loadbalancer.inbound.wsPort }}
+      {{if eq .Values.loadbalancer.external.type "loadbalancer"}}
+      external: "ws://{{ .Values.loadbalancer.external.loadbalancer.host}}:{{ .Values.loadbalancer.inbound.wsPort }}"
+      {{ else }}
+      external: "ws://{{ .Values.loadbalancer.external.nodePort.host }}:{{ .Values.loadbalancer.external.nodePort.wsPort }}"
+      {{ end }}
+
+    ###############################################################
+    #
+    #  AMQP Server (rabbitMQ)
+    #
+    ###############################################################
+    amqp:
+      {{- toYaml .Values.amqp | nindent 6 }}
+
+    ###############################################################
+    #
+    #  Datastore configuration
+    #
+    ###############################################################
+    datastore:
+      {{- toYaml .Values.datastore | nindent 6 }}
+
+    ###############################################################
+    #
+    #  GRPC Server
+    #
+    ###############################################################
+    loadbalancer:
+      grpc:
+        host: 0.0.0.0
+        port: {{ .Values.loadbalancer.grpc.port }}
+
+    ###############################################################
+    #
+    #  Ledger-store configuration
+    #
+    ###############################################################
+    ledgerstore:
+      {{- toYaml .Values.ledgerstore | nindent 6 }}

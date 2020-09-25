@@ -1,0 +1,46 @@
+{{if eq .Values.loadbalancer.external.type "loadbalancer"}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-lb-external
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-lb-external
+spec:
+  ports:
+    - name: ws-didcomm
+      port: {{ .Values.loadbalancer.inbound.wsPort }}
+      protocol: TCP
+      targetPort: {{ .Values.loadbalancer.inbound.wsPort }}
+    - name: http-didcomm
+      port: {{ .Values.loadbalancer.inbound.httpPort }}
+      protocol: TCP
+      targetPort: {{ .Values.loadbalancer.inbound.httpPort }}
+  selector:
+    name: {{ include "canis.fullname" . }}-didcomm-lb
+  sessionAffinity: None
+  type: LoadBalancer
+  loadBalancerIP: {{ .Values.loadbalancer.external.loadbalancer.host }}
+{{ else }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-lb-external
+  name: {{ include "canis.fullname" . }}-didcomm-lb-external
+spec:
+  ports:
+    - name: ws-didcomm
+      port: {{ .Values.loadbalancer.inbound.wsPort }}
+      protocol: TCP
+      targetPort: {{ .Values.loadbalancer.inbound.wsPort }}
+      nodePort: {{ .Values.loadbalancer.external.nodePort.wsPort }}
+    - name: http-didcomm
+      port: {{ .Values.loadbalancer.inbound.httpPort }}
+      protocol: TCP
+      targetPort: {{ .Values.loadbalancer.inbound.httpPort }}
+      nodePort: {{ .Values.loadbalancer.external.nodePort.httpPort }}
+  selector:
+    name: {{ include "canis.fullname" . }}-didcomm-lb
+  sessionAffinity: None
+  type: NodePort
+{{ end }}

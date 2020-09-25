@@ -1,0 +1,46 @@
+{{ if ne .Values.adminIP "" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "canis.fullname" . }}-apiserver
+  labels:
+    name: {{ include "canis.fullname" . }}-apiserver
+spec:
+  ports:
+    - name: grpc
+      port: {{ .Values.apiserver.grpc.port }}
+      protocol: TCP
+      targetPort: 7777
+    - name: grpc-bridge
+      port: {{ .Values.apiserver.grpcBridge.port }}
+      protocol: TCP
+      targetPort: {{ .Values.apiserver.grpcBridge.port }}
+  selector:
+    name: {{ include "canis.fullname" . }}-apiserver
+  sessionAffinity: None
+  type: LoadBalancer
+  loadBalancerIP: {{ .Values.adminIP }}
+{{ else }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: {{ include "canis.fullname" . }}-apiserver
+  name: {{ include "canis.fullname" . }}-apiserver
+spec:
+  ports:
+  - name: grpc
+    port: {{ .Values.apiserver.grpc.port }}
+    nodePort: 30778
+    protocol: TCP
+    targetPort: {{ .Values.apiserver.grpc.port }}
+  - name: grpc-bridge
+    port: {{ .Values.apiserver.grpcBridge.port }}
+    nodePort: 30779
+    protocol: TCP
+    targetPort: {{ .Values.apiserver.grpcBridge.port }}
+  selector:
+    name: {{ include "canis.fullname" . }}-apiserver
+  sessionAffinity: None
+  type: NodePort
+{{ end }}

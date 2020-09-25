@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "canis.fullname" . }}-apiserver
+  labels:
+    name: {{ include "canis.fullname" . }}-apiserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ include "canis.fullname" . }}-apiserver
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ include "canis.fullname" . }}-apiserver
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "canis.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          name: apiserver
+          command:
+            - canis-apiserver
+            - start
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.apiserver.grpc.port }}
+              protocol: TCP
+            - name: grpc-bridge
+              containerPort: {{ .Values.apiserver.grpcBridge.port }}
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - mountPath: "/etc/canis"
+              name: apiserver-config
+      restartPolicy: Always
+      volumes:
+        - name: apiserver-config
+          configMap:
+            name: {{ include "canis.fullname" . }}-apiserver-config

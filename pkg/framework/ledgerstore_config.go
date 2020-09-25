@@ -11,7 +11,7 @@ import (
 	couchdbstore "github.com/hyperledger/aries-framework-go/pkg/storage/couchdb"
 	"github.com/hyperledger/aries-framework-go/pkg/storage/mysql"
 	"github.com/pkg/errors"
-	mongodbstore "github.com/scoir/aries-storage-mongo/pkg/storage"
+	mongodbstore "github.com/scoir/aries-storage-mongo/pkg"
 )
 
 type LedgerStoreConfig struct {
@@ -25,11 +25,11 @@ func (r *LedgerStoreConfig) StorageProvider() (storage.Provider, error) {
 
 	switch r.Database {
 	case "mysql":
-		sp, err = mysql.NewProvider(r.URL, mysql.WithDBPrefix("aries"))
+		sp, err = mysql.NewProvider(r.URL, mysql.WithDBPrefix("canis"))
 	case "couchdb":
-		sp, err = couchdbstore.NewProvider(r.URL, couchdbstore.WithDBPrefix("aries"))
+		sp, err = couchdbstore.NewProvider(r.URL, couchdbstore.WithDBPrefix("canis"))
 	case "mongodb":
-		sp = mongodbstore.NewProvider(r.URL, mongodbstore.WithDBPrefix("aries"))
+		sp = mongodbstore.NewProvider(r.URL, mongodbstore.WithDBPrefix("canis"))
 	default:
 		return nil, errors.New("no ledgerstore configuration was provided")
 	}

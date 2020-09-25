@@ -27,7 +27,7 @@ services:
       - backend
     secrets:
       - source: canis-didcomm-issuer-config
-        target: /etc/canis/canis-didcomm-config.yml
+        target: /etc/canis/canis-issuer-config.yml
     deploy:
       replicas: 1
       update_config:
@@ -61,7 +61,7 @@ services:
       - backend
     secrets:
       - source: canis-didcomm-doorman-config
-        target: /etc/canis/canis-didcomm-config.yml
+        target: /etc/canis/canis-doorman-config.yml
     deploy:
       replicas: 1
       update_config:
@@ -80,7 +80,7 @@ services:
       - backend
     secrets:
       - source: canis-didcomm-lb-config
-        target: /etc/canis/canis-didcomm-lb-config.yml
+        target: /etc/canis/canis-lb-config.yml
     deploy:
       replicas: 1
       update_config:
@@ -88,18 +88,10 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
-#  rabbitmq:
-#    image: rabbitmq:3-management
-#    container_name: rabbitmq
-#    ports:
-#      - 5672:5672
-#      - 15672:15672
 
 secrets:
   canis-apiserver-config:
     file: ./canis-apiserver.yaml
-  canis-scheduler-config:
-    file: ./canis-scheduler.yaml
   canis-didcomm-issuer-config:
     file: ./canis-didcomm-issuer.yaml
   canis-didcomm-verifier-config:
