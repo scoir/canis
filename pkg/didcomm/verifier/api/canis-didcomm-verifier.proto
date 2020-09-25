@@ -1,0 +1,14 @@
+syntax = "proto3";
+package didcomm;
+
+option go_package = "didcomm/verifier/api";
+
+message RequestPresentationRequest {
+}
+
+message RequestPresentationResponse {
+}
+
+service Verifier {
+  rpc RequestPresentation (RequestPresentationRequest) returns (RequestPresentationResponse) {}
+}

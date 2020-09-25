@@ -221,7 +221,7 @@ func (r *Provider) KMS() (kms.KeyManager, error) {
 	return mgr, errors.Wrap(err, "unable to create locakkms")
 }
 
-func (r *Provider) GetCredentailEngineRegistry() (engine.CredentialRegistry, error) {
+func (r *Provider) GetCredentialEngineRegistry() (engine.CredentialRegistry, error) {
 	e, err := indy.New(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get credential engine registry")

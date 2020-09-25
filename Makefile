@@ -4,6 +4,7 @@ CANIS_ROOT=$(abspath .)
 SIRIUS_FILES = $(wildcard pkg/sirius/**/*.go cmd/sirius/*.go)
 DIDCOMM_LB_FILES = $(wildcard pkg/didcomm/loadbalancer/*.go pkg/didcomm/loadbalancer/**/*.go cmd/canis-didcomm-lb/*.go)
 DIDCOMM_ISSUER_FILES = $(wildcard pkg/didcomm/issuer/*.go pkg/didcomm/issuer/**/*.go cmd/canis-didcomm-issuer/*.go)
+DIDCOMM_VERIFIER_FILES = $(wildcard pkg/didcomm/verifier/*.go pkg/didcomm/verifier/**/*.go cmd/canis-didcomm-verifier/*.go)
 DIDCOMM_DOORMAN_FILES = $(wildcard pkg/didcomm/doorman/*.go pkg/didcomm/doorman/**/*.go cmd/canis-didcomm-doorman/*.go)
 
 all: clean tools build
@@ -24,10 +25,10 @@ swagger_pack: pkg/static/canis-apiserver_swagger.go
 pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec/canis-apiserver.swagger.json
 	@staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
 
-
-build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-lb bin/canis-didcomm-doorman
+build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-verifier bin/canis-didcomm-lb bin/canis-didcomm-doorman
 build-canis-apiserver: bin/canis-apiserver
 build-canis-didcomm-issuer: bin/canis-didcomm-issuer
+build-canis-didcomm-verifier: bin/canis-didcomm-verifier
 build-canis-didcomm-lb: bin/canis-didcomm-lb
 
 canis-apiserver: bin/canis-apiserver
@@ -39,6 +40,11 @@ canis-didcomm-issuer: bin/canis-didcomm-issuer
 bin/canis-didcomm-issuer: $(DIDCOMM_ISSUER_FILES)
 	@echo 'building canis-didcomm-issuer...'
 	@. ./canis.sh; cd cmd/canis-didcomm-issuer && go build -o $(CANIS_ROOT)/bin/canis-didcomm-issuer
+
+canis-didcomm-verifier: bin/canis-didcomm-verifier
+bin/canis-didcomm-verifier: $(DIDCOMM_VERIFIER_FILES)
+	@echo 'building canis-didcomm-verifier...'
+	@. ./canis.sh; cd cmd/canis-didcomm-verifier && go build -o $(CANIS_ROOT)/bin/canis-didcomm-verifier
 
 canis-didcomm-doorman: bin/canis-didcomm-doorman
 bin/canis-didcomm-doorman: $(DIDCOMM_DOORMAN_FILES)
@@ -80,7 +86,6 @@ pkg/apiserver/api/canis-apiserver.pb.go:pkg/apiserver/api/canis-apiserver.proto
 	cd pkg && protoc -I $(CANIS_ROOT)/protoc/include/ -I . -I apiserver/api/ apiserver/api/canis-apiserver.proto --swagger_out=logtostderr=true:.
 	mv pkg/apiserver/api/canis-apiserver.swagger.json pkg/apiserver/api/spec
 
-
 canis-didcomm-doorman-pb: pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go
 pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go:pkg/didcomm/doorman/api/canis-didcomm-doorman.proto
 	cd pkg && protoc -I $(CANIS_ROOT)/protoc/include/ -I . -I didcomm/doorman/api/ didcomm/doorman/api/canis-didcomm-doorman.proto --go_out=plugins=grpc:.
@@ -88,6 +93,10 @@ pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go:pkg/didcomm/doorman/api/cani
 canis-didcomm-issuer-pb: pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go
 pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go:pkg/didcomm/issuer/api/canis-didcomm-issuer.proto
 	cd pkg && protoc -I $(CANIS_ROOT)/protoc/include/ -I . -I didcomm/issuer/api/ didcomm/issuer/api/canis-didcomm-issuer.proto --go_out=plugins=grpc:.
+
+canis-didcomm-verifier-pb: pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go
+pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go:pkg/didcomm/verifier/api/canis-didcomm-verifier.proto
+	cd pkg && protoc -I $(CANIS_ROOT)/protoc/include/ -I . -I didcomm/verifier/api/ didcomm/verifier/api/canis-didcomm-verifier.proto --go_out=plugins=grpc:.
 
 canis-didcomm-lb-pb: pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go
 pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go:pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.proto
