@@ -2,7 +2,7 @@ module github.com/scoir/canis
 
 go 1.14
 
-replace github.com/hyperledger/aries-framework-go => github.com/pfeairheller/aries-framework-go v0.1.4-0.20200918145734-b0d185a4e869
+replace github.com/hyperledger/aries-framework-go => ../aries-framework-go
 
 require (
 	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
@@ -32,6 +32,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/piprate/json-gold v0.3.0
 	github.com/pkg/errors v0.9.1
+	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35
 	github.com/rs/cors v1.7.0
 	github.com/scoir/aries-storage-mongo v0.0.0-20200924155006-8a599355491e
 	github.com/spf13/cobra v1.0.0

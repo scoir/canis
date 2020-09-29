@@ -72,6 +72,9 @@ func New(prov provider) (*CredentialEngine, error) {
 	}
 
 	eng.kms = prov.KMS()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load KMS in indy credential engine")
+	}
 	eng.issuer = prov.Issuer()
 
 	return eng, nil
