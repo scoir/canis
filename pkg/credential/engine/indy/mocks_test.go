@@ -3,12 +3,12 @@ package indy
 import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	storagemock "github.com/hyperledger/aries-framework-go/pkg/mock/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/mocks"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
-	storagemock "github.com/scoir/canis/pkg/mock/storage"
 	"github.com/scoir/canis/pkg/ursa"
 )
 

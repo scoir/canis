@@ -3,11 +3,11 @@ package indy
 import (
 	ppprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	storagemock "github.com/hyperledger/aries-framework-go/pkg/mock/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/mocks"
-	storagemock "github.com/scoir/canis/pkg/mock/storage"
 	"github.com/scoir/canis/pkg/ursa"
 )
 
@@ -51,4 +51,3 @@ type verifiermock struct {
 func (v verifiermock) SendRequestPresentation(msg *ppprotocol.RequestPresentation, myDID, theirDID string) (string, error) {
 	panic("implement me")
 }
-
