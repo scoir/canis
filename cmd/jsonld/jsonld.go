@@ -10,12 +10,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"time"
 
-	docutil "github.com/hyperledger/aries-framework-go/pkg/doc/util"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
 	"github.com/piprate/json-gold/ld"
 
-	"github.com/scoir/canis/pkg/clr"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
 
@@ -24,47 +22,29 @@ func main() {
 }
 
 func canon() {
-	var issued = time.Date(2010, time.January, 1, 19, 23, 24, 0, time.UTC)
-	record := &clr.CLR{
+	record := verifiable.Credential{
 		Context: []string{
-			"https://purl.imsglobal.org/spec/clr/v1p0/context/clr_v1p0.jsonld",
+			"https://www.w3.org/2018/credentials/v1",
+			"https://schema.org/docs/jsonldcontext.json",
 		},
-		ID:   "did:scoir:abc123",
-		Type: "Clr",
-		Learner: &clr.Profile{
-			ID:    "did:scoir:hss123",
-			Type:  "Profile",
-			Email: "student1@highschool.k12.edu",
+		ID: "did:scoir:abc123",
+		Subject: map[string]interface{}{
+			"@id":                          "did:peer:1zQmYpHUXTfuJSpmQjHHhp1KSA4C2KTwMuqzzSf63BHbQ3za",
+			"educationalCredentialAwarded": "Potions Master",
 		},
-		Publisher: &clr.Profile{
-			ID:    "did:scoir:highschool",
-			Type:  "Profile",
-			Email: "counselor@highschool.k12.edu",
-		},
-		Assertions: []*clr.Assertion{
-			{
-				ID:   "did:scoir:assert123",
-				Type: "Assertion",
-				Achievement: &clr.Achievement{
-					ID:              "did:scoir:achieve123",
-					AchievementType: "Achievement",
-					Name:            "Mathmatics - Algebra Level 1",
-				},
-				IssuedOn: docutil.NewTime(issued),
-			},
-		},
-		Achievements: nil,
-		IssuedOn:     docutil.NewTime(issued),
 	}
 
 	d, _ := json.MarshalIndent(record, " ", " ")
 	out := map[string]interface{}{}
-	json.Unmarshal(d, &out)
+	err := json.Unmarshal(d, &out)
+	if err != nil {
+		log.Fatalln("fuck", err)
+	}
 
 	proc := ld.NewJsonLdProcessor()
 	options := ld.NewJsonLdOptions("")
 
-	doc3, err := proc.Expand(out, options)
+	doc3, err := proc.Normalize(out, options)
 	if err != nil {
 		log.Fatalln(err)
 	}

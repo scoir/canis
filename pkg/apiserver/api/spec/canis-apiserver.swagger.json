@@ -652,6 +652,15 @@
         "type": {
           "type": "string"
         },
+        "format": {
+          "type": "string"
+        },
+        "context": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "attributes": {
           "type": "array",
           "items": {

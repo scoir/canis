@@ -35,8 +35,8 @@ func TestCreateCredentialOffer(t *testing.T) {
 	reg := New(prov, WithEngine(eng))
 
 	did := &datastore.DID{}
-	s := &datastore.Schema{Type: "indy"}
-	id, attach, err := reg.CreateCredentialOffer(did, s)
+	s := &datastore.Schema{Format: "indy"}
+	id, attach, err := reg.CreateCredentialOffer(did, "", s, nil)
 	require.Equal(t, id, eng.CredentialOfferID)
 	require.Equal(t, attach, eng.CreateCredentialOfferAttachment)
 	require.NoError(t, err)
@@ -44,7 +44,7 @@ func TestCreateCredentialOffer(t *testing.T) {
 	eng.CredentialOfferID = ""
 	eng.CreateCredentialOfferAttachment = nil
 	eng.CreateCredentialOfferError = errors.New("BOOM")
-	id, attach, err = reg.CreateCredentialOffer(did, s)
+	id, attach, err = reg.CreateCredentialOffer(did, "", s, nil)
 	require.Empty(t, id)
 	require.Nil(t, attach)
 	require.Error(t, err)
@@ -62,7 +62,7 @@ func TestIssueCredential(t *testing.T) {
 	reg := New(prov, WithEngine(eng))
 
 	did := &datastore.DID{}
-	s := &datastore.Schema{Type: "indy"}
+	s := &datastore.Schema{Format: "indy"}
 	attach, err := reg.IssueCredential(did, s, "test", decorator.AttachmentData{}, map[string]interface{}{})
 	require.Equal(t, attach, eng.IssueCredentialAttachment)
 	require.NoError(t, err)
@@ -84,7 +84,7 @@ func TestRegisterSchema(t *testing.T) {
 	reg := New(prov, WithEngine(eng))
 
 	did := &datastore.DID{}
-	s := &datastore.Schema{Type: "indy"}
+	s := &datastore.Schema{Format: "indy"}
 	err := reg.RegisterSchema(did, s)
 	require.NoError(t, err)
 
@@ -106,7 +106,7 @@ func TestCreateSchema(t *testing.T) {
 
 	did := &datastore.DID{}
 	prov.store.On("GetPublicDID").Return(did, nil).Once()
-	s := &datastore.Schema{Type: "indy"}
+	s := &datastore.Schema{Format: "indy"}
 	id, err := reg.CreateSchema(s)
 	require.Equal(t, id, eng.SchemaID)
 	require.NoError(t, err)
@@ -133,25 +133,25 @@ func TestNoValidEngine(t *testing.T) {
 	reg := New(prov, WithEngine(eng))
 
 	did := &datastore.DID{}
-	s := &datastore.Schema{Type: "indy"}
-	id, attach, err := reg.CreateCredentialOffer(did, s)
+	s := &datastore.Schema{Format: "indy"}
+	id, attach, err := reg.CreateCredentialOffer(did, "", s, nil)
 	require.Empty(t, id)
 	require.Nil(t, attach)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), "credential type indy not supported by any engine")
+	require.Equal(t, err.Error(), "credential format indy not supported by any engine")
 
 	attach, err = reg.IssueCredential(did, s, "test", decorator.AttachmentData{}, map[string]interface{}{})
 	require.Nil(t, attach)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), "credential type indy not supported by any engine")
+	require.Equal(t, err.Error(), "credential format indy not supported by any engine")
 
 	err = reg.RegisterSchema(did, s)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), "credential type indy not supported by any engine")
+	require.Equal(t, err.Error(), "credential format indy not supported by any engine")
 
 	id, err = reg.CreateSchema(s)
 	require.Empty(t, id)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), "credential type indy not supported by any engine")
+	require.Equal(t, err.Error(), "credential format indy not supported by any engine")
 
 }

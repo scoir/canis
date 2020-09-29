@@ -79,3 +79,14 @@ data:
     #
     ###############################################################
     genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 4}}
+
+    ###############################################################
+    #
+    #  Aries Indy VDRI Configuration
+    #
+    ###############################################################
+    aries:
+      vdri:
+        - type: indy
+          method: "scr"
+          genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 10}}

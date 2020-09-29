@@ -72,7 +72,8 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	var credentialAttachments []decorator.Attachment
 	for _, requestAttachment := range request.RequestsAttach {
 
-		attachmentData, err := r.registry.IssueCredential(agent.PublicDID, schema, offer.RegistryOfferID, requestAttachment.Data, values)
+		attachmentData, err := r.registry.IssueCredential(agent.PublicDID, schema, offer.RegistryOfferID,
+			requestAttachment.Data, values)
 		if err != nil {
 			log.Println("registry error creating credential", err)
 			continue

@@ -34,8 +34,8 @@ func (r *providerMock) IndyVDR() (indy.IndyVDRClient, error) {
 	return r.vdr, nil
 }
 
-func (r *providerMock) KMS() (kms.KeyManager, error) {
-	return nil, nil
+func (r *providerMock) KMS() kms.KeyManager {
+	return nil
 }
 
 func (r *providerMock) StorageProvider() storage.Provider {

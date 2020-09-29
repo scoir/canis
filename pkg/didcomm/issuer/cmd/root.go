@@ -15,6 +15,7 @@ import (
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
+	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
@@ -29,6 +30,7 @@ import (
 	"github.com/scoir/canis/pkg/aries/transport/amqp"
 	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/credential/engine/indy"
+	"github.com/scoir/canis/pkg/credential/engine/lds"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
@@ -51,6 +53,7 @@ var rootCmd = &cobra.Command{
 }
 
 type Provider struct {
+	actx                 *ariescontext.Provider
 	vp                   *viper.Viper
 	lock                 secretlock.Service
 	store                datastore.Store
@@ -168,7 +171,20 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	return ep, nil
 }
 
+func (r *Provider) VDRIRegistry() vdriapi.Registry {
+	ctx, err := r.GetAriesContext()
+	if err != nil {
+		log.Fatalln("unable to load aries context")
+	}
+
+	return ctx.VDRIRegistry()
+}
+
 func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
+	if r.actx != nil {
+		return r.actx, nil
+	}
+
 	external := r.vp.GetString("inbound.external")
 	config := &framework.AMQPConfig{}
 	err := r.vp.UnmarshalKey("inbound.amqp", config)
@@ -193,12 +209,12 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 		return nil, errors.Wrap(err, "unable to create aries defaults")
 	}
 
-	actx, err := ar.Context()
+	r.actx, err = ar.Context()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get aries context")
 	}
 
-	return actx, err
+	return r.actx, err
 }
 
 func (r *Provider) Issuer() ursa.Issuer {
@@ -216,17 +232,25 @@ func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
 	return cl, nil
 }
 
-func (r *Provider) KMS() (kms.KeyManager, error) {
+func (r *Provider) KMS() kms.KeyManager {
 	mgr, err := localkms.New("local-lock://default/master/key/", r)
-	return mgr, errors.Wrap(err, "unable to create locakkms")
+	if err != nil {
+		log.Fatalln("unable to create local kms")
+	}
+	return mgr
 }
 
 func (r *Provider) GetCredentialEngineRegistry() (engine.CredentialRegistry, error) {
 	e, err := indy.New(r)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get credential engine registry")
+		return nil, errors.Wrap(err, "unable to get indy credential engine")
 	}
-	return engine.New(r, engine.WithEngine(e)), nil
+
+	ldse, err := lds.New(r)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get LDS credential engine")
+	}
+	return engine.New(r, engine.WithEngine(e), engine.WithEngine(ldse)), nil
 }
 
 func (r *Provider) SecretLock() secretlock.Service {
