@@ -3,6 +3,7 @@ package indy
 import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	kmsMock "github.com/hyperledger/aries-framework-go/pkg/mock/kms"
 	storagemock "github.com/hyperledger/aries-framework-go/pkg/mock/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 
@@ -16,6 +17,7 @@ type providerMock struct {
 	vdr    *mocks.IndyVDRClient
 	store  *storagemock.MockStoreProvider
 	issuer *issuermock
+	kms    *kmsMock.KeyManager
 }
 
 func NewProvider() *providerMock {
@@ -27,6 +29,7 @@ func NewProvider() *providerMock {
 			},
 		},
 		issuer: &issuermock{},
+		kms:    &kmsMock.KeyManager{},
 	}
 }
 
@@ -35,7 +38,7 @@ func (r *providerMock) IndyVDR() (indy.IndyVDRClient, error) {
 }
 
 func (r *providerMock) KMS() kms.KeyManager {
-	return nil
+	return r.kms
 }
 
 func (r *providerMock) StorageProvider() storage.Provider {
