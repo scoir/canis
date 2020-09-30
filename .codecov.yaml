@@ -9,5 +9,5 @@ coverage:
         target: 0% #yup
     patch:
       default:
-        target: 85%
+        target: 70%
         only_pulls: true
