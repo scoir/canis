@@ -13,11 +13,13 @@ import (
 	"os"
 	"strings"
 
+	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
 	"github.com/hyperledger/aries-framework-go/pkg/secretlock"
 	"github.com/hyperledger/aries-framework-go/pkg/secretlock/local"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
+	"github.com/hyperledger/aries-framework-go/pkg/vdri"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -25,15 +27,17 @@ import (
 	"google.golang.org/grpc"
 
 	cengine "github.com/scoir/canis/pkg/credential/engine"
-	pengine "github.com/scoir/canis/pkg/presentproof/engine"
 	"github.com/scoir/canis/pkg/credential/engine/indy"
+	"github.com/scoir/canis/pkg/credential/engine/lds"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	"github.com/scoir/canis/pkg/framework"
+	"github.com/scoir/canis/pkg/framework/context"
 	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	pengine "github.com/scoir/canis/pkg/presentproof/engine"
 	"github.com/scoir/canis/pkg/ursa"
 )
 
@@ -55,6 +59,8 @@ type Provider struct {
 	lock                 secretlock.Service
 	store                datastore.Store
 	ariesStorageProvider storage.Provider
+	vdriReg              vdriapi.Registry
+	keyMgr               kms.KeyManager
 }
 
 func Execute() {
@@ -136,6 +142,21 @@ func initConfig() {
 		store:                store,
 		ariesStorageProvider: ls,
 	}
+
+	ctx.keyMgr, err = localkms.New("local-lock://default/master/key/", ctx)
+	if err != nil {
+		log.Fatalln("unable to create local kms")
+	}
+
+	ariesSub := vp.Sub("aries")
+	vdris, err := context.GetAriesVDRIs(ariesSub)
+	var vopts []vdri.Option
+	for _, v := range vdris {
+		vopts = append(vopts, vdri.WithVDRI(v))
+	}
+
+	ctx.vdriReg = vdri.New(ctx, vopts...)
+
 }
 
 func (r *Provider) StorageProvider() storage.Provider {
@@ -221,17 +242,25 @@ func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, err
 	return lb, nil
 }
 
-func (r *Provider) KMS() (kms.KeyManager, error) {
-	mgr, err := localkms.New("local-lock://default/master/key/", r)
-	return mgr, errors.Wrap(err, "unable to create locakkms")
+func (r *Provider) KMS() kms.KeyManager {
+	return r.keyMgr
 }
 
 func (r *Provider) GetCredentialEngineRegistry() (cengine.CredentialRegistry, error) {
 	e, err := indy.New(r)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get credential engine registry")
+		return nil, errors.Wrap(err, "unable to get indy credential engine")
 	}
-	return cengine.New(r, cengine.WithEngine(e)), nil
+
+	ldse, err := lds.New(r)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get LDS credential engine")
+	}
+	return cengine.New(r, cengine.WithEngine(e), cengine.WithEngine(ldse)), nil
+}
+
+func (r *Provider) VDRIRegistry() vdriapi.Registry {
+	return r.vdriReg
 }
 
 func (r *Provider) GetPresentationEngineRegistry() (pengine.PresentationRegistry, error) {

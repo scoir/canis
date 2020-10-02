@@ -41,7 +41,7 @@ type APIServer struct {
 
 //go:generate mockery -name=provider --structname=Provider
 type provider interface {
-	KMS() (kms.KeyManager, error)
+	KMS() kms.KeyManager
 	Store() datastore.Store
 	IndyVDR() (indy.IndyVDRClient, error)
 	GetDoormanClient() (doorman.DoormanClient, error)
@@ -64,11 +64,7 @@ func New(ctx provider) (*APIServer, error) {
 		watchers: make([]chan *api.AgentEvent, 0),
 	}
 
-	r.keyMgr, err = ctx.KMS()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get kms")
-	}
-
+	r.keyMgr = ctx.KMS()
 	r.schemaStore = ctx.Store()
 	r.agentStore = ctx.Store()
 	r.didStore = ctx.Store()

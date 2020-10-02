@@ -31,8 +31,8 @@ func (r *VDRI) Build(pubKey *vdriapi.PubKey, opts ...vdriapi.DocOpts) (*diddoc.D
 	pubKeyValue := base58.Decode(string(pubKey.Value))
 	methodID := base58.Encode(pubKeyValue[0:16])
 	didKey := fmt.Sprintf("did:%s:%s", r.methodName, methodID)
-	keyID := fmt.Sprintf("%s#%s", didKey, methodID)
-	publicKey := did.NewPublicKeyFromBytes(keyID, keyType, didKey, pubKeyValue)
+
+	publicKey := did.NewPublicKeyFromBytes(pubKey.ID, keyType, "#id", pubKey.Value)
 
 	var service []diddoc.Service
 	if docOpts.ServiceType != "" {

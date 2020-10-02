@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcutil/base58"
+	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
 
 	diddoc "github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
@@ -51,11 +53,12 @@ func (r *VDRI) Read(did string, opts ...vdriapi.ResolveOpts) (*diddoc.Doc, error
 
 	//TODO: support multiple pubkeys
 	txnTime := time.Unix(int64(rply.TxnTime), 0)
-	didKey, _ := m["dest"].(string)
 	verkey, _ := m["verkey"].(string)
 	pubKeyValue := base58.Decode(verkey)
-	keyID := fmt.Sprintf("%s#0", didKey)
-	pubKey := diddoc.NewPublicKeyFromBytes(keyID, keyType, didKey, pubKeyValue)
+
+	KID, err := localkms.CreateKID(pubKeyValue, kms.ED25519Type)
+
+	pubKey := diddoc.NewPublicKeyFromBytes("#"+KID, keyType, "#id", pubKeyValue)
 	verMethod := diddoc.NewReferencedVerificationMethod(pubKey, diddoc.Authentication, true)
 
 	var svc []diddoc.Service

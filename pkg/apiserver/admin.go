@@ -49,9 +49,11 @@ func (r *APIServer) APISpec() (http.HandlerFunc, error) {
 func (r *APIServer) CreateSchema(_ context.Context, req *api.CreateSchemaRequest) (*api.CreateSchemaResponse, error) {
 	s := &datastore.Schema{
 		ID:      req.Schema.Id,
+		Format:  req.Schema.Format,
 		Type:    req.Schema.Type,
 		Name:    req.Schema.Name,
 		Version: req.Schema.Version,
+		Context: req.Schema.Context,
 	}
 
 	if s.ID == "" || s.Name == "" {
@@ -109,6 +111,9 @@ func (r *APIServer) ListSchema(_ context.Context, req *api.ListSchemaRequest) (*
 			Id:         schema.ID,
 			Name:       schema.Name,
 			Version:    schema.Version,
+			Context:    schema.Context,
+			Format:     schema.Format,
+			Type:       schema.Type,
 			Attributes: make([]*api.Attribute, len(schema.Attributes)),
 		}
 
@@ -135,6 +140,9 @@ func (r *APIServer) GetSchema(_ context.Context, req *api.GetSchemaRequest) (*ap
 		Id:         schema.ID,
 		Name:       schema.Name,
 		Version:    schema.Version,
+		Context:    schema.Context,
+		Format:     schema.Format,
+		Type:       schema.Type,
 		Attributes: make([]*api.Attribute, len(schema.Attributes)),
 	}
 
@@ -169,6 +177,9 @@ func (r *APIServer) UpdateSchema(_ context.Context, req *api.UpdateSchemaRequest
 
 	s.Name = req.Schema.Name
 	s.Version = req.Schema.Version
+	s.Context = req.Schema.Context
+	s.Type = req.Schema.Type
+	s.Format = req.Schema.Format
 	s.Attributes = make([]*datastore.Attribute, len(req.Schema.Attributes))
 	for i, attr := range req.Schema.Attributes {
 		s.Attributes[i] = &datastore.Attribute{
@@ -475,7 +486,13 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 
 	encPubKey := base58.Encode(pubkey)
 	recKID, err := localkms.CreateKID(pubkey, kms.ED25519Type)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create KID for public key")
+	}
 	kid, _, err := r.keyMgr.ImportPrivateKey(privkey, kms.ED25519Type, kms.WithKeyID(recKID))
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to import private key")
+	}
 
 	var d = &datastore.DID{
 		DID: did,

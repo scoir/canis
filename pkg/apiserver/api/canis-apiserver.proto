@@ -9,8 +9,8 @@ option go_package = "apiserver/api";
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
 		title: "Canis Admin API";
-version:"0.0.1"
-}
+        version:"0.0.1"
+    }
 };
 
 
@@ -28,7 +28,9 @@ message Schema {
     string name = 2;
     string version = 3;
     string type = 4;
-    repeated Attribute attributes = 5;
+    string format = 5;
+    repeated string context = 6;
+    repeated Attribute attributes = 7;
 }
 
 message Attribute {

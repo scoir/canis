@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/tink/go/signature/subtle"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
+	kmsMock "github.com/hyperledger/aries-framework-go/pkg/mock/kms"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/scoir/canis/pkg/datastore"
@@ -102,4 +105,143 @@ func TestIssuerCredential(t *testing.T) {
 		require.Error(t, err)
 	})
 
+}
+
+func TestAccept(t *testing.T) {
+	prov := NewProvider()
+
+	engine, err := New(prov)
+	require.NoError(t, err)
+
+	t.Run("happy", func(t *testing.T) {
+		ac := engine.Accept("hlindy-zkp-v1.0")
+		require.True(t, ac)
+	})
+	t.Run("sad", func(t *testing.T) {
+		ac := engine.Accept("lds/ld-proof")
+		require.False(t, ac)
+	})
+}
+
+func TestCreateSchema(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		prov := NewProvider()
+
+		engine, err := New(prov)
+		require.NoError(t, err)
+		issuer := &datastore.DID{
+			DID: &identifiers.DID{
+				DIDVal: identifiers.DIDValue{
+					MethodSpecificID: "123456789",
+					Method:           "scr",
+				},
+			},
+			KeyPair: &datastore.KeyPair{
+				ID:        "123",
+				PublicKey: "test",
+			},
+		}
+		s := &datastore.Schema{
+			Name:    "schema-name",
+			Version: "1.2",
+			Attributes: []*datastore.Attribute{
+				{
+					Name: "field1",
+					Type: 0,
+				},
+				{
+					Name: "field2",
+					Type: 0,
+				},
+			},
+		}
+
+		kh, err := kmsMock.CreateMockED25519KeyHandle()
+		require.NoError(t, err)
+		prim, err := kh.Primitives()
+		require.NoError(t, err)
+		mysig := prim.Primary.Primitive.(*subtle.ED25519Signer)
+
+		prov.kms.GetKeyValue = kh
+
+		prov.vdr.On("CreateSchema", issuer.DID.MethodID(), "schema-name", "1.2", []string{"field1", "field2"}, mysig).Return("test-schema-id", nil)
+
+		sid, err := engine.CreateSchema(issuer, s)
+		require.NoError(t, err)
+		require.Equal(t, "test-schema-id", sid)
+
+	})
+	t.Run("no keypair found", func(t *testing.T) {
+		prov := NewProvider()
+
+		engine, err := New(prov)
+		require.NoError(t, err)
+		issuer := &datastore.DID{
+			DID: &identifiers.DID{
+				DIDVal: identifiers.DIDValue{
+					MethodSpecificID: "123456789",
+					Method:           "scr",
+				},
+			},
+			KeyPair: &datastore.KeyPair{
+				ID:        "123",
+				PublicKey: "test",
+			},
+		}
+		s := &datastore.Schema{}
+
+		prov.kms.GetKeyErr = errors.New("not found")
+
+		sid, err := engine.CreateSchema(issuer, s)
+		require.Error(t, err)
+		require.Empty(t, sid)
+
+	})
+	t.Run("vdr failure", func(t *testing.T) {
+		prov := NewProvider()
+
+		engine, err := New(prov)
+		require.NoError(t, err)
+		issuer := &datastore.DID{
+			DID: &identifiers.DID{
+				DIDVal: identifiers.DIDValue{
+					MethodSpecificID: "123456789",
+					Method:           "scr",
+				},
+			},
+			KeyPair: &datastore.KeyPair{
+				ID:        "123",
+				PublicKey: "test",
+			},
+		}
+		s := &datastore.Schema{
+			Name:    "schema-name",
+			Version: "1.2",
+			Attributes: []*datastore.Attribute{
+				{
+					Name: "field1",
+					Type: 0,
+				},
+				{
+					Name: "field2",
+					Type: 0,
+				},
+			},
+		}
+
+		kh, err := kmsMock.CreateMockED25519KeyHandle()
+		require.NoError(t, err)
+		prim, err := kh.Primitives()
+		require.NoError(t, err)
+		mysig := prim.Primary.Primitive.(*subtle.ED25519Signer)
+
+		prov.kms.GetKeyValue = kh
+
+		prov.vdr.On("CreateSchema", issuer.DID.MethodID(), "schema-name", "1.2", []string{"field1", "field2"}, mysig).Return("", errors.New("BOOM"))
+
+		sid, err := engine.CreateSchema(issuer, s)
+		require.Error(t, err)
+		require.Empty(t, sid)
+
+	})
 }

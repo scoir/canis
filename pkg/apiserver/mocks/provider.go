@@ -166,7 +166,7 @@ func (_m *Provider) IndyVDR() (indy.IndyVDRClient, error) {
 }
 
 // KMS provides a mock function with given fields:
-func (_m *Provider) KMS() (kms.KeyManager, error) {
+func (_m *Provider) KMS() kms.KeyManager {
 	ret := _m.Called()
 
 	var r0 kms.KeyManager
@@ -178,14 +178,7 @@ func (_m *Provider) KMS() (kms.KeyManager, error) {
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // Store provides a mock function with given fields:

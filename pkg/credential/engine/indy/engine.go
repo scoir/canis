@@ -19,7 +19,7 @@ import (
 	"github.com/scoir/canis/pkg/ursa"
 )
 
-const Indy = "indy"
+const Indy = "hlindy-zkp-v1.0"
 
 type creddefWalletRecord struct {
 	KeyCorrectnessProof map[string]interface{}
@@ -35,7 +35,7 @@ type CredentialEngine struct {
 
 type provider interface {
 	IndyVDR() (indy.IndyVDRClient, error)
-	KMS() (kms.KeyManager, error)
+	KMS() kms.KeyManager
 	StorageProvider() storage.Provider
 	Issuer() ursa.Issuer
 }
@@ -71,14 +71,14 @@ func New(prov provider) (*CredentialEngine, error) {
 		return nil, errors.Wrap(err, "unable to get indy vdr for indy credential engine")
 	}
 
-	eng.kms, err = prov.KMS()
+	eng.kms = prov.KMS()
 	eng.issuer = prov.Issuer()
 
 	return eng, nil
 }
 
-func (r *CredentialEngine) Accept(typ string) bool {
-	return typ == Indy
+func (r *CredentialEngine) Accept(format string) bool {
+	return format == Indy
 }
 
 func (r *CredentialEngine) CreateSchema(issuer *datastore.DID, s *datastore.Schema) (string, error) {
@@ -164,7 +164,7 @@ const (
 	DefaultTag      = "default"
 )
 
-func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error) {
+func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error) {
 	schema, err := r.client.GetSchema(s.ExternalSchemaID)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "unable to find schema on ledger to create cred def")
@@ -189,7 +189,7 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datas
 		Nonce:               nonce,
 	}
 
-	offerID := uuid.New().String()
+	offerID := uuid.New().URN()
 	d, err := json.Marshal(offer)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "unexpect error marshalling offer into JSON")

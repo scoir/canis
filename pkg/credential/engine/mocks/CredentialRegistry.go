@@ -15,7 +15,7 @@ type CredentialRegistry struct {
 }
 
 // CreateCredentialOffer provides a mock function with given fields: issuer, s
-func (_m *CredentialRegistry) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error) {
+func (_m *CredentialRegistry) CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error) {
 	ret := _m.Called(issuer, s)
 
 	var r0 string

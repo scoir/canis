@@ -11,10 +11,10 @@ import (
 
 //go:generate mockery -name=CredentialEngine
 type CredentialEngine interface {
-	Accept(typ string) bool
+	Accept(format string) bool
 	CreateSchema(issuer *datastore.DID, s *datastore.Schema) (string, error)
 	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
-	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error)
+	CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error)
 	IssueCredential(issuerDID *datastore.DID, s *datastore.Schema, offerID string,
 		requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error)
 }
@@ -23,7 +23,7 @@ type CredentialEngine interface {
 type CredentialRegistry interface {
 	CreateSchema(s *datastore.Schema) (string, error)
 	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
-	CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error)
+	CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error)
 	IssueCredential(issuer *datastore.DID, s *datastore.Schema, offerID string, requestAttachment decorator.AttachmentData,
 		values map[string]interface{}) (*decorator.AttachmentData, error)
 }
@@ -50,7 +50,7 @@ func New(prov provider, opts ...Option) *Registry {
 }
 
 func (r *Registry) CreateSchema(s *datastore.Schema) (string, error) {
-	e, err := r.resolveEngine(s.Type)
+	e, err := r.resolveEngine(s.Format)
 	if err != nil {
 		return "", err
 	}
@@ -65,7 +65,7 @@ func (r *Registry) CreateSchema(s *datastore.Schema) (string, error) {
 }
 
 func (r *Registry) RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error {
-	e, err := r.resolveEngine(s.Type)
+	e, err := r.resolveEngine(s.Format)
 	if err != nil {
 		return err
 	}
@@ -75,18 +75,18 @@ func (r *Registry) RegisterSchema(registrant *datastore.DID, s *datastore.Schema
 
 }
 
-func (r *Registry) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error) {
-	e, err := r.resolveEngine(s.Type)
+func (r *Registry) CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error) {
+	e, err := r.resolveEngine(s.Format)
 	if err != nil {
 		return "", nil, err
 	}
 
-	return e.CreateCredentialOffer(issuer, s)
+	return e.CreateCredentialOffer(issuer, subjectDID, s, values)
 }
 
 func (r *Registry) IssueCredential(issuer *datastore.DID, s *datastore.Schema, offerID string, requestAttachment decorator.AttachmentData,
 	values map[string]interface{}) (*decorator.AttachmentData, error) {
-	e, err := r.resolveEngine(s.Type)
+	e, err := r.resolveEngine(s.Format)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (r *Registry) resolveEngine(method string) (CredentialEngine, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("credential type %s not supported by any engine", method)
+	return nil, fmt.Errorf("credential format %s not supported by any engine", method)
 }
 
 // WithEngine adds did method implementation for store.

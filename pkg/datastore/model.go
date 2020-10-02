@@ -70,10 +70,12 @@ type SchemaList struct {
 
 type Schema struct {
 	ID               string
+	Format           string
 	Type             string
 	Name             string
 	Version          string
 	ExternalSchemaID string
+	Context          []string
 	Attributes       []*Attribute
 }
 

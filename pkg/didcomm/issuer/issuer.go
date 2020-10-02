@@ -123,17 +123,19 @@ func (r *Server) IssueCredential(_ context.Context, req *api.IssueCredentialRequ
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load schema: %v", err))
 	}
 
-	registryOfferID, attachment, err := r.registry.CreateCredentialOffer(agent.PublicDID, schema)
-	if err != nil {
-		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating credential offer: %v", err))
-	}
-
+	vals := map[string]interface{}{}
 	attrs := make([]icprotocol.Attribute, len(req.Credential.Attributes))
 	for i, a := range req.Credential.Attributes {
 		attrs[i] = icprotocol.Attribute{
 			Name:  a.Name,
 			Value: a.Value,
 		}
+		vals[a.Name] = a.Value
+	}
+
+	registryOfferID, attachment, err := r.registry.CreateCredentialOffer(agent.PublicDID, ac.TheirDID, schema, vals)
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating credential offer: %v", err))
 	}
 
 	offer := &issuecredential.OfferCredential{
@@ -142,8 +144,17 @@ func (r *Server) IssueCredential(_ context.Context, req *api.IssueCredentialRequ
 			Type:       req.Credential.Type,
 			Attributes: attrs,
 		},
+		Formats: []icprotocol.Format{
+			{
+				AttachID: registryOfferID,
+				Format:   schema.Format,
+			},
+		},
 		OffersAttach: []decorator.Attachment{
-			{Data: *attachment},
+			{
+				ID:   registryOfferID,
+				Data: *attachment,
+			},
 		},
 	}
 

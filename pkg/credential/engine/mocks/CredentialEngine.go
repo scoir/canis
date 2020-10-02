@@ -24,7 +24,7 @@ func (r *CredentialEngine) Accept(typ string) bool {
 }
 
 // CreateCredentialOffer provides a mock function with given fields: issuer, s
-func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, s *datastore.Schema) (string, *decorator.AttachmentData, error) {
+func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error) {
 	return r.CredentialOfferID, r.CreateCredentialOfferAttachment, r.CreateCredentialOfferError
 }
 
