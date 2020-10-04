@@ -59,12 +59,12 @@ var rootCmd = &cobra.Command{
 }
 
 type Provider struct {
-	vp                   *viper.Viper
-	lock                 secretlock.Service
-	store                datastore.Store
-	ariesStorageProvider storage.Provider
-	vdriReg              vdriapi.Registry
-	keyMgr               kms.KeyManager
+	vp      *viper.Viper
+	lock    secretlock.Service
+	store   datastore.Store
+	ariesSP storage.Provider
+	vdriReg vdriapi.Registry
+	keyMgr  kms.KeyManager
 }
 
 func Execute() {
@@ -141,10 +141,10 @@ func initConfig() {
 	}
 
 	ctx = &Provider{
-		vp:                   vp,
-		lock:                 lock,
-		store:                store,
-		ariesStorageProvider: ls,
+		vp:      vp,
+		lock:    lock,
+		store:   store,
+		ariesSP: ls,
 	}
 
 	ctx.keyMgr, err = localkms.New("local-lock://default/master/key/", ctx)
@@ -164,7 +164,7 @@ func initConfig() {
 }
 
 func (r *Provider) StorageProvider() storage.Provider {
-	return r.ariesStorageProvider
+	return r.ariesSP
 }
 
 func (r *Provider) Store() datastore.Store {

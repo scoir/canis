@@ -146,7 +146,5 @@ func (r *Server) RequestPresentation(_ context.Context, req *api.RequestPresenta
 		return nil, err
 	}
 
-	return &api.RequestPresentationResponse{
-		RequestPresentationId: id,
-	}, nil
+	return &api.RequestPresentationResponse{RequestPresentationId: id}, nil
 }

@@ -232,7 +232,6 @@ message AgentEvent {
 message InvitationRequest {
   string agent_id = 1;
   string external_id = 2;
-  string name = 3;
 }
 
 message InvitationResponse {
@@ -294,7 +293,7 @@ service Admin {
     }
     rpc GetAgentInvitation (InvitationRequest) returns (InvitationResponse) {
         option (google.api.http) = {
-            post: "/agents/{agent_id}/invitation/{external_id}"
+            get: "/agents/{agent_id}/invitation/{external_id}"
         };
 
     }

@@ -298,7 +298,6 @@ func (r *APIServer) GetAgentInvitation(ctx context.Context, request *api.Invitat
 	doormanReq := &doorman.InvitationRequest{
 		AgentId:    request.AgentId,
 		ExternalId: request.ExternalId,
-		Name:       request.Name,
 	}
 	invite, err := r.doorman.GetInvitation(ctx, doormanReq)
 	if err != nil {
@@ -474,7 +473,7 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 	did, err := identifiers.CreateDID(&identifiers.MyDIDInfo{
 		PublicKey:  pubkey,
 		Cid:        true,
-		MethodName: "scr",
+		MethodName: "sov",
 	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create new DID for apiserver PublicDID").Error())

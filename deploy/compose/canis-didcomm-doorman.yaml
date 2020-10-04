@@ -8,7 +8,7 @@ api:
     host: 0.0.0.0
     port: 8886
 inbound:
-  external: ws://172.17.0.1:9001
+  external: ws://10.0.2.2:9001
   amqp:
     user: canis
     password: canis

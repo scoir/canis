@@ -76,12 +76,21 @@ func (r *Doorman) GetInvitation(_ context.Context, request *api.InvitationReques
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("agent with id %s not found", request.AgentId))
 	}
 
-	did := agent.PublicDID.DID.String()
-	invite, err := r.bouncer.CreateInvitationWithDIDNotify(request.Name, did, r.accepted(agent, request.ExternalId), failed)
-	if err != nil {
-		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", request.AgentId))
+	var invite *ariesdidex.Invitation
+	if agent.HasPublicDID {
+		did := agent.PublicDID.DID.String()
+		invite, err = r.bouncer.CreateInvitationWithDIDNotify(agent.Name, did, r.accepted(agent, request.ExternalId), failed)
+		if err != nil {
+			return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", request.AgentId))
+		}
+	} else {
+		invite, err = r.bouncer.CreateInvitationNotify(agent.Name, r.accepted(agent, request.ExternalId), failed)
+		if err != nil {
+			return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", request.AgentId))
+		}
 	}
 
+	//invite.Type = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation"
 	d, _ := json.MarshalIndent(invite, " ", " ")
 	return &api.InvitationResponse{
 		Invitation: string(d),

@@ -168,7 +168,7 @@
       }
     },
     "/agents/{agent_id}/invitation/{external_id}": {
-      "post": {
+      "get": {
         "operationId": "Admin_GetAgentInvitation",
         "responses": {
           "200": {
