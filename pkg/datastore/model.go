@@ -126,3 +126,10 @@ type Credential struct {
 	Offer             Offer
 	SystemState       string
 }
+
+type PresentationRequest struct {
+	AgentID               string
+	SchemaID              string
+	ExternalID            string
+	PresentationRequestID string
+}

@@ -26,27 +26,13 @@ func (_m *Provider) Close() error {
 	return r0
 }
 
-// CloseStore provides a mock function with given fields: name
-func (_m *Provider) CloseStore(name string) error {
-	ret := _m.Called(name)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(name)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// OpenStore provides a mock function with given fields: name
-func (_m *Provider) OpenStore(name string) (datastore.Store, error) {
-	ret := _m.Called(name)
+// Open provides a mock function with given fields:
+func (_m *Provider) Open() (datastore.Store, error) {
+	ret := _m.Called()
 
 	var r0 datastore.Store
-	if rf, ok := ret.Get(0).(func(string) datastore.Store); ok {
-		r0 = rf(name)
+	if rf, ok := ret.Get(0).(func() datastore.Store); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(datastore.Store)
@@ -54,8 +40,8 @@ func (_m *Provider) OpenStore(name string) (datastore.Store, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(name)
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}

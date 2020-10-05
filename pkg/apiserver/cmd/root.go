@@ -8,6 +8,7 @@ package cmd
 
 import (
 	"fmt"
+	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"io/ioutil"
 	"log"
 	"os"
@@ -27,8 +28,9 @@ import (
 	"google.golang.org/grpc"
 
 	cengine "github.com/scoir/canis/pkg/credential/engine"
-	"github.com/scoir/canis/pkg/credential/engine/indy"
-	"github.com/scoir/canis/pkg/credential/engine/lds"
+	credengine "github.com/scoir/canis/pkg/credential/engine"
+	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
+	credldsengine "github.com/scoir/canis/pkg/credential/engine/lds"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
@@ -37,7 +39,9 @@ import (
 	"github.com/scoir/canis/pkg/framework/context"
 	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
-	pengine "github.com/scoir/canis/pkg/presentproof/engine"
+	presentengine "github.com/scoir/canis/pkg/presentproof/engine"
+	presentindyengine "github.com/scoir/canis/pkg/presentproof/engine/indy"
+	presentjsonldengine "github.com/scoir/canis/pkg/presentproof/engine/jsonld"
 	"github.com/scoir/canis/pkg/ursa"
 )
 
@@ -212,7 +216,7 @@ func (r *Provider) GetDoormanClient() (api.DoormanClient, error) {
 
 	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to dial grpc for steward client")
+		return nil, errors.Wrap(err, "failed to dial grpc for doorman client")
 	}
 	cl := api.NewDoormanClient(cc)
 	return cl, nil
@@ -224,10 +228,22 @@ func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
 
 	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to dial grpc for steward client")
+		return nil, errors.Wrap(err, "failed to dial grpc for issuer client")
 	}
 	cl := issuer.NewIssuerClient(cc)
 	return cl, nil
+}
+
+func (r *Provider) GetVerifierClient() (verifier.VerifierClient, error) {
+	ep := &framework.Endpoint{}
+	err := r.vp.UnmarshalKey("verifier.grpc", ep)
+
+	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to dial grpc for verifier client")
+	}
+	vc := verifier.NewVerifierClient(cc)
+	return vc, nil
 }
 
 func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error) {
@@ -236,7 +252,7 @@ func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, err
 
 	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to dial grpc for steward client")
+		return nil, errors.Wrap(err, "failed to dial grpc for load balancer client")
 	}
 	lb := loadbalancer.NewLoadbalancerClient(cc)
 	return lb, nil
@@ -246,29 +262,36 @@ func (r *Provider) KMS() kms.KeyManager {
 	return r.keyMgr
 }
 
-func (r *Provider) GetCredentialEngineRegistry() (cengine.CredentialRegistry, error) {
-	e, err := indy.New(r)
+func (r *Provider) GetCredentialEngineRegistry() (credengine.CredentialRegistry, error) {
+	cie, err := credindyengine.New(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get indy credential engine")
 	}
 
-	ldse, err := lds.New(r)
+	ldse, err := credldsengine.New(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get LDS credential engine")
 	}
-	return cengine.New(r, cengine.WithEngine(e), cengine.WithEngine(ldse)), nil
+
+	return credengine.New(r, credengine.WithEngine(cie), cengine.WithEngine(ldse)), nil
 }
 
 func (r *Provider) VDRIRegistry() vdriapi.Registry {
 	return r.vdriReg
 }
 
-func (r *Provider) GetPresentationEngineRegistry() (pengine.PresentationRegistry, error) {
-	e, err := indy.New(r)
+func (r *Provider) GetPresentationEngineRegistry() (presentengine.PresentationRegistry, error) {
+	pie, err := presentindyengine.New(r)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get presentation engine registry")
+		return nil, errors.Wrap(err, "unable to create indy presentation engine")
 	}
-	return pengine.New(r, pengine.WithEngine(e)), nil
+
+	pjlde, err := presentjsonldengine.New(r)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create json-ld presentation engine")
+	}
+
+	return presentengine.New(r, presentengine.WithEngine(pie), presentengine.WithEngine(pjlde)), nil
 }
 
 func (r *Provider) SecretLock() secretlock.Service {

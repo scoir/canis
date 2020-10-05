@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package apiserver
 
 import (
+	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"sync"
 
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
@@ -34,6 +35,7 @@ type APIServer struct {
 
 	doorman      doorman.DoormanClient
 	issuer       issuer.IssuerClient
+	verifier     verifier.VerifierClient
 	loadbalancer loadbalancer.LoadbalancerClient
 	watcherLock  sync.RWMutex
 	watchers     []chan *api.AgentEvent
@@ -46,6 +48,7 @@ type provider interface {
 	IndyVDR() (indy.IndyVDRClient, error)
 	GetDoormanClient() (doorman.DoormanClient, error)
 	GetIssuerClient() (issuer.IssuerClient, error)
+	GetVerifierClient() (verifier.VerifierClient, error)
 	GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error)
 	GetCredentialEngineRegistry() (cengine.CredentialRegistry, error)
 	GetPresentationEngineRegistry() (pengine.PresentationRegistry, error)
@@ -82,6 +85,11 @@ func New(ctx provider) (*APIServer, error) {
 	r.issuer, err = ctx.GetIssuerClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get issuer client")
+	}
+
+	r.verifier, err = ctx.GetVerifierClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get verifier client")
 	}
 
 	r.loadbalancer, err = ctx.GetLoadbalancerClient()

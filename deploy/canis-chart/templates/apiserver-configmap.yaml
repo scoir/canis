@@ -62,6 +62,16 @@ data:
       grpc:
         host: canis-didcomm-issuer
         port: {{ .Values.issuer.grpc.port }}
+
+    ###############################################################
+    #
+    #  Verifier configuration
+    #
+    ###############################################################
+    issuer:
+      grpc:
+        host: canis-didcomm-verifier
+        port: {{ .Values.verifier.grpc.port }}
     
     ###############################################################
     #

@@ -9,6 +9,9 @@ package verifier
 import (
 	"context"
 	"errors"
+	"fmt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
 
@@ -106,8 +109,46 @@ func (r *Server) APISpec() (http.HandlerFunc, error) {
 }
 
 func (r *Server) RequestPresentation(_ context.Context, req *api.RequestPresentationRequest) (*api.RequestPresentationResponse, error) {
-	_, _ = r.proofcl.SendRequestPresentation(nil, "", "")
+	agent, err := r.store.GetAgent(req.AgentId)
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("unable to load agent: %v", err))
+	}
+
+	ac, err := r.store.GetAgentConnection(agent, req.ExternalId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load connection: %v", err))
+	}
+
+	schema, err := r.store.GetSchema(req.SchemaId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load schema: %v", err))
+	}
+
+	presentation, err := r.registry.RequestPresentation(schema.Type, req.RequestedAttributes, req.RequestedPredicates)
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating presentation request: %v", err))
+	}
+
+	//store?
+	//r.store.InsertPresentationRequest()
+	requestPresentationID, err := r.proofcl.SendRequestPresentation(presentation, ac.MyDID, ac.TheirDID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error sending presentation request: %v", err))
+	}
+
+	prs := &datastore.PresentationRequest{
+		AgentID:               agent.ID,
+		SchemaID:              schema.ID,
+		ExternalID:            req.ExternalId,
+		PresentationRequestID: requestPresentationID,
+	}
+
+	id, err := r.store.InsertPresentationRequest(prs)
+	if err != nil {
+		return nil, err
+	}
 
 	return &api.RequestPresentationResponse{
+		RequestPresentationId: id,
 	}, nil
 }

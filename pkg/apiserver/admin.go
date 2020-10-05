@@ -11,6 +11,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"fmt"
+	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"log"
 	"net/http"
 
@@ -540,5 +541,47 @@ func (r *APIServer) IssueCredential(ctx context.Context, req *api.IssueCredentia
 	return &api.IssueCredentialResponse{
 		CredentialId: issuerResp.CredentialId,
 	}, nil
+}
 
+func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPresentationRequest) (*api.RequestPresentationResponse, error) {
+
+	pp := make(map[string]*verifier.AttrInfo)
+	for k, v := range req.RequestedAttributes {
+		pp[k] = &verifier.AttrInfo{
+			Name:         v.Name,
+			Restrictions: v.Restrictions,
+			NonRevoked:   v.NonRevoked,
+		}
+	}
+
+	pq := make(map[string]*verifier.PredicateInfo)
+	for k, v := range req.RequestedPredicates {
+		pq[k] = &verifier.PredicateInfo{
+			Name:         v.Name,
+			PType:        v.PType,
+			PValue:       v.PValue,
+			Restrictions: v.Restrictions,
+			NonRevoked:   v.NonRevoked,
+		}
+	}
+
+	rpr := &verifier.RequestPresentationRequest{
+		AgentId:             req.AgentId,
+		ExternalId:          "",
+		SchemaId:            "",
+		Comment:             "",
+		Type:                "",
+		WillConfirm:         false,
+		RequestedAttributes: pp,
+		RequestedPredicates: pq,
+	}
+
+	respresp, err := r.verifier.RequestPresentation(ctx, rpr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &api.RequestPresentationResponse{
+		RequestPresentationId: respresp.RequestPresentationId,
+	}, nil
 }
