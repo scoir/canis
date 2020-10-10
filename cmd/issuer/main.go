@@ -193,7 +193,7 @@ func generateCredential() *verifiable.Credential {
 				Type: "Assertion",
 				Achievement: &clr.Achievement{
 					ID:              "did:scoir:achieve123",
-					AchievementType: "Achievement",
+					AchievementType: "Diploma",
 					Name:            "Mathmatics - Algebra Level 1",
 				},
 				IssuedOn: docutil.NewTime(issued),

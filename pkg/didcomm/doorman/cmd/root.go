@@ -148,6 +148,16 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	return ep, nil
 }
 
+func (r *Provider) GetAMQPConfig() *framework.AMQPConfig {
+	config := &framework.AMQPConfig{}
+	err := r.vp.UnmarshalKey("inbound.amqp", config)
+	if err != nil {
+		log.Fatalln("unexpected error reading amqp config", err)
+	}
+
+	return config
+}
+
 func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	external := r.vp.GetString("inbound.external")
 	config := &framework.AMQPConfig{}

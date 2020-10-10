@@ -119,6 +119,8 @@ type Offer struct {
 
 type Credential struct {
 	AgentID           string
+	MyDID             string
+	TheirDID          string
 	OfferID           string
 	SchemaID          string
 	RegistryOfferID   string

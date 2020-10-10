@@ -7,8 +7,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/btcsuite/btcutil/base58"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	ariesdidex "github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
+	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -19,6 +21,7 @@ import (
 	"github.com/scoir/canis/pkg/didcomm/doorman/api"
 	"github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
+	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
 
 type provider interface {
@@ -27,9 +30,10 @@ type provider interface {
 }
 
 type Doorman struct {
-	agentStore datastore.Store
-	didcl      *ariesdidex.Client
-	bouncer    didexchange.Bouncer
+	store   datastore.Store
+	didcl   *ariesdidex.Client
+	bouncer didexchange.Bouncer
+	vdriReg vdriapi.Registry
 }
 
 func New(prov provider) (*Doorman, error) {
@@ -41,6 +45,7 @@ func New(prov provider) (*Doorman, error) {
 
 	simp := framework.NewSimpleProvider(ctx)
 	bouncer, err := didexchange.NewBouncer(simp)
+	vdriReg := ctx.VDRIRegistry()
 
 	agentStore, err := prov.GetDatastore()
 	if err != nil {
@@ -48,8 +53,9 @@ func New(prov provider) (*Doorman, error) {
 	}
 
 	return &Doorman{
-		agentStore: agentStore,
-		bouncer:    bouncer,
+		store:   agentStore,
+		bouncer: bouncer,
+		vdriReg: vdriReg,
 	}, nil
 }
 
@@ -71,9 +77,14 @@ func (r *Doorman) APISpec() (http.HandlerFunc, error) {
 
 func (r *Doorman) GetInvitation(_ context.Context, request *api.InvitationRequest) (*api.InvitationResponse, error) {
 
-	agent, err := r.agentStore.GetAgent(request.AgentId)
+	agent, err := r.store.GetAgent(request.AgentId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("agent with id %s not found", request.AgentId))
+	}
+
+	_, err = r.store.GetAgentConnection(agent, request.ExternalId)
+	if err == nil {
+		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("connection between agent %d and external ID %s already exists", agent.ID, request.ExternalId))
 	}
 
 	var invite *ariesdidex.Invitation
@@ -99,9 +110,38 @@ func (r *Doorman) GetInvitation(_ context.Context, request *api.InvitationReques
 
 func (r *Doorman) accepted(agent *datastore.Agent, externalID string) func(id string, conn *ariesdidex.Connection) {
 	return func(id string, conn *ariesdidex.Connection) {
-		err := r.agentStore.InsertAgentConnection(agent, externalID, conn)
+		err := r.store.InsertAgentConnection(agent, externalID, conn)
 		if err != nil {
-			log.Println("error creating agent connection")
+			log.Println("error creating agent connection", err)
+			return
+		}
+
+		//GET PEER DID FROM REGISTRY, SAVE.
+		diddoc, err := r.vdriReg.Resolve(conn.MyDID)
+		if err != nil {
+			log.Println("error resolving peer DID", err)
+			return
+		}
+
+		pubKey := base58.Encode(diddoc.PublicKey[0].Value)
+		did := &datastore.DID{
+			ID: diddoc.ID,
+			DID: &identifiers.DID{
+				DIDVal: identifiers.ParseDID(diddoc.ID),
+				Verkey: pubKey,
+			},
+			OwnerID: agent.ID,
+			KeyPair: &datastore.KeyPair{
+				ID:        diddoc.PublicKey[0].ID[1:],
+				PublicKey: pubKey,
+			},
+			Endpoint: diddoc.Service[0].ServiceEndpoint,
+			Public:   false,
+		}
+		err = r.store.InsertDID(did)
+		if err != nil {
+			log.Println("error saving peer DID", err)
+			return
 		}
 
 		log.Printf("Successfully connected agent %s to connection %s", id, "succeeded!")

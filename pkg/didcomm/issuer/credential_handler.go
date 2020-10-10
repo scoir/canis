@@ -42,24 +42,28 @@ func (r *credHandler) IssueCredentialMsg(_ service.DIDCommAction, _ *icprotocol.
 
 func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icprotocol.RequestCredential) {
 	thid, _ := e.Message.ThreadID()
-	props := e.Properties.(prop)
-	myDID := props.MyDID()
 
-	agent, err := r.store.GetAgentByPublicDID(myDID)
+	offer, err := r.store.FindOffer(thid)
 	if err != nil {
-		log.Println("unable to find agent for credential request", err)
+		log.Printf("unable to find offer with ID %s: (%v)\n", thid, err)
 		return
 	}
 
-	offer, err := r.store.FindOffer(agent.ID, thid)
+	_, err = r.store.GetAgent(offer.AgentID)
 	if err != nil {
-		log.Printf("unable to find offer with ID %s: (%v)\n", thid, err)
+		log.Println("unable to find agent for credential request", err)
 		return
 	}
 
 	schema, err := r.store.GetSchema(offer.SchemaID)
 	if err != nil {
 		log.Printf("unable to find schema with ID %s: (%v)\n", offer.SchemaID, err)
+		return
+	}
+
+	did, err := r.store.GetDID(offer.MyDID)
+	if err != nil {
+		log.Printf("unable to find DID with ID %s: (%v)\n", offer.MyDID, err)
 		return
 	}
 
@@ -72,7 +76,7 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	var credentialAttachments []decorator.Attachment
 	for _, requestAttachment := range request.RequestsAttach {
 
-		attachmentData, err := r.registry.IssueCredential(agent.PublicDID, schema, offer.RegistryOfferID,
+		attachmentData, err := r.registry.IssueCredential(did, schema, offer.RegistryOfferID,
 			requestAttachment.Data, values)
 		if err != nil {
 			log.Println("registry error creating credential", err)

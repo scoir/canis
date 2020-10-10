@@ -31,6 +31,8 @@ type Store interface {
 	// InsertDID add DID to store
 	InsertDID(d *DID) error
 	// ListDIDs query DIDs
+	GetDID(id string) (*DID, error)
+	// SetPublicDID update single DID to public, unset remaining
 	ListDIDs(c *DIDCriteria) (*DIDList, error)
 	// SetPublicDID update single DID to public, unset remaining
 	SetPublicDID(DID *DID) error
@@ -51,7 +53,7 @@ type Store interface {
 	// InsertCredential add Crednetial to store
 	InsertCredential(c *Credential) (string, error)
 	//FindOffer finds credential in offer state
-	FindOffer(agentID string, offerID string) (*Credential, error)
+	FindOffer(offerID string) (*Credential, error)
 
 	// InsertAgent add agent to store
 	InsertAgent(a *Agent) (string, error)

@@ -80,17 +80,17 @@ func (r *DID) AbbreviateVerkey() string {
 	return AbbreviateVerkey(r.String(), r.Verkey)
 }
 
-func ParseDID(did string) *DIDValue {
+func ParseDID(did string) DIDValue {
 	if DIDRegEx.MatchString(did) {
 		p := DIDRegEx.FindStringSubmatch(did)
-		return &DIDValue{
+		return DIDValue{
 			MethodSpecificID: p[2],
 			Method:           p[1],
 		}
 
 	}
 
-	return &DIDValue{
+	return DIDValue{
 		MethodSpecificID: did,
 		Method:           "",
 	}

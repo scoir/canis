@@ -128,6 +128,17 @@ func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
 	return nil
 }
 
+func (r *mongoDBStore) GetDID(id string) (*datastore.DID, error) {
+	did := &datastore.DID{}
+
+	err := r.db.Collection(DIDC).FindOne(context.Background(), bson.M{"id": id}).Decode(did)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load did")
+	}
+
+	return did, nil
+}
+
 // ListDIDs query DIDs
 func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
 	if c == nil {
@@ -403,10 +414,10 @@ func (r *mongoDBStore) InsertCredential(c *datastore.Credential) (string, error)
 	return id.Hex(), nil
 }
 
-func (r *mongoDBStore) FindOffer(agentID string, offerID string) (*datastore.Credential, error) {
+func (r *mongoDBStore) FindOffer(offerID string) (*datastore.Credential, error) {
 	c := &datastore.Credential{}
 	err := r.db.Collection(CredentialC).FindOne(context.Background(),
-		bson.M{"agentid": agentID, "offerid": offerID, "systemstate": "offered"}).Decode(c)
+		bson.M{"offerid": offerID, "systemstate": "offered"}).Decode(c)
 
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed load offer").Error())
