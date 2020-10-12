@@ -129,6 +129,11 @@ type Credential struct {
 	SystemState       string
 }
 
+type Webhook struct {
+	Type string
+	URL  string
+}
+
 type PresentationRequest struct {
 	AgentID               string
 	SchemaID              string

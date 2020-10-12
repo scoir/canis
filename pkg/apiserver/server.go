@@ -28,7 +28,7 @@ type APIServer struct {
 	keyMgr               kms.KeyManager
 	agentStore           datastore.Store
 	schemaStore          datastore.Store
-	didStore             datastore.Store
+	store                datastore.Store
 	client               vdrClient
 	schemaRegistry       cengine.CredentialRegistry
 	presentationRegistry pengine.PresentationRegistry
@@ -70,7 +70,7 @@ func New(ctx provider) (*APIServer, error) {
 	r.keyMgr = ctx.KMS()
 	r.schemaStore = ctx.Store()
 	r.agentStore = ctx.Store()
-	r.didStore = ctx.Store()
+	r.store = ctx.Store()
 
 	r.client, err = ctx.IndyVDR()
 	if err != nil {

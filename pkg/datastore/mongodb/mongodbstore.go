@@ -34,6 +34,7 @@ const (
 	SchemaC              = "Schema"
 	CredentialC          = "Credential"
 	PresentationRequestC = "PresentationRequest"
+	WebhookC             = "Webhook"
 )
 
 type Config struct {
@@ -424,6 +425,42 @@ func (r *mongoDBStore) FindOffer(offerID string) (*datastore.Credential, error) 
 	}
 
 	return c, nil
+}
+
+func (r *mongoDBStore) ListWebhooks(typ string) ([]*datastore.Webhook, error) {
+	ctx := context.Background()
+
+	results, err := r.db.Collection(WebhookC).Find(ctx, bson.M{"type": typ})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error trying to find agents")
+	}
+
+	var out []*datastore.Webhook
+	err = results.All(ctx, &out)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to decode agents")
+	}
+
+	return out, nil
+}
+
+func (r *mongoDBStore) AddWebhook(hook *datastore.Webhook) error {
+	ctx := context.Background()
+
+	results, err := r.db.Collection(WebhookC).Find(ctx, bson.M{"type": hook.Type, "url": hook.URL})
+
+	if err == nil && results.Next(ctx) {
+		return errors.Wrapf(err, "webhook already exists for type %f", hook.Type)
+	}
+
+	_, err = r.db.Collection(WebhookC).InsertOne(ctx, hook)
+	return errors.Wrap(err, "unable to insert hook")
+}
+
+func (r *mongoDBStore) DeleteWebhook(typ string) error {
+	_, err := r.db.Collection(WebhookC).DeleteMany(context.Background(), bson.M{"type": typ})
+	return errors.Wrap(err, "unable to remove webhook")
 }
 
 func (r *mongoDBStore) InsertPresentationRequest(pr *datastore.PresentationRequest) (string, error) {

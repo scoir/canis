@@ -10,12 +10,6 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 )
 
-const (
-	SchemaC = "Schema"
-	AgentC  = "Agent"
-	DIDC    = "PeerDID"
-)
-
 // Provider storage provider interface
 //go:generate mockery -name=Provider
 type Provider interface {
@@ -71,6 +65,12 @@ type Store interface {
 	InsertAgentConnection(a *Agent, externalID string, conn *didexchange.Connection) error
 	// GetAgentConnection return single connection between an agent and an external subject
 	GetAgentConnection(a *Agent, externalID string) (*AgentConnection, error)
+
+	ListWebhooks(typ string) ([]*Webhook, error)
+
+	AddWebhook(hook *Webhook) error
+
+	DeleteWebhook(typ string) error
 
 	//InsertPresentationRequest
 	InsertPresentationRequest(pr *PresentationRequest) (string, error)

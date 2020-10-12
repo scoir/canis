@@ -18,7 +18,7 @@ import (
 func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 	//TODO:  where is the methodName stored
 	//TODO: use Indy IndyVDR for now but do NOT tie ourselves to Indy!
-	did, err := r.didStore.GetPublicDID()
+	did, err := r.store.GetPublicDID()
 	if err != nil {
 		return errors.Wrap(err, "unable to get public DID.")
 	}

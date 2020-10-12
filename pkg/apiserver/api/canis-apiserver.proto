@@ -10,8 +10,8 @@ option go_package = "apiserver/api";
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
 		title: "Canis Admin API";
-        version:"0.0.2"
-    }
+version:"0.0.2"
+}
 };
 
 
@@ -239,6 +239,30 @@ message InvitationResponse {
 }
 
 
+message Webhook {
+    string url = 1;
+}
+
+message CreateWebhookRequest {
+    string id = 1;
+    repeated Webhook webhook = 2;
+}
+
+message CreateWebhookResponse {}
+
+message DeleteWebhookRequest {
+    string id = 1;
+}
+message DeleteWebhookResponse {}
+
+message ListWebhookRequest {
+    string id = 1;
+}
+message ListWebhookResponse {
+    repeated Webhook hooks = 1;
+}
+
+
 service Admin {
     rpc CreateSchema (CreateSchemaRequest) returns (CreateSchemaResponse) {
         option (google.api.http) = {
@@ -316,5 +340,22 @@ service Admin {
     }
 
     rpc WatchAgents (WatchRequest) returns (stream AgentEvent) {}
-    rpc SeedPublicDID(SeedPublicDIDRequest) returns (SeedPublicDIDResponse) {}
+    rpc SeedPublicDID (SeedPublicDIDRequest) returns (SeedPublicDIDResponse) {}
+
+    rpc CreateWebhook (CreateWebhookRequest) returns (CreateWebhookResponse) {
+        option (google.api.http) = {
+            post: "/webhooks/{id}"
+            body: "*"
+        };
+    }
+    rpc ListWebhook (ListWebhookRequest) returns (ListWebhookResponse) {
+        option (google.api.http) = {
+            get: "/webhooks/{id}"
+        };
+    }
+    rpc DeleteWebhook (DeleteWebhookRequest) returns (DeleteWebhookResponse) {
+        option (google.api.http) = {
+            delete: "/webhooks/{id}"
+        };
+    }
 }

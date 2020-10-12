@@ -13,6 +13,7 @@ import (
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
+	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,18 +23,24 @@ import (
 	"github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
+	"github.com/scoir/canis/pkg/notifier"
 )
+
+const ConnectionTopic = "connections"
+const AcceptedEvent = "accepted"
 
 type provider interface {
 	GetAriesContext() (*ariescontext.Provider, error)
 	GetDatastore() (datastore.Store, error)
+	GetAMQPConfig() *framework.AMQPConfig
 }
 
 type Doorman struct {
-	store   datastore.Store
-	didcl   *ariesdidex.Client
-	bouncer didexchange.Bouncer
-	vdriReg vdriapi.Registry
+	store               datastore.Store
+	didcl               *ariesdidex.Client
+	bouncer             didexchange.Bouncer
+	vdriReg             vdriapi.Registry
+	notificationChannel *amqp.Channel
 }
 
 func New(prov provider) (*Doorman, error) {
@@ -52,10 +59,33 @@ func New(prov provider) (*Doorman, error) {
 		return nil, errors.Wrap(err, "unable to get datastore provider")
 	}
 
+	conn, err := amqp.Dial(prov.GetAMQPConfig().Endpoint())
+	if err != nil {
+		log.Fatalln("unable to dial RMQ", err)
+	}
+
+	ch, err := conn.Channel()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create an AMQP channel")
+	}
+
+	_, err = ch.QueueDeclare(
+		notifier.QueueName,
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to declare AMQP queue")
+	}
+
 	return &Doorman{
-		store:   agentStore,
-		bouncer: bouncer,
-		vdriReg: vdriReg,
+		store:               agentStore,
+		bouncer:             bouncer,
+		vdriReg:             vdriReg,
+		notificationChannel: ch,
 	}, nil
 }
 
@@ -84,7 +114,8 @@ func (r *Doorman) GetInvitation(_ context.Context, request *api.InvitationReques
 
 	_, err = r.store.GetAgentConnection(agent, request.ExternalId)
 	if err == nil {
-		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("connection between agent %d and external ID %s already exists", agent.ID, request.ExternalId))
+		return nil, status.Error(codes.AlreadyExists,
+			fmt.Sprintf("connection between agent %s and external ID %s already exists", agent.ID, request.ExternalId))
 	}
 
 	var invite *ariesdidex.Invitation
@@ -144,7 +175,44 @@ func (r *Doorman) accepted(agent *datastore.Agent, externalID string) func(id st
 			return
 		}
 
+		r.publishEvent(agent, externalID, conn)
 		log.Printf("Successfully connected agent %s to connection %s", id, "succeeded!")
+	}
+}
+
+func (r *Doorman) publishEvent(agent *datastore.Agent, externalID string, conn *ariesdidex.Connection) {
+
+	evt := &notifier.Notification{
+		Topic: ConnectionTopic,
+		Event: AcceptedEvent,
+		EventData: DIDAcceptedEvent{
+			AgentID:      agent.ID,
+			TheirDID:     conn.TheirDID,
+			MyDID:        conn.MyDID,
+			ConnectionID: conn.ConnectionID,
+			ExternalID:   externalID,
+		},
+	}
+
+	message, err := json.Marshal(evt)
+	if err != nil {
+		log.Printf("unexpected error marshalling did accepted event")
+		return
+	}
+
+	err = r.notificationChannel.Publish(
+		"",
+		notifier.QueueName,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        message,
+		})
+
+	if err != nil {
+		log.Printf("unable to publish doorman event")
+		return
 	}
 }
 

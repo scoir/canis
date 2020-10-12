@@ -45,7 +45,7 @@ func SetupTest() (*APIServer, *AdminTestSuite) {
 	target := &APIServer{
 		agentStore:     suite.Store,
 		schemaStore:    suite.Store,
-		didStore:       suite.Store,
+		store:          suite.Store,
 		client:         suite.IndyClient,
 		schemaRegistry: suite.CredRegistry,
 		keyMgr:         suite.KMS,

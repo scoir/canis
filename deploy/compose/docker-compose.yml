@@ -105,6 +105,21 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
+  canis-webhook-notifier:
+    image: canis/canis
+    command: "canis-webhook-notifier start"
+    networks:
+      - backend
+    secrets:
+      - source: canis-webhook-notifier-config
+        target: /etc/canis/canis-webhook-notifier.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
 
 secrets:
   canis-apiserver-config:
@@ -119,6 +134,8 @@ secrets:
     file: ./canis-didcomm-lb.yaml
   http-indy-resolver-config:
     file: ./http-indy-resolver.yaml
+  canis-webhook-notifier-config:
+    file: ./canis-webhook-notifier.yaml
 
 networks:
   backend:

@@ -448,7 +448,7 @@ func (r *APIServer) fireAgentEvent(evt *api.AgentEvent) {
 }
 
 func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDRequest) (*api.SeedPublicDIDResponse, error) {
-	_, err := r.didStore.GetPublicDID()
+	_, err := r.store.GetPublicDID()
 	if err == nil {
 		return nil, status.Error(codes.FailedPrecondition, "public DID already exists")
 	}
@@ -503,7 +503,7 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 		Endpoint: "",
 	}
 
-	err = r.didStore.SetPublicDID(d)
+	err = r.store.SetPublicDID(d)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -583,4 +583,48 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPre
 	return &api.RequestPresentationResponse{
 		RequestPresentationId: resp.RequestPresentationId,
 	}, nil
+}
+
+func (r *APIServer) CreateWebhook(_ context.Context, request *api.CreateWebhookRequest) (*api.CreateWebhookResponse, error) {
+
+	for _, webhook := range request.Webhook {
+
+		hook := &datastore.Webhook{
+			Type: request.Id,
+			URL:  webhook.Url,
+		}
+		err := r.store.AddWebhook(hook)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "unexpected error adding webhook")
+		}
+	}
+	return &api.CreateWebhookResponse{}, nil
+}
+
+func (r *APIServer) ListWebhook(_ context.Context, request *api.ListWebhookRequest) (*api.ListWebhookResponse, error) {
+
+	hooks, err := r.store.ListWebhooks(request.Id)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "unexpected error listing webhooks")
+	}
+
+	out := make([]*api.Webhook, len(hooks))
+	for i, h := range hooks {
+		out[i] = &api.Webhook{
+			Url: h.URL,
+		}
+	}
+
+	return &api.ListWebhookResponse{
+		Hooks: out,
+	}, nil
+}
+
+func (r *APIServer) DeleteWebhook(_ context.Context, request *api.DeleteWebhookRequest) (*api.DeleteWebhookResponse, error) {
+	err := r.store.DeleteWebhook(request.Id)
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("unable to delete webhook for %s: (%v)", request.Id, err))
+	}
+
+	return &api.DeleteWebhookResponse{}, nil
 }
