@@ -10,8 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
 
@@ -19,6 +17,8 @@ import (
 	ppclient "github.com/hyperledger/aries-framework-go/pkg/client/presentproof"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/didcomm/verifier/api"
@@ -129,8 +129,6 @@ func (r *Server) RequestPresentation(_ context.Context, req *api.RequestPresenta
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating presentation request: %v", err))
 	}
 
-	//store?
-	//r.store.InsertPresentationRequest()
 	requestPresentationID, err := r.proofcl.SendRequestPresentation(presentation, ac.MyDID, ac.TheirDID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error sending presentation request: %v", err))

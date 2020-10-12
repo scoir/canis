@@ -2,10 +2,12 @@ package engine
 
 import (
 	"fmt"
+
 	"github.com/google/uuid"
 	ppclient "github.com/hyperledger/aries-framework-go/pkg/client/presentproof"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
+
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/didcomm/verifier/api"
 )
@@ -14,7 +16,7 @@ const PresentProofType = "https://didcomm.org/present-proof/2.0/request-presenta
 
 //go:generate mockery -name=PresentationEngine
 type PresentationEngine interface {
-	RequestPresentationAttach(attrInfo map[string]*api.AttrInfo, predicateInfo map[string]*api.PredicateInfo) ([]byte, error)
+	RequestPresentationAttach(attrInfo map[string]*api.AttrInfo, predicateInfo map[string]*api.PredicateInfo) (string, error)
 	RequestPresentationFormat() string
 	Accept(typ string) bool
 }
@@ -72,7 +74,7 @@ func (r *Registry) RequestPresentation(typ string, attrInfo map[string]*api.Attr
 				ID:       attachID,
 				MimeType: "application/json",
 				Data: decorator.AttachmentData{
-					Base64: string(attach),
+					Base64: attach,
 				},
 			},
 		},

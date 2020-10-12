@@ -213,6 +213,9 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 func (r *Provider) GetDoormanClient() (api.DoormanClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("doorman.grpc", ep)
+	if err != nil {
+		return nil, errors.Wrap(err, "doorman grpc is not properly configured")
+	}
 
 	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
 	if err != nil {
@@ -225,6 +228,9 @@ func (r *Provider) GetDoormanClient() (api.DoormanClient, error) {
 func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("issuer.grpc", ep)
+	if err != nil {
+		return nil, errors.Wrap(err, "issuer grpc is not properly configured")
+	}
 
 	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
 	if err != nil {
@@ -237,6 +243,9 @@ func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
 func (r *Provider) GetVerifierClient() (verifier.VerifierClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("verifier.grpc", ep)
+	if err != nil {
+		return nil, errors.Wrap(err, "verifier grpc is not properly configured")
+	}
 
 	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
 	if err != nil {
@@ -249,6 +258,9 @@ func (r *Provider) GetVerifierClient() (verifier.VerifierClient, error) {
 func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("loadbalancer.grpc", ep)
+	if err != nil {
+		return nil, errors.Wrap(err, "loadbalancer grpc is not properly configured")
+	}
 
 	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
 	if err != nil {

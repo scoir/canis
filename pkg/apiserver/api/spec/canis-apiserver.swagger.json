@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "Canis Admin API",
-    "version": "0.0.1"
+    "version": "0.0.2"
   },
   "consumes": [
     "application/json"
@@ -22,7 +22,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -64,7 +64,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -96,7 +96,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -134,7 +134,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -178,7 +178,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -203,6 +203,50 @@
         ]
       }
     },
+    "/agents/{agent_id}/presentation/{external_id}/request": {
+      "post": {
+        "operationId": "Admin_RequestPresentation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiserverRequestPresentationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "external_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiserverRequestPresentation"
+            }
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/agents/{id}": {
       "get": {
         "operationId": "Admin_GetAgent",
@@ -214,7 +258,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -242,7 +286,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -272,7 +316,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -320,7 +364,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -352,7 +396,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -380,7 +424,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -410,7 +454,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -471,8 +515,7 @@
           "$ref": "#/definitions/AgentStatus"
         },
         "public_did": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         }
       }
     },
@@ -498,6 +541,21 @@
         "DELETE"
       ],
       "default": "ADD"
+    },
+    "apiserverAttrInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "restrictions": {
+          "type": "string"
+        },
+        "non_revoked": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
     },
     "apiserverAttribute": {
       "type": "object",
@@ -634,6 +692,64 @@
           "items": {
             "$ref": "#/definitions/apiserverSchema"
           }
+        }
+      }
+    },
+    "apiserverPredicateInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "p_type": {
+          "type": "string"
+        },
+        "p_value": {
+          "type": "string"
+        },
+        "restrictions": {
+          "type": "string"
+        },
+        "non_revoked": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "apiserverRequestPresentation": {
+      "type": "object",
+      "properties": {
+        "schema_id": {
+          "type": "string"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "will_confirm": {
+          "type": "boolean"
+        },
+        "requested_attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/apiserverAttrInfo"
+          }
+        },
+        "requested_predicates": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/apiserverPredicateInfo"
+          }
+        }
+      }
+    },
+    "apiserverRequestPresentationResponse": {
+      "type": "object",
+      "properties": {
+        "request_presentation_id": {
+          "type": "string"
         }
       }
     },

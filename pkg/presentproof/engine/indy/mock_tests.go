@@ -1,7 +1,6 @@
 package indy
 
 import (
-	ppprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	storagemock "github.com/hyperledger/aries-framework-go/pkg/mock/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
@@ -12,42 +11,71 @@ import (
 )
 
 type providerMock struct {
-	vdr      *mocks.IndyVDRClient
-	store    *storagemock.MockStoreProvider
-	verifier *verifiermock
+	vdr            *mocks.IndyVDRClient
+	vdrError       error
+	kms            kms.KeyManager
+	store          *storeMock
+	cryptoProvider *cryptoMock
 }
 
-func NewProvider() *providerMock {
-	return &providerMock{
-		vdr: &mocks.IndyVDRClient{},
-		store: &storagemock.MockStoreProvider{
-			Store: &storagemock.MockStore{
-				Store: map[string][]byte{},
-			},
-		},
-		verifier: &verifiermock{},
-	}
-}
-
+// IndyVDR mock implementation for indy engine
 func (r *providerMock) IndyVDR() (indy.IndyVDRClient, error) {
+	if r.vdrError != nil {
+		return nil, r.vdrError
+	}
+
 	return r.vdr, nil
 }
 
-func (r *providerMock) KMS() (kms.KeyManager, error) {
-	return nil, nil
+// KMS mock implementation for indy engine
+func (r *providerMock) KMS() kms.KeyManager {
+	return r.kms
 }
 
+// StorageProvider mock implementation for indy engine
 func (r *providerMock) StorageProvider() storage.Provider {
 	return r.store
 }
 
+// Verifier mock implementation for indy engine
 func (r *providerMock) Verifier() ursa.Verifier {
-	return r.verifier
+	return nil
 }
 
-type verifiermock struct {
+type storeMock struct {
+	OpenStoreErr error
+	Store        storage.Store
 }
 
-func (v verifiermock) SendRequestPresentation(msg *ppprotocol.RequestPresentation, myDID, theirDID string) (string, error) {
-	panic("implement me")
+// OpenStore mock implementation for store mock
+func (r *storeMock) OpenStore(name string) (storage.Store, error) {
+	if r.OpenStoreErr != nil {
+		return nil, r.OpenStoreErr
+	}
+
+	//todo: revisit using aries mocks here
+	return &storagemock.MockStore{}, nil
+}
+
+// CloseStore unimplemented for store mock
+func (r *storeMock) CloseStore(name string) error {
+	return nil
+}
+
+// Close unimplemented for store mock
+func (r *storeMock) Close() error {
+	return nil
+}
+
+type cryptoMock struct {
+	NewNonceErr error
+}
+
+// NewNonce mock implementation for crypto
+func (r *cryptoMock) NewNonce() (string, error) {
+	if r.NewNonceErr != nil {
+		return "", r.NewNonceErr
+	}
+
+	return "nonce", nil
 }

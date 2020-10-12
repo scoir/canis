@@ -20,6 +20,8 @@ tools:
 	go get "github.com/vektra/mockery/.../@v1.1.2"
 	go get "golang.org/x/tools/cmd/cover@v0.0.0-20200904140424-93eecc3576be"
 	go get "github.com/golang/protobuf/protoc-gen-go@v1.4.2"
+	go get "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2"
+	go get "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2"
 
 swagger_pack: pkg/static/canis-apiserver_swagger.go
 pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec/canis-apiserver.swagger.json

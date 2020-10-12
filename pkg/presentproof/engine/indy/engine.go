@@ -2,10 +2,13 @@ package indy
 
 import "C"
 import (
+	"encoding/base64"
 	"encoding/json"
+
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
+
 	"github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/ursa"
@@ -20,6 +23,7 @@ type Engine struct {
 	client VDRClient
 	kms    kms.KeyManager
 	store  store
+	crypto cryptoProvider
 }
 
 type provider interface {
@@ -52,6 +56,9 @@ func New(prov provider) (*Engine, error) {
 	}
 
 	eng.kms = prov.KMS()
+
+	//todo: this needs to be better, crypto is unique to the engine, however this feels hacky
+	eng.crypto = &ursaCrypto{}
 	return eng, nil
 }
 
@@ -70,12 +77,13 @@ type PresentationRequest struct {
 	NonRevoked          string                        `json:"non_revoked,omitempty"`
 }
 
+// RequestPresentationAttach
 func (r *Engine) RequestPresentationAttach(attrInfo map[string]*api.AttrInfo,
-	predicateInfo map[string]*api.PredicateInfo) ([]byte, error) {
+	predicateInfo map[string]*api.PredicateInfo) (string, error) {
 
-	nonce, err := ursa.NewNonce()
+	nonce, err := r.crypto.NewNonce()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	//TODO: proper names and version
@@ -87,12 +95,26 @@ func (r *Engine) RequestPresentationAttach(attrInfo map[string]*api.AttrInfo,
 		RequestedPredicates: predicateInfo,
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return b, nil
+
+	return base64.StdEncoding.EncodeToString(b), nil
 }
 
+// RequestPresentationFormat
 func (r *Engine) RequestPresentationFormat() string {
 	return Format
+}
+
+type cryptoProvider interface {
+	NewNonce() (string, error)
+}
+
+type ursaCrypto struct {
+}
+
+// NewNonce wraps ursa.NewNonce until we switch to the go wrapper
+func (r *ursaCrypto) NewNonce() (string, error) {
+	return ursa.NewNonce()
 }

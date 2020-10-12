@@ -68,7 +68,7 @@ data:
     #  Verifier configuration
     #
     ###############################################################
-    issuer:
+    verifier:
       grpc:
         host: canis-didcomm-verifier
         port: {{ .Values.verifier.grpc.port }}

@@ -1,15 +1,17 @@
 package jsonld
 
 import (
+	"log"
+
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
+
 	"github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/ursa"
-	"log"
 
 	"github.com/scoir/canis/pkg/presentproof"
 )
@@ -51,11 +53,11 @@ func (r *Engine) Accept(typ string) bool {
 }
 
 // RequestPresentation
-func (r *Engine) RequestPresentationAttach(attrInfo map[string]*api.AttrInfo, predicateInfo map[string]*api.PredicateInfo) ([]byte, error) {
+func (r *Engine) RequestPresentationAttach(attrInfo map[string]*api.AttrInfo, predicateInfo map[string]*api.PredicateInfo) (string, error) {
 	log.Println(attrInfo)
 	log.Println(predicateInfo)
 
-	return nil, nil
+	return "", nil
 }
 
 func (r *Engine) RequestPresentationFormat() string {

@@ -11,7 +11,6 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"fmt"
-	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"log"
 	"net/http"
 
@@ -28,6 +27,7 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
+	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 	"github.com/scoir/canis/pkg/static"
 )
@@ -546,7 +546,7 @@ func (r *APIServer) IssueCredential(ctx context.Context, req *api.IssueCredentia
 func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPresentationRequest) (*api.RequestPresentationResponse, error) {
 
 	pp := make(map[string]*verifier.AttrInfo)
-	for k, v := range req.RequestedAttributes {
+	for k, v := range req.Presentation.RequestedAttributes {
 		pp[k] = &verifier.AttrInfo{
 			Name:         v.Name,
 			Restrictions: v.Restrictions,
@@ -555,7 +555,7 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPre
 	}
 
 	pq := make(map[string]*verifier.PredicateInfo)
-	for k, v := range req.RequestedPredicates {
+	for k, v := range req.Presentation.RequestedPredicates {
 		pq[k] = &verifier.PredicateInfo{
 			Name:         v.Name,
 			PType:        v.PType,
@@ -576,12 +576,12 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPre
 		RequestedPredicates: pq,
 	}
 
-	respresp, err := r.verifier.RequestPresentation(ctx, rpr)
+	resp, err := r.verifier.RequestPresentation(ctx, rpr)
 	if err != nil {
 		return nil, err
 	}
 
 	return &api.RequestPresentationResponse{
-		RequestPresentationId: respresp.RequestPresentationId,
+		RequestPresentationId: resp.RequestPresentationId,
 	}, nil
 }

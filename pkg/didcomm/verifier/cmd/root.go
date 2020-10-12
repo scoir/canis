@@ -225,7 +225,7 @@ func (r *Provider) Verifier() ursa.Verifier {
 
 // IndyVDR todo
 func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
-	genesisFile := r.vp.GetString("presentproof.indy.genesisFile")
+	genesisFile := r.vp.GetString("presentation.indy.genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
 	if err != nil {
