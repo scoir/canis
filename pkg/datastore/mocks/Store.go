@@ -13,6 +13,20 @@ type Store struct {
 	mock.Mock
 }
 
+// AddWebhook provides a mock function with given fields: hook
+func (_m *Store) AddWebhook(hook *datastore.Webhook) error {
+	ret := _m.Called(hook)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.Webhook) error); ok {
+		r0 = rf(hook)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteAgent provides a mock function with given fields: id
 func (_m *Store) DeleteAgent(id string) error {
 	ret := _m.Called(id)
@@ -41,13 +55,27 @@ func (_m *Store) DeleteSchema(id string) error {
 	return r0
 }
 
-// FindOffer provides a mock function with given fields: agentID, offerID
-func (_m *Store) FindOffer(agentID string, offerID string) (*datastore.Credential, error) {
-	ret := _m.Called(agentID, offerID)
+// DeleteWebhook provides a mock function with given fields: typ
+func (_m *Store) DeleteWebhook(typ string) error {
+	ret := _m.Called(typ)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(typ)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// FindOffer provides a mock function with given fields: offerID
+func (_m *Store) FindOffer(offerID string) (*datastore.Credential, error) {
+	ret := _m.Called(offerID)
 
 	var r0 *datastore.Credential
-	if rf, ok := ret.Get(0).(func(string, string) *datastore.Credential); ok {
-		r0 = rf(agentID, offerID)
+	if rf, ok := ret.Get(0).(func(string) *datastore.Credential); ok {
+		r0 = rf(offerID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*datastore.Credential)
@@ -55,8 +83,8 @@ func (_m *Store) FindOffer(agentID string, offerID string) (*datastore.Credentia
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(agentID, offerID)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(offerID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -126,6 +154,29 @@ func (_m *Store) GetAgentConnection(a *datastore.Agent, externalID string) (*dat
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*datastore.Agent, string) error); ok {
 		r1 = rf(a, externalID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetDID provides a mock function with given fields: id
+func (_m *Store) GetDID(id string) (*datastore.DID, error) {
+	ret := _m.Called(id)
+
+	var r0 *datastore.DID
+	if rf, ok := ret.Get(0).(func(string) *datastore.DID); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.DID)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -353,6 +404,29 @@ func (_m *Store) ListSchema(c *datastore.SchemaCriteria) (*datastore.SchemaList,
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*datastore.SchemaCriteria) error); ok {
 		r1 = rf(c)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListWebhooks provides a mock function with given fields: typ
+func (_m *Store) ListWebhooks(typ string) ([]*datastore.Webhook, error) {
+	ret := _m.Called(typ)
+
+	var r0 []*datastore.Webhook
+	if rf, ok := ret.Get(0).(func(string) []*datastore.Webhook); ok {
+		r0 = rf(typ)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*datastore.Webhook)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(typ)
 	} else {
 		r1 = ret.Error(1)
 	}

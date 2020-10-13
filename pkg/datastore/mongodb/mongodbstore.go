@@ -399,7 +399,7 @@ func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string)
 		bson.M{"agentid": a.ID, "externalid": externalID}).Decode(ac)
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed load agent connection").Error())
+		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
 	}
 
 	return ac, nil
@@ -421,7 +421,7 @@ func (r *mongoDBStore) FindOffer(offerID string) (*datastore.Credential, error) 
 		bson.M{"offerid": offerID, "systemstate": "offered"}).Decode(c)
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed load offer").Error())
+		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load offer").Error())
 	}
 
 	return c, nil
@@ -451,7 +451,7 @@ func (r *mongoDBStore) AddWebhook(hook *datastore.Webhook) error {
 	results, err := r.db.Collection(WebhookC).Find(ctx, bson.M{"type": hook.Type, "url": hook.URL})
 
 	if err == nil && results.Next(ctx) {
-		return errors.Wrapf(err, "webhook already exists for type %f", hook.Type)
+		return errors.Wrapf(err, "webhook already exists for type %s", hook.Type)
 	}
 
 	_, err = r.db.Collection(WebhookC).InsertOne(ctx, hook)

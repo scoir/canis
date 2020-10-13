@@ -266,14 +266,14 @@ func TestParseDID(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *DIDValue
+		want DIDValue
 	}{
 		{
 			name: "test valid did",
 			args: args{
 				did: "did:ioe:PBu1XhbSQCdaeEKuJVFTi4",
 			},
-			want: &DIDValue{
+			want: DIDValue{
 				MethodSpecificID: "PBu1XhbSQCdaeEKuJVFTi4",
 				Method:           "ioe",
 			},
@@ -283,7 +283,7 @@ func TestParseDID(t *testing.T) {
 			args: args{
 				did: "PBu1XhbSQCdaeEKuJVFTi4",
 			},
-			want: &DIDValue{
+			want: DIDValue{
 				MethodSpecificID: "PBu1XhbSQCdaeEKuJVFTi4",
 				Method:           "",
 			},
