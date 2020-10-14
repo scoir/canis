@@ -25,6 +25,7 @@ func (r *DatastoreConfig) StorageProvider() (datastore.Provider, error) {
 	switch r.Database {
 	case "mongo":
 		dp, err = mongodb.NewProvider(r.Mongo)
+
 	default:
 		return nil, errors.New("no datastore configuration was provided")
 	}

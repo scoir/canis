@@ -24,8 +24,8 @@ type CredentialRegistry interface {
 	CreateSchema(s *datastore.Schema) (string, error)
 	RegisterSchema(registrant *datastore.DID, s *datastore.Schema) error
 	CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error)
-	IssueCredential(issuer *datastore.DID, s *datastore.Schema, offerID string, requestAttachment decorator.AttachmentData,
-		values map[string]interface{}) (*decorator.AttachmentData, error)
+	IssueCredential(issuer *datastore.DID, s *datastore.Schema, offerID string,
+		requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error)
 }
 
 type Option func(opts *Registry)

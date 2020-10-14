@@ -27,12 +27,13 @@ import (
 )
 
 const (
-	PublicDIDC       = "PublicDID"
-	DIDC             = "DID"
-	AgentC           = "Agent"
-	AgentConnectionC = "AgentConnection"
-	SchemaC          = "Schema"
-	CredentialC      = "Credential"
+	PublicDIDC           = "PublicDID"
+	DIDC                 = "DID"
+	AgentC               = "Agent"
+	AgentConnectionC     = "AgentConnection"
+	SchemaC              = "Schema"
+	CredentialC          = "Credential"
+	PresentationRequestC = "PresentationRequest"
 )
 
 type Config struct {
@@ -412,4 +413,14 @@ func (r *mongoDBStore) FindOffer(agentID string, offerID string) (*datastore.Cre
 	}
 
 	return c, nil
+}
+
+func (r *mongoDBStore) InsertPresentationRequest(pr *datastore.PresentationRequest) (string, error) {
+
+	res, err := r.db.Collection(PresentationRequestC).InsertOne(context.Background(), pr)
+	if err != nil {
+		return "", err
+	}
+
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }

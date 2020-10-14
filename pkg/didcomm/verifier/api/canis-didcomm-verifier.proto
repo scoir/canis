@@ -1,12 +1,37 @@
 syntax = "proto3";
 package didcomm;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "didcomm/verifier/api";
 
+message AttrInfo {
+  string name = 1;
+  string restrictions = 2; // wql query
+  google.protobuf.Timestamp non_revoked = 3;
+}
+
+message PredicateInfo {
+  string name = 1; // attribute name, (case insensitive and ignore spaces)
+  string p_type = 2; // (Currently >= only)
+  string p_value = 3;
+  string restrictions = 4; // wql query
+  google.protobuf.Timestamp non_revoked = 5;
+}
+
 message RequestPresentationRequest {
+  string agent_id = 1;
+  string external_id = 2;
+  string schema_id = 3;
+  string comment = 4;
+  string type = 5;
+  bool will_confirm = 6;
+  map<string, AttrInfo> requested_attributes = 7;
+  map<string, PredicateInfo> requested_predicates = 8;
 }
 
 message RequestPresentationResponse {
+  string request_presentation_id = 1;
 }
 
 service Verifier {

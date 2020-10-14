@@ -17,6 +17,12 @@ type proofHandler struct {
 	registry engine.PresentationRegistry
 }
 
+type prop interface {
+	MyDID() string
+	TheirDID() string
+	CredDefID() string
+}
+
 func (r *proofHandler) ProposePresentationMsg(e service.DIDCommAction, d *ppprotocol.ProposePresentation) {
 	panic("implement me")
 }

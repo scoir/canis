@@ -363,3 +363,22 @@ func TestAgentFailures(t *testing.T) {
 		require.Contains(t, err.Error(), "error trying to find agents")
 	})
 }
+
+func TestPresentationRequest(t *testing.T) {
+	t.Run("insert presentation request", func(t *testing.T) {
+		prov, err := NewProvider(testConfig())
+		require.NoError(t, err)
+
+		store, err := prov.Open()
+		require.NoError(t, err)
+
+		_, err = store.InsertPresentationRequest(&datastore.PresentationRequest{
+			AgentID:               "agent id",
+			SchemaID:              "schema id",
+			ExternalID:            "external id",
+			PresentationRequestID: "presentation request id",
+		})
+		require.NoError(t, err)
+
+	})
+}

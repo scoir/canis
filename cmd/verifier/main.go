@@ -16,7 +16,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
-	mongodbstore "github.com/scoir/aries-storage-mongo/pkg/storage"
+	mongodbstore "github.com/scoir/aries-storage-mongo/pkg"
 	goji "goji.io"
 	"goji.io/pat"
 

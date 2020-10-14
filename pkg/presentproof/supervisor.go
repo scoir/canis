@@ -102,6 +102,7 @@ func (r *Supervisor) execProposePresentation(ch chan service.DIDCommAction, f Ha
 		f.ProposePresentationMsg(e, proposal)
 	}
 }
+
 func (r *Supervisor) execRequestPresentation(ch chan service.DIDCommAction, f Handler) {
 	for e := range ch {
 		request := &presentproof.RequestPresentation{}
@@ -113,6 +114,7 @@ func (r *Supervisor) execRequestPresentation(ch chan service.DIDCommAction, f Ha
 		f.RequestPresentationMsg(e, request)
 	}
 }
+
 func (r *Supervisor) execPresentation(ch chan service.DIDCommAction, f Handler) {
 	for e := range ch {
 		pres := &presentproof.Presentation{}
@@ -124,6 +126,7 @@ func (r *Supervisor) execPresentation(ch chan service.DIDCommAction, f Handler) 
 		f.PresentationMsg(e, pres)
 	}
 }
+
 func (r *Supervisor) execPresentationPreview(ch chan service.DIDCommAction, f Handler) {
 	for e := range ch {
 		pres := &presentproof.Presentation{}

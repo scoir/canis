@@ -55,10 +55,7 @@ type Provider struct {
 	lock                 secretlock.Service
 	store                datastore.Store
 	ariesStorageProvider storage.Provider
-}
-
-func (r *Provider) Issuer() ursa.Issuer {
-	panic("implement me")
+	keyMgr               kms.KeyManager
 }
 
 func Execute() {
@@ -139,6 +136,11 @@ func initConfig() {
 		store:                store,
 		ariesStorageProvider: ls,
 	}
+
+	ctx.keyMgr, err = localkms.New("local-lock://default/master/key/", ctx)
+	if err != nil {
+		log.Fatalln("unable to create local kms")
+	}
 }
 
 func (r *Provider) Store() datastore.Store {
@@ -172,6 +174,7 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	return ep, nil
 }
 
+// GetAriesContext todo
 func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	external := r.vp.GetString("inbound.external")
 	config := &framework.AMQPConfig{}
@@ -215,12 +218,14 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	return actx, err
 }
 
+// Verifier todo
 func (r *Provider) Verifier() ursa.Verifier {
 	return ursa.NewVerifier()
 }
 
+// IndyVDR todo
 func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
-	genesisFile := r.vp.GetString("presentproof.indy.genesisFile")
+	genesisFile := r.vp.GetString("presentation.indy.genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
 	if err != nil {
@@ -230,11 +235,12 @@ func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
 	return cl, nil
 }
 
-func (r *Provider) KMS() (kms.KeyManager, error) {
-	mgr, err := localkms.New("local-lock://default/master/key/", r)
-	return mgr, errors.Wrap(err, "unable to create locakkms")
+// KMS todo
+func (r *Provider) KMS() kms.KeyManager {
+	return r.keyMgr
 }
 
+// GetPresentationEngineRegistry todo
 func (r *Provider) GetPresentationEngineRegistry() (engine.PresentationRegistry, error) {
 	e, err := indy.New(r)
 	if err != nil {
@@ -243,6 +249,7 @@ func (r *Provider) GetPresentationEngineRegistry() (engine.PresentationRegistry,
 	return engine.New(r, engine.WithEngine(e)), nil
 }
 
+// SecretLock todo
 func (r *Provider) SecretLock() secretlock.Service {
 	return r.lock
 }

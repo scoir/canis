@@ -20,6 +20,7 @@ func TestNew(t *testing.T) {
 		p.On("IndyVDR").Return(nil, nil)
 		p.On("GetDoormanClient").Return(nil, nil)
 		p.On("GetIssuerClient").Return(nil, nil)
+		p.On("GetVerifierClient").Return(nil, nil)
 		p.On("GetLoadbalancerClient").Return(nil, nil)
 		p.On("GetCredentialEngineRegistry").Return(nil, nil)
 		p.On("GetPresentationEngineRegistry").Return(nil, nil)

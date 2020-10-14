@@ -69,4 +69,7 @@ type Store interface {
 	InsertAgentConnection(a *Agent, externalID string, conn *didexchange.Connection) error
 	// GetAgentConnection return single connection between an agent and an external subject
 	GetAgentConnection(a *Agent, externalID string) (*AgentConnection, error)
+
+	//InsertPresentationRequest
+	InsertPresentationRequest(pr *PresentationRequest) (string, error)
 }
