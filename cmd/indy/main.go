@@ -89,5 +89,5 @@ func main() {
 	//fmt.Println(string(d))
 	//
 	n, err := ursa.NewNonce()
-	fmt.Println(n)
+	fmt.Println(n, err)
 }

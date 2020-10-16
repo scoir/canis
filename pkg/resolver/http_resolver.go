@@ -104,6 +104,9 @@ func (r *HTTPIndyResolver) Read(did string) (*didResolution, error) {
 	pubKeyValue := base58.Decode(verkey)
 
 	KID, err := localkms.CreateKID(pubKeyValue, kms.ED25519Type)
+	if err != nil {
+		return nil, err
+	}
 
 	pubKey := diddoc.NewPublicKeyFromBytes("#"+KID, keyType, "#id", pubKeyValue)
 	verMethod := diddoc.NewReferencedVerificationMethod(pubKey, diddoc.Authentication, true)

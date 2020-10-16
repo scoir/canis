@@ -34,7 +34,7 @@ func NewListener(addr, queue string) (*Listener, error) {
 		nil,
 	)
 
-	return l, nil
+	return l, err
 }
 
 func (r *Listener) Listen() (<-chan amqp.Delivery, error) {
