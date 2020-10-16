@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
+	api "github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 
-	"github.com/scoir/canis/pkg/apiserver/api"
 	apimocks "github.com/scoir/canis/pkg/apiserver/mocks"
 	emocks "github.com/scoir/canis/pkg/credential/engine/mocks"
 	"github.com/scoir/canis/pkg/datastore"
