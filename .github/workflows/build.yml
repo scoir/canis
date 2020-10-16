@@ -16,8 +16,11 @@ jobs:
         image: rabbitmq
         ports:
           - 5672:5672
+      mongodb:
+        image: mongo:4.2.8
+        ports:
+          - 27017:27017
     steps:
-
     - name: Set up Go 1.14
       uses: actions/setup-go@v2
       with:
@@ -30,8 +33,8 @@ jobs:
     - name: Test
       run: make test
       env:
-        # The hostname used to communicate with the Redis service container
         RABBITMQ_HOST: rabbitmq
+        MONGODB_HOST: mongo
 
     - name: Upload coverage to Codecov
       timeout-minutes: 5

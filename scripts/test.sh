@@ -24,6 +24,7 @@ docker run -p 5984:5984 -d --name CouchDBStoreTest couchdb:2.3.1 >/dev/null || t
 docker run -d --hostname my-rabbit --name RabbitMQTest rabbitmq:3 > /dev/null || true
 
 export RABBITMQ_HOST=${RABBITMQ_HOST:-localhost}
+export MONGODB_HOST=${MONGODB_HOST:-localhost}
 
 for d in $(go list ./pkg/... | grep -v vendor | grep -v mocks | grep -v cmd | grep -v pb.go); do
   go test -race -coverprofile=profile.out -covermode=atomic $d
