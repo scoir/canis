@@ -34,7 +34,7 @@ jobs:
       run: make test
       env:
         RABBITMQ_HOST: rabbitmq
-        MONGODB_HOST: mongo
+        MONGODB_HOST: mongodb
 
     - name: Upload coverage to Codecov
       timeout-minutes: 5
