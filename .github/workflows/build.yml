@@ -14,7 +14,6 @@ jobs:
     services:
       rabbitmq:
         image: rabbitmq
-        label: rabbit
         ports:
           - 5672:5672
     steps:
