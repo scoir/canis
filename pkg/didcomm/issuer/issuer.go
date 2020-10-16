@@ -165,6 +165,8 @@ func (r *Server) IssueCredential(_ context.Context, req *api.IssueCredentialRequ
 
 	cred := &datastore.Credential{
 		AgentID:           agent.ID,
+		MyDID:             ac.MyDID,
+		TheirDID:          ac.TheirDID,
 		OfferID:           id,
 		RegistryOfferID:   registryOfferID,
 		SchemaID:          schema.ID,

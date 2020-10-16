@@ -34,6 +34,7 @@ const (
 	SchemaC              = "Schema"
 	CredentialC          = "Credential"
 	PresentationRequestC = "PresentationRequest"
+	WebhookC             = "Webhook"
 )
 
 type Config struct {
@@ -126,6 +127,17 @@ func (r *mongoDBStore) InsertDID(d *datastore.DID) error {
 	}
 
 	return nil
+}
+
+func (r *mongoDBStore) GetDID(id string) (*datastore.DID, error) {
+	did := &datastore.DID{}
+
+	err := r.db.Collection(DIDC).FindOne(context.Background(), bson.M{"id": id}).Decode(did)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load did")
+	}
+
+	return did, nil
 }
 
 // ListDIDs query DIDs
@@ -387,7 +399,7 @@ func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string)
 		bson.M{"agentid": a.ID, "externalid": externalID}).Decode(ac)
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed load agent connection").Error())
+		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
 	}
 
 	return ac, nil
@@ -403,16 +415,52 @@ func (r *mongoDBStore) InsertCredential(c *datastore.Credential) (string, error)
 	return id.Hex(), nil
 }
 
-func (r *mongoDBStore) FindOffer(agentID string, offerID string) (*datastore.Credential, error) {
+func (r *mongoDBStore) FindOffer(offerID string) (*datastore.Credential, error) {
 	c := &datastore.Credential{}
 	err := r.db.Collection(CredentialC).FindOne(context.Background(),
-		bson.M{"agentid": agentID, "offerid": offerID, "systemstate": "offered"}).Decode(c)
+		bson.M{"offerid": offerID, "systemstate": "offered"}).Decode(c)
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed load offer").Error())
+		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load offer").Error())
 	}
 
 	return c, nil
+}
+
+func (r *mongoDBStore) ListWebhooks(typ string) ([]*datastore.Webhook, error) {
+	ctx := context.Background()
+
+	results, err := r.db.Collection(WebhookC).Find(ctx, bson.M{"type": typ})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error trying to find agents")
+	}
+
+	var out []*datastore.Webhook
+	err = results.All(ctx, &out)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to decode agents")
+	}
+
+	return out, nil
+}
+
+func (r *mongoDBStore) AddWebhook(hook *datastore.Webhook) error {
+	ctx := context.Background()
+
+	results, err := r.db.Collection(WebhookC).Find(ctx, bson.M{"type": hook.Type, "url": hook.URL})
+
+	if err == nil && results.Next(ctx) {
+		return errors.Wrapf(err, "webhook already exists for type %s", hook.Type)
+	}
+
+	_, err = r.db.Collection(WebhookC).InsertOne(ctx, hook)
+	return errors.Wrap(err, "unable to insert hook")
+}
+
+func (r *mongoDBStore) DeleteWebhook(typ string) error {
+	_, err := r.db.Collection(WebhookC).DeleteMany(context.Background(), bson.M{"type": typ})
+	return errors.Wrap(err, "unable to remove webhook")
 }
 
 func (r *mongoDBStore) InsertPresentationRequest(pr *datastore.PresentationRequest) (string, error) {

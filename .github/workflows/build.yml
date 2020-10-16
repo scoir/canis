@@ -11,8 +11,16 @@ jobs:
     name: Build
     runs-on: ubuntu-18.04
     container: scoir/canis-build:latest
+    services:
+      rabbitmq:
+        image: rabbitmq
+        ports:
+          - 5672:5672
+      mongodb:
+        image: mongo:4.2.8
+        ports:
+          - 27017:27017
     steps:
-
     - name: Set up Go 1.14
       uses: actions/setup-go@v2
       with:
@@ -24,6 +32,9 @@ jobs:
 
     - name: Test
       run: make test
+      env:
+        RABBITMQ_HOST: rabbitmq
+        MONGODB_HOST: mongodb
 
     - name: Upload coverage to Codecov
       timeout-minutes: 5

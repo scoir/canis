@@ -22,7 +22,9 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/scoir/canis/pkg/aries/transport/amqp"
+	"github.com/scoir/canis/pkg/amqp"
+	"github.com/scoir/canis/pkg/amqp/rabbitmq"
+	transportamqp "github.com/scoir/canis/pkg/aries/transport/amqp"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
@@ -148,6 +150,21 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	return ep, nil
 }
 
+func (r *Provider) GetAMQPPublisher(queue string) amqp.Publisher {
+	config := &framework.AMQPConfig{}
+	err := r.vp.UnmarshalKey("inbound.amqp", config)
+	if err != nil {
+		log.Fatalln("unexpected error reading amqp config", err)
+	}
+
+	pub, err := rabbitmq.NewPublisher(config.Endpoint(), queue)
+	if err != nil {
+		log.Fatalln("unable to launch rabbitmq publisher", err)
+	}
+
+	return pub
+}
+
 func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	external := r.vp.GetString("inbound.external")
 	config := &framework.AMQPConfig{}
@@ -165,7 +182,7 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	ariesSub := r.vp.Sub("aries")
 	vdris, err := context.GetAriesVDRIs(ariesSub)
 
-	amqpInbound, err := amqp.NewInbound(config.Endpoint(), external, "didexchange", "", "")
+	amqpInbound, err := transportamqp.NewInbound(config.Endpoint(), external, "didexchange", "", "")
 	vopts := []aries.Option{
 		aries.WithStoreProvider(r.ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),

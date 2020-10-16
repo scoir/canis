@@ -22,7 +22,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -64,7 +64,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -96,7 +96,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -134,7 +134,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -168,7 +168,7 @@
       }
     },
     "/agents/{agent_id}/invitation/{external_id}": {
-      "post": {
+      "get": {
         "operationId": "Admin_GetAgentInvitation",
         "responses": {
           "200": {
@@ -178,7 +178,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -214,7 +214,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -258,7 +258,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -286,7 +286,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -316,7 +316,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -364,7 +364,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -396,7 +396,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -424,7 +424,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -454,7 +454,7 @@
             }
           },
           "default": {
-            "description": "An unexpected error response.",
+            "description": "An unexpected error response",
             "schema": {
               "$ref": "#/definitions/runtimeError"
             }
@@ -473,6 +473,100 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/apiserverSchema"
+            }
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/webhooks/{id}": {
+      "get": {
+        "operationId": "Admin_ListWebhook",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiserverListWebhookResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      },
+      "delete": {
+        "operationId": "Admin_DeleteWebhook",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiserverDeleteWebhookResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      },
+      "post": {
+        "operationId": "Admin_CreateWebhook",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiserverCreateWebhookResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiserverCreateWebhookRequest"
             }
           }
         ],
@@ -515,7 +609,8 @@
           "$ref": "#/definitions/AgentStatus"
         },
         "public_did": {
-          "type": "boolean"
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
@@ -596,6 +691,23 @@
         }
       }
     },
+    "apiserverCreateWebhookRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "webhook": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiserverWebhook"
+          }
+        }
+      }
+    },
+    "apiserverCreateWebhookResponse": {
+      "type": "object"
+    },
     "apiserverCredential": {
       "type": "object",
       "properties": {
@@ -631,6 +743,9 @@
       "type": "object"
     },
     "apiserverDeleteSchemaResponse": {
+      "type": "object"
+    },
+    "apiserverDeleteWebhookResponse": {
       "type": "object"
     },
     "apiserverGetAgentResponse": {
@@ -695,6 +810,17 @@
         }
       }
     },
+    "apiserverListWebhookResponse": {
+      "type": "object",
+      "properties": {
+        "hooks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiserverWebhook"
+          }
+        }
+      }
+    },
     "apiserverPredicateInfo": {
       "type": "object",
       "properties": {
@@ -729,7 +855,8 @@
           "type": "string"
         },
         "will_confirm": {
-          "type": "boolean"
+          "type": "boolean",
+          "format": "boolean"
         },
         "requested_attributes": {
           "type": "object",
@@ -793,6 +920,14 @@
     },
     "apiserverUpdateSchemaResponse": {
       "type": "object"
+    },
+    "apiserverWebhook": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        }
+      }
     },
     "protobufAny": {
       "type": "object",

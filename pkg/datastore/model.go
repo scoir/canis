@@ -119,12 +119,19 @@ type Offer struct {
 
 type Credential struct {
 	AgentID           string
+	MyDID             string
+	TheirDID          string
 	OfferID           string
 	SchemaID          string
 	RegistryOfferID   string
 	ExternalSubjectID string
 	Offer             Offer
 	SystemState       string
+}
+
+type Webhook struct {
+	Type string
+	URL  string
 }
 
 type PresentationRequest struct {

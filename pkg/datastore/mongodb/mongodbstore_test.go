@@ -27,12 +27,12 @@ import (
 )
 
 const (
-	mongoStoreDBURL = "mongodb://localhost:27017/"
+	mongoStoreDBURL = "mongodb://${MONGODB_HOST}:27017/"
 )
 
 func testConfig() *Config {
 	return &Config{
-		URL:      mongoStoreDBURL,
+		URL:      os.ExpandEnv(mongoStoreDBURL),
 		Database: uuid.New().String(),
 	}
 }
@@ -64,7 +64,7 @@ func dropTestDatabase() {
 	var err error
 	tM := reflect.TypeOf(bson.M{})
 	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, tM).Build()
-	clientOpts := options.Client().SetRegistry(reg).ApplyURI(mongoStoreDBURL)
+	clientOpts := options.Client().SetRegistry(reg).ApplyURI(os.ExpandEnv(mongoStoreDBURL))
 
 	mongoClient, err := mongo.NewClient(clientOpts)
 	if err != nil {
@@ -87,7 +87,7 @@ func waitForMongoDBToStart() error {
 	var err error
 	tM := reflect.TypeOf(bson.M{})
 	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, tM).Build()
-	clientOpts := options.Client().SetRegistry(reg).ApplyURI(mongoStoreDBURL)
+	clientOpts := options.Client().SetRegistry(reg).ApplyURI(os.ExpandEnv(mongoStoreDBURL))
 
 	mongoClient, err := mongo.NewClient(clientOpts)
 	if err != nil {

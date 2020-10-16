@@ -6,6 +6,8 @@ DIDCOMM_LB_FILES = $(wildcard pkg/didcomm/loadbalancer/*.go pkg/didcomm/loadbala
 DIDCOMM_ISSUER_FILES = $(wildcard pkg/didcomm/issuer/*.go pkg/didcomm/issuer/**/*.go cmd/canis-didcomm-issuer/*.go)
 DIDCOMM_VERIFIER_FILES = $(wildcard pkg/didcomm/verifier/*.go pkg/didcomm/verifier/**/*.go cmd/canis-didcomm-verifier/*.go)
 DIDCOMM_DOORMAN_FILES = $(wildcard pkg/didcomm/doorman/*.go pkg/didcomm/doorman/**/*.go cmd/canis-didcomm-doorman/*.go)
+HTTP_INDY_RESOLVER_FILES = $(wildcard pkg/resolver/*.go pkg/resolver/**/*.go cmd/http-indy-resolver/*.go)
+WEBHOOK_NOTIFIER_FILES = $(wildcard pkg/notifier/*.go pkg/notifier/**/*.go cmd/canis-webhook-notifier/*.go)
 
 all: clean tools build
 
@@ -27,11 +29,13 @@ swagger_pack: pkg/static/canis-apiserver_swagger.go
 pkg/static/canis-apiserver_swagger.go: canis-apiserver-pb pkg/apiserver/api/spec/canis-apiserver.swagger.json
 	@staticfiles -o pkg/static/canis-apiserver_swagger.go --package static pkg/apiserver/api/spec
 
-build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-verifier bin/canis-didcomm-lb bin/canis-didcomm-doorman
+build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-verifier bin/canis-didcomm-lb bin/canis-didcomm-doorman bin/http-indy-resolver bin/canis-webhook-notifier
 build-canis-apiserver: bin/canis-apiserver
 build-canis-didcomm-issuer: bin/canis-didcomm-issuer
 build-canis-didcomm-verifier: bin/canis-didcomm-verifier
 build-canis-didcomm-lb: bin/canis-didcomm-lb
+build-http-indy-resolver: bin/http-indy-resolver
+build-canis-webhook-notifier: bin/canis-webhook-notifier
 
 canis-apiserver: bin/canis-apiserver
 bin/canis-apiserver: canis-apiserver-pb swagger_pack
@@ -58,6 +62,16 @@ bin/canis-didcomm-lb: $(DIDCOMM_LB_FILES)
 	@echo 'building canis-didcomm-lb...'
 	@. ./canis.sh; cd cmd/canis-didcomm-lb && go build -o $(CANIS_ROOT)/bin/canis-didcomm-lb
 
+http-indy-resolver: bin/http-indy-resolver
+bin/http-indy-resolver: $(HTTP_INDY_RESOLVER_FILES)
+	@echo 'building http-indy-resolver...'
+	@. ./canis.sh; cd cmd/http-indy-resolver && go build -o $(CANIS_ROOT)/bin/http-indy-resolver
+
+canis-webhook-notifier: bin/canis-webhook-notifier
+bin/canis-webhook-notifier: $(WEBHOOK_NOTIFIER_FILES)
+	@echo 'building canis-webhook-notifier...'
+	@. ./canis.sh; cd cmd/canis-webhook-notifier && go build -o $(CANIS_ROOT)/bin/canis-webhook-notifier
+
 sirius: bin/sirius
 bin/sirius: $(SIRIUS_FILES)
 	@echo 'building sirius...'
@@ -65,12 +79,6 @@ bin/sirius: $(SIRIUS_FILES)
 
 .PHONY: canis-docker
 package: canis-docker
-
-build-router: bin/router
-
-router: bin/router
-bin/router:
-	@. ./canis.sh; cd cmd/router && go build -o $(CANIS_ROOT)/bin/router
 
 canis-docker: build
 	@echo "building canis docker image..."

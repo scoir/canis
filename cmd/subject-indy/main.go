@@ -91,10 +91,10 @@ func getCredentials(w http.ResponseWriter, _ *http.Request) {
 
 func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
 	//UNCOMMENT FOR MINIKUBE ENV
-	//resp, err := http.Post("http://192.168.99.100:30779/agents/hogwarts/invitation/subject", "application/json", strings.NewReader("{}"))
+	//resp, err := http.Get("http://192.168.99.100:30779/agents/hogwarts/invitation/subject")
 
 	//UNCOMMENT FOR DOCKER COMPOSE ENV
-	resp, err := http.Post("http://local.scoir.com:7779/agents/hogwarts/invitation/subject", "application/json", strings.NewReader("{}"))
+	resp, err := http.Get("http://local.scoir.com:7779/agents/hogwarts/invitation/subject")
 	if err != nil {
 		util.WriteErrorf(w, "Error requesting invitation from issuer: %v", err)
 		return
