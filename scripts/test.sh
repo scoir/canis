@@ -23,6 +23,8 @@ docker run -p 27017:27017 --name MongoStoreTest -d mongo:4.2.8 >/dev/null || tru
 docker run -p 5984:5984 -d --name CouchDBStoreTest couchdb:2.3.1 >/dev/null || true
 docker run -d --hostname my-rabbit --name RabbitMQTest rabbitmq:3 > /dev/null || true
 
+export RABBITMQ_HOST=${RABBITMQ_HOST:-localhost}
+
 for d in $(go list ./pkg/... | grep -v vendor | grep -v mocks | grep -v cmd | grep -v pb.go); do
   go test -race -coverprofile=profile.out -covermode=atomic $d
   if [ -f profile.out ]; then
@@ -30,5 +32,7 @@ for d in $(go list ./pkg/... | grep -v vendor | grep -v mocks | grep -v cmd | gr
     rm profile.out
   fi
 done
+
+
 
 remove_docker_container

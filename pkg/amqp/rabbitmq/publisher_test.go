@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -8,7 +9,8 @@ import (
 
 func TestPublisher_Publish(t *testing.T) {
 	t.Run("publish and listen", func(t *testing.T) {
-		addy := "amqp://rabbitmq:5672/"
+
+		addy := os.ExpandEnv("amqp://${RABBITMQ_HOST}:5672/")
 		queue := "test-queue"
 		publisher, err := NewPublisher(addy, queue)
 		require.NoError(t, err)

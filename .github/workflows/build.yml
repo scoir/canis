@@ -29,6 +29,9 @@ jobs:
 
     - name: Test
       run: make test
+      env:
+        # The hostname used to communicate with the Redis service container
+        RABBITMQ_HOST: rabbitmq
 
     - name: Upload coverage to Codecov
       timeout-minutes: 5
