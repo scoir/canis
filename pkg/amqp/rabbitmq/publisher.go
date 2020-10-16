@@ -1,8 +1,6 @@
 package rabbitmq
 
 import (
-	"log"
-
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 )
@@ -17,7 +15,7 @@ func NewPublisher(addr, queue string) (*Publisher, error) {
 	var err error
 	conn, err := amqp.Dial(addr)
 	if err != nil {
-		log.Fatalln("unable to dial AMQP", err)
+		return nil, errors.Wrap(err, "unable to start publisher")
 	}
 
 	ch, err := conn.Channel()

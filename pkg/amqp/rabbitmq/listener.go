@@ -53,3 +53,7 @@ func (r *Listener) Listen() (<-chan amqp.Delivery, error) {
 
 	return msgs, nil
 }
+
+func (r *Listener) Close() error {
+	return r.conn.Close()
+}

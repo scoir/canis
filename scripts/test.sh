@@ -12,6 +12,8 @@ remove_docker_container() {
   docker rm MongoStoreTest >/dev/null 2>&1 || true
   docker kill CouchDBStoreTest >/dev/null 2>&1 || true
   docker rm CouchDBStoreTest >/dev/null 2>&1 || true
+  docker kill RabbitMQTest >/dev/null 2>&1 || true
+  docker rm RabbitMQTest >/dev/null 2>&1 || true
 }
 
 remove_docker_container
@@ -19,7 +21,7 @@ remove_docker_container
 docker run -p 5432:5432 --name PostgresStoreTest -e POSTGRES_PASSWORD=mysecretpassword -d postgres:11.8 >/dev/null || true
 docker run -p 27017:27017 --name MongoStoreTest -d mongo:4.2.8 >/dev/null || true
 docker run -p 5984:5984 -d --name CouchDBStoreTest couchdb:2.3.1 >/dev/null || true
-
+docker run -d --hostname my-rabbit --name RabbitMQTest rabbitmq:3 > /dev/null || true
 for d in $(go list ./pkg/... | grep -v vendor | grep -v mocks | grep -v cmd | grep -v pb.go); do
   go test -race -coverprofile=profile.out -covermode=atomic $d
   if [ -f profile.out ]; then
