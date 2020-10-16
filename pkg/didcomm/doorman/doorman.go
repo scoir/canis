@@ -13,11 +13,11 @@ import (
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
-	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/scoir/canis/pkg/amqp"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/didcomm/doorman/api"
 	"github.com/scoir/canis/pkg/didexchange"
@@ -32,15 +32,15 @@ const AcceptedEvent = "accepted"
 type provider interface {
 	GetAriesContext() (*ariescontext.Provider, error)
 	GetDatastore() (datastore.Store, error)
-	GetAMQPConfig() *framework.AMQPConfig
+	GetAMQPPublisher(queue string) amqp.Publisher
 }
 
 type Doorman struct {
-	store               datastore.Store
-	didcl               *ariesdidex.Client
-	bouncer             didexchange.Bouncer
-	vdriReg             vdriapi.Registry
-	notificationChannel *amqp.Channel
+	store                 datastore.Store
+	didcl                 *ariesdidex.Client
+	bouncer               didexchange.Bouncer
+	vdriReg               vdriapi.Registry
+	notificationPublisher amqp.Publisher
 }
 
 func New(prov provider) (*Doorman, error) {
@@ -52,6 +52,10 @@ func New(prov provider) (*Doorman, error) {
 
 	simp := framework.NewSimpleProvider(ctx)
 	bouncer, err := didexchange.NewBouncer(simp)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get bouncer")
+	}
+
 	vdriReg := ctx.VDRIRegistry()
 
 	agentStore, err := prov.GetDatastore()
@@ -59,33 +63,11 @@ func New(prov provider) (*Doorman, error) {
 		return nil, errors.Wrap(err, "unable to get datastore provider")
 	}
 
-	conn, err := amqp.Dial(prov.GetAMQPConfig().Endpoint())
-	if err != nil {
-		log.Fatalln("unable to dial RMQ", err)
-	}
-
-	ch, err := conn.Channel()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to create an AMQP channel")
-	}
-
-	_, err = ch.QueueDeclare(
-		notifier.QueueName,
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to declare AMQP queue")
-	}
-
 	return &Doorman{
-		store:               agentStore,
-		bouncer:             bouncer,
-		vdriReg:             vdriReg,
-		notificationChannel: ch,
+		store:                 agentStore,
+		bouncer:               bouncer,
+		vdriReg:               vdriReg,
+		notificationPublisher: prov.GetAMQPPublisher(notifier.QueueName),
 	}, nil
 }
 
@@ -200,16 +182,7 @@ func (r *Doorman) publishEvent(agent *datastore.Agent, externalID string, conn *
 		return
 	}
 
-	err = r.notificationChannel.Publish(
-		"",
-		notifier.QueueName,
-		false,
-		false,
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        message,
-		})
-
+	err = r.notificationPublisher.Publish(message, "application/json")
 	if err != nil {
 		log.Printf("unable to publish doorman event")
 		return

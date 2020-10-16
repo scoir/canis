@@ -15,6 +15,8 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/scoir/canis/pkg/amqp"
+	"github.com/scoir/canis/pkg/amqp/rabbitmq"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/framework"
 )
@@ -99,11 +101,17 @@ func (r *Provider) GetDatastore() datastore.Store {
 	return r.store
 }
 
-func (r *Provider) GetAMQPAddress() string {
-	amqpUser := r.vp.GetString("amqp.user")
-	amqpPwd := r.vp.GetString("amqp.password")
-	amqpHost := r.vp.GetString("amqp.host")
-	amqpPort := r.vp.GetInt("amqp.port")
-	amqpVHost := r.vp.GetString("amqp.vhost")
-	return fmt.Sprintf("amqp://%s:%s@%s:%d/%s", amqpUser, amqpPwd, amqpHost, amqpPort, amqpVHost)
+func (r *Provider) GetAMQPListener(queue string) amqp.Listener {
+	config := &framework.AMQPConfig{}
+	err := r.vp.UnmarshalKey("amqp", config)
+	if err != nil {
+		log.Fatalln("unexpected error reading amqp config", err)
+	}
+
+	l, err := rabbitmq.NewListener(config.Endpoint(), queue)
+	if err != nil {
+		log.Fatalln("unable to intialize new amqp listener", err)
+	}
+
+	return l
 }

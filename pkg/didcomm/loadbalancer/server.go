@@ -13,10 +13,11 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/transport"
 	"github.com/pkg/errors"
-	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"nhooyr.io/websocket"
 
+	"github.com/scoir/canis/pkg/amqp"
+	"github.com/scoir/canis/pkg/amqp/rabbitmq"
 	"github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 )
 
@@ -31,65 +32,46 @@ var (
 )
 
 type Server struct {
-	wsAddr   string
-	httpAddr string
-	external string
-	packager transport.Packager
-	conn     *amqp.Connection
-	ch       *amqp.Channel
-	queues   []amqp.Queue
+	wsAddr     string
+	httpAddr   string
+	external   string
+	packager   transport.Packager
+	publishers map[string]amqp.Publisher
 }
 
 type provider interface {
 	Packager() transport.Packager
 }
 
+//TODO:  to make this testable, need a "PublisherProvider" that will create the publisher here so we aren't hardcoding to RabbitMQ
 func New(prov provider, amqpAddr, host string, httpPort, wsPort int, external string) (*Server, error) {
 
-	var err error
-	conn, err := amqp.Dial(amqpAddr)
-	if err != nil {
-		log.Fatalln("unable to dial RMQ", err)
-	}
-
-	ch, err := conn.Channel()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to create an AMQP channel")
-	}
-
-	qs := make([]amqp.Queue, len(supportedProtocols))
-	for i, queueName := range supportedProtocols {
-
-		queue, err := ch.QueueDeclare(
-			queueName, // name
-			false,     // durable
-			false,     // delete when unused
-			false,     // exclusive
-			false,     // no-wait
-			nil,       // arguments
-		)
+	qs := make(map[string]amqp.Publisher)
+	for _, queueName := range supportedProtocols {
+		p, err := rabbitmq.NewPublisher(amqpAddr, queueName)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to declare AMQP queue")
+			return nil, errors.Wrap(err, "unable to create AMQP Publisher")
 		}
-		qs[i] = queue
+		qs[queueName] = p
 	}
 
 	return &Server{
-		wsAddr:   fmt.Sprintf("%s:%d", host, wsPort),
-		httpAddr: fmt.Sprintf("%s:%d", host, httpPort),
-		external: external,
-		packager: prov.Packager(),
-		conn:     conn,
-		ch:       ch,
-		queues:   qs,
+		wsAddr:     fmt.Sprintf("%s:%d", host, wsPort),
+		httpAddr:   fmt.Sprintf("%s:%d", host, httpPort),
+		external:   external,
+		packager:   prov.Packager(),
+		publishers: qs,
 	}, nil
 }
 
 func (r *Server) Close() error {
-	err := r.conn.Close()
-	if err != nil {
-		return errors.Wrap(err, "unable to ")
+	for _, pub := range r.publishers {
+		err := pub.Close()
+		if err != nil {
+			return errors.Wrap(err, "error closing publisher")
+		}
 	}
+
 	return nil
 }
 
@@ -160,23 +142,13 @@ func (r *Server) listener(conn *websocket.Conn, outbound bool) {
 			break
 		}
 
-		queueName, err := r.getQueryNameFromMessage(message)
+		pub, err := r.publisherFromMessage(message)
 		if err != nil {
 			log.Printf("error typing message: %v", err)
 			continue
 		}
 
-		fmt.Println("publishing to queue", queueName)
-		err = r.ch.Publish(
-			"",        // exchange
-			queueName, // routing key
-			false,     // mandatory
-			false,     // immediate
-			amqp.Publishing{
-				ContentType: "application/json",
-				Body:        message,
-			})
-
+		err = pub.Publish(message, "application/json")
 	}
 }
 
@@ -245,17 +217,13 @@ func (r *Server) startHTTP() {
 			return
 		}
 
-		queueName, err := r.getQueryNameFromMessage(body)
+		pub, err := r.publisherFromMessage(body)
+		if err != nil {
+			log.Printf("error typing message: %v", err)
+			return
+		}
 
-		err = r.ch.Publish(
-			"",        // exchange
-			queueName, // routing key
-			false,     // mandatory
-			false,     // immediate
-			amqp.Publishing{
-				ContentType: "application/json",
-				Body:        body,
-			})
+		err = pub.Publish(body, "application/json")
 		if err != nil {
 			return
 		}
@@ -270,10 +238,10 @@ func (r *Server) startHTTP() {
 	}
 }
 
-func (r *Server) getQueryNameFromMessage(message []byte) (string, error) {
+func (r *Server) publisherFromMessage(message []byte) (amqp.Publisher, error) {
 	unpackMsg, err := r.packager.UnpackMessage(message)
 	if err != nil {
-		return "", errors.Wrap(err, "error unpacking message")
+		return nil, errors.Wrap(err, "error unpacking message")
 	}
 	trans := &struct {
 		Type string `json:"@type"`
@@ -281,20 +249,25 @@ func (r *Server) getQueryNameFromMessage(message []byte) (string, error) {
 
 	err = json.Unmarshal(unpackMsg.Message, trans)
 	if err != nil {
-		return "", errors.Wrap(err, "error unmarshalling message")
+		return nil, errors.Wrap(err, "error unmarshalling message")
 	}
 
 	if !strings.HasPrefix(trans.Type, didcommPrefix) {
-		return "", errors.Errorf("invalid message type: %s", trans.Type)
+		return nil, errors.Errorf("invalid message type: %s", trans.Type)
 	}
 
 	suffix := trans.Type[len(didcommPrefix):]
 	i := strings.Index(suffix, "/")
 	if i == -1 {
-		return "", errors.Errorf("invalid message suffix: %s", trans.Type)
+		return nil, errors.Errorf("invalid message suffix: %s", trans.Type)
 	}
 
-	return suffix[:i], nil
+	pub, ok := r.publishers[suffix[:i]]
+	if !ok {
+		return nil, errors.Errorf("no publisher for protocol %s", suffix[:i])
+	}
+
+	return pub, nil
 
 }
 
