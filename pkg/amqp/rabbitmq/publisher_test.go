@@ -8,7 +8,7 @@ import (
 
 func TestPublisher_Publish(t *testing.T) {
 	t.Run("publish and listen", func(t *testing.T) {
-		addy := "amqp://localhost:5672/"
+		addy := "amqp://rabbit:5672/"
 		queue := "test-queue"
 		publisher, err := NewPublisher(addy, queue)
 		require.NoError(t, err)
