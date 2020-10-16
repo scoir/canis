@@ -11,6 +11,11 @@ jobs:
     name: Build
     runs-on: ubuntu-18.04
     container: scoir/canis-build:latest
+    services:
+      rabbitmq:
+        image: rabbitmq
+        ports:
+          - 5672:5672
     steps:
 
     - name: Set up Go 1.14
