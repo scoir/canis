@@ -34,12 +34,12 @@ import (
 	goji "goji.io"
 	"goji.io/pat"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	canisproof "github.com/scoir/canis/pkg/presentproof"
 	"github.com/scoir/canis/pkg/util"
 )

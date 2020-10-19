@@ -26,6 +26,8 @@ docker run -d --hostname my-rabbit --name RabbitMQTest rabbitmq:3 > /dev/null ||
 export RABBITMQ_HOST=${RABBITMQ_HOST:-localhost}
 export MONGODB_HOST=${MONGODB_HOST:-localhost}
 
+echo "${RABBITMQ_HOST}"
+
 for d in $(go list ./pkg/... | grep -v vendor | grep -v mocks | grep -v cmd | grep -v pb.go); do
   go test -race -coverprofile=profile.out -covermode=atomic $d
   if [ -f profile.out ]; then

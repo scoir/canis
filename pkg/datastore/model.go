@@ -10,7 +10,7 @@ import (
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	"github.com/mr-tron/base58"
 
-	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 )
 
 type Criteria map[string]interface{}

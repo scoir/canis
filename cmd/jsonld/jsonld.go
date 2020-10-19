@@ -14,7 +14,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
 	"github.com/piprate/json-gold/ld"
 
-	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 )
 
 func main() {

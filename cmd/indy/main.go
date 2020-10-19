@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/ursa"
 )
 

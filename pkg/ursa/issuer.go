@@ -14,7 +14,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/pkg/errors"
 
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 )
 
 type Credential struct {

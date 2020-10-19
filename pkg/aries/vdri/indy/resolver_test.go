@@ -7,7 +7,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	"github.com/stretchr/testify/require"
 
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/mock/vdri/indy"
 )
 

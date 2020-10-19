@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 )
 
 func NonceFromJSON(jsn string) (unsafe.Pointer, error) {

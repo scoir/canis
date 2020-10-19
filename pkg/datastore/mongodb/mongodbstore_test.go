@@ -22,8 +22,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
 
 const (

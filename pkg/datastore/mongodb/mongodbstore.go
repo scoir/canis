@@ -22,8 +22,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
 
 const (

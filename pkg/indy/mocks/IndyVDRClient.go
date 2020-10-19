@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	vdr "github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	vdr "github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	mock "github.com/stretchr/testify/mock"
 )
 
