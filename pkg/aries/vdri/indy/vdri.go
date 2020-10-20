@@ -16,7 +16,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 )
 
 type indyClient interface {

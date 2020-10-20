@@ -8,11 +8,12 @@ package cmd
 
 import (
 	"fmt"
-	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+
+	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
@@ -27,6 +28,7 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	cengine "github.com/scoir/canis/pkg/credential/engine"
 	credengine "github.com/scoir/canis/pkg/credential/engine"
 	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
@@ -38,7 +40,6 @@ import (
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
 	indywrapper "github.com/scoir/canis/pkg/indy"
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	presentengine "github.com/scoir/canis/pkg/presentproof/engine"
 	presentindyengine "github.com/scoir/canis/pkg/presentproof/engine/indy"
 	presentjsonldengine "github.com/scoir/canis/pkg/presentproof/engine/jsonld"

@@ -9,10 +9,10 @@ import (
 	"github.com/mr-tron/base58"
 	"github.com/pkg/errors"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
-	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
 
 func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {

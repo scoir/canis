@@ -14,8 +14,8 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
 )
 
 type mockProvider struct {

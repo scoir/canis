@@ -7,12 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package apiserver
 
 import (
-	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"sync"
+
+	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/pkg/errors"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/apiserver/api"
 	cengine "github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
@@ -20,7 +22,6 @@ import (
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	"github.com/scoir/canis/pkg/indy"
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	pengine "github.com/scoir/canis/pkg/presentproof/engine"
 )
 

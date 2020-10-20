@@ -10,9 +10,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/indy/wrapper/identifiers"
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	"github.com/scoir/canis/pkg/ursa"
 )
 

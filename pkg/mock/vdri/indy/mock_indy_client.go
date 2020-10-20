@@ -1,7 +1,7 @@
 package indy
 
 import (
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 )
 
 type MockIndyClient struct {

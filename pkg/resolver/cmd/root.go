@@ -18,9 +18,9 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/framework"
 	indywrapper "github.com/scoir/canis/pkg/indy"
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 )
 
 var (

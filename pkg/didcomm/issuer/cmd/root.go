@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/aries/transport/amqp"
 	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/credential/engine/indy"
@@ -35,7 +36,6 @@ import (
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
 	indywrapper "github.com/scoir/canis/pkg/indy"
-	"github.com/scoir/canis/pkg/indy/wrapper/vdr"
 	"github.com/scoir/canis/pkg/ursa"
 )
 
