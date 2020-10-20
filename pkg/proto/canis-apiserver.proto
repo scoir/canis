@@ -4,6 +4,7 @@ package apiserver;
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "protoc-gen-swagger/options/annotations.proto";
+import "common/messages.proto";
 
 option go_package = "apiserver/api";
 
@@ -320,7 +321,7 @@ service Admin {
             body: "agent"
         };
     }
-    rpc RequestPresentation(RequestPresentationRequest) returns (RequestPresentationResponse) {
+    rpc RequestPresentation(common.RequestPresentationRequest) returns (common.RequestPresentationResponse) {
       option (google.api.http) = {
         post: "/agents/{agent_id}/presentation/{external_id}/request"
         body: "presentation"

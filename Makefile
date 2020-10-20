@@ -89,30 +89,37 @@ canis-docker-publish: canis-docker
 	@docker tag canis/canis registry.hyades.svc.cluster.local:5000/canis
 	@docker push registry.hyades.svc.cluster.local:5000/canis
 
-canis-apiserver-pb: pkg/apiserver/api/canis-apiserver.pb.go
-pkg/apiserver/api/canis-apiserver.pb.go:pkg/apiserver/api/canis-apiserver.proto
-	cd pkg && protoc -I $(CANIS_ROOT)/proto/include/ -I apiserver/api/ apiserver/api/canis-apiserver.proto --go_out=plugins=grpc:.
+all-pb: canis-common-pb canis-apiserver-pb canis-didcomm-doorman-pb canis-didcomm-issuer-pb canis-didcomm-verifier-pb canis-didcomm-lb-pb
+
+canis-common-pb: pkg/proto/canis-common.pb.go
+pkg/proto/canis-common.pb.go:pkg/proto
+	cd pkg && protoc -I proto/include/ -I proto/common/ proto/common/messages.proto --go_out=plugins=grpc:.
+
+canis-apiserver-pb: canis-common-pb pkg/apiserver/api/canis-apiserver.pb.go
+pkg/apiserver/api/canis-apiserver.pb.go:pkg/proto/canis-apiserver.proto
+	cd pkg && protoc -I proto -I proto/include/ -I proto/common/ -I apiserver/api/ proto/canis-apiserver.proto --go_out=plugins=grpc:.
 	mv pkg/apiserver/api/canis-apiserver.pb.go pkg/apiserver/api/protogen/canis-apiserver.pb.go
-	cd pkg && protoc -I $(CANIS_ROOT)/proto/include/ -I apiserver/api/ apiserver/api/canis-apiserver.proto --grpc-gateway_out=logtostderr=true:.
+	cd pkg && protoc -I proto -I proto/include/ -I proto/common/ -I apiserver/api/ proto/canis-apiserver.proto --grpc-gateway_out=logtostderr=true:.
 	mv pkg/apiserver/api/canis-apiserver.pb.gw.go pkg/apiserver/api/protogen/canis-apiserver.pb.gw.go
-	cd pkg && protoc -I $(CANIS_ROOT)/proto/include/ -I apiserver/api/ apiserver/api/canis-apiserver.proto --swagger_out=logtostderr=true:.
+	cd pkg && protoc -I proto -I proto/include/ -I proto/common/ -I apiserver/api/ proto/canis-apiserver.proto --swagger_out=logtostderr=true:.
 	mv pkg/canis-apiserver.swagger.json pkg/apiserver/api/spec
 
-canis-didcomm-doorman-pb: pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go
+canis-didcomm-doorman-pb: canis-common-pb pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go
 pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go:pkg/didcomm/doorman/api/canis-didcomm-doorman.proto
-	cd pkg && protoc -I $(CANIS_ROOT)/proto/include/ -I didcomm/doorman/api/ didcomm/doorman/api/canis-didcomm-doorman.proto --go_out=plugins=grpc:.
+	cd pkg && protoc -I proto/include/ -I didcomm/doorman/api/ didcomm/doorman/api/canis-didcomm-doorman.proto --go_out=plugins=grpc:.
 
-canis-didcomm-issuer-pb: pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go
+canis-didcomm-issuer-pb: canis-common-pb pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go
 pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go:pkg/didcomm/issuer/api/canis-didcomm-issuer.proto
-	cd pkg && protoc -I $(CANIS_ROOT)/proto/include/ -I didcomm/issuer/api/ didcomm/issuer/api/canis-didcomm-issuer.proto --go_out=plugins=grpc:.
+	cd pkg && protoc -I proto/include/ -I didcomm/issuer/api/ didcomm/issuer/api/canis-didcomm-issuer.proto --go_out=plugins=grpc:.
 
-canis-didcomm-verifier-pb: pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go
-pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go:pkg/didcomm/verifier/api/canis-didcomm-verifier.proto
-	cd pkg && protoc -I $(CANIS_ROOT)/proto/include/ -I didcomm/verifier/api/ didcomm/verifier/api/canis-didcomm-verifier.proto --go_out=plugins=grpc:.
+canis-didcomm-verifier-pb: canis-common-pb
+pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go:pkg/proto/canis-didcomm-verifier.proto
+	cd pkg && protoc -I proto -I proto/include/ -I proto/common/ -I didcomm/verifier/api/ proto/canis-didcomm-verifier.proto --go_out=plugins=grpc:.
+	mv pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go pkg/didcomm/verifier/api/protogen/canis-didcomm-verifier.pb.go
 
-canis-didcomm-lb-pb: pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go
+canis-didcomm-lb-pb: canis-common-pb pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go
 pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go:pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.proto
-	cd pkg && protoc -I $(CANIS_ROOT)/proto/include/ -I didcomm/loadbalancer/api/ didcomm/loadbalancer/api/canis-didcomm-loadbalancer.proto --go_out=plugins=grpc:.
+	cd pkg && protoc -I proto/include/ -I didcomm/loadbalancer/api/ didcomm/loadbalancer/api/canis-didcomm-loadbalancer.proto --go_out=plugins=grpc:.
 
 demo-web:
 	cd demo && npm run build

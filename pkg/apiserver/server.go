@@ -19,6 +19,7 @@ import (
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/indy"
 	pengine "github.com/scoir/canis/pkg/presentproof/engine"
 )

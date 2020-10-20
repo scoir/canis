@@ -1,9 +1,10 @@
 syntax = "proto3";
-package didcomm;
+
+package common;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "didcomm/verifier/api";
+option go_package = "protogen/common";
 
 message AttrInfo {
   string name = 1;
@@ -22,18 +23,18 @@ message PredicateInfo {
 message RequestPresentationRequest {
   string agent_id = 1;
   string external_id = 2;
-  string schema_id = 3;
-  string comment = 4;
-  string type = 5;
-  bool will_confirm = 6;
-  map<string, AttrInfo> requested_attributes = 7;
-  map<string, PredicateInfo> requested_predicates = 8;
+  RequestPresentation presentation = 3;
+}
+
+message RequestPresentation {
+  string schema_id = 1;
+  string comment = 2;
+  string type = 3;
+  bool will_confirm = 4;
+  map<string, AttrInfo> requested_attributes = 5;
+  map<string, PredicateInfo> requested_predicates = 6;
 }
 
 message RequestPresentationResponse {
   string request_presentation_id = 1;
-}
-
-service Verifier {
-  rpc RequestPresentation (RequestPresentationRequest) returns (RequestPresentationResponse) {}
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
 
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/didcomm/verifier/api"
+	api "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 )
 
 const PresentProofType = "https://didcomm.org/present-proof/2.0/request-presentation"

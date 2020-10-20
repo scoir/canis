@@ -21,7 +21,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/didcomm/verifier/api"
+	api "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/presentproof"
 	"github.com/scoir/canis/pkg/presentproof/engine"

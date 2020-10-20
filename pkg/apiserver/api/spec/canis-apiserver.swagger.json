@@ -168,7 +168,7 @@
       }
     },
     "/agents/{agent_id}/invitation/{external_id}": {
-      "get": {
+      "post": {
         "operationId": "Admin_GetAgentInvitation",
         "responses": {
           "200": {
@@ -210,7 +210,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiserverRequestPresentationResponse"
+              "$ref": "#/definitions/commonRequestPresentationResponse"
             }
           },
           "default": {
@@ -238,7 +238,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiserverRequestPresentation"
+              "$ref": "#/definitions/commonRequestPresentation"
             }
           }
         ],
@@ -480,100 +480,6 @@
           "Admin"
         ]
       }
-    },
-    "/webhooks/{id}": {
-      "get": {
-        "operationId": "Admin_ListWebhook",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiserverListWebhookResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Admin"
-        ]
-      },
-      "delete": {
-        "operationId": "Admin_DeleteWebhook",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiserverDeleteWebhookResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Admin"
-        ]
-      },
-      "post": {
-        "operationId": "Admin_CreateWebhook",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiserverCreateWebhookResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiserverCreateWebhookRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Admin"
-        ]
-      }
     }
   },
   "definitions": {
@@ -613,20 +519,28 @@
         }
       }
     },
-    "apiserverAttrInfo": {
+    "apiserverAgentEvent": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
+        "type": {
+          "$ref": "#/definitions/apiserverAgentEventType"
         },
-        "restrictions": {
-          "type": "string"
+        "Old": {
+          "$ref": "#/definitions/apiserverAgent"
         },
-        "non_revoked": {
-          "type": "string",
-          "format": "date-time"
+        "New": {
+          "$ref": "#/definitions/apiserverAgent"
         }
       }
+    },
+    "apiserverAgentEventType": {
+      "type": "string",
+      "enum": [
+        "ADD",
+        "UPDATE",
+        "DELETE"
+      ],
+      "default": "ADD"
     },
     "apiserverAttribute": {
       "type": "object",
@@ -667,23 +581,6 @@
         }
       }
     },
-    "apiserverCreateWebhookRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "webhook": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiserverWebhook"
-          }
-        }
-      }
-    },
-    "apiserverCreateWebhookResponse": {
-      "type": "object"
-    },
     "apiserverCredential": {
       "type": "object",
       "properties": {
@@ -719,9 +616,6 @@
       "type": "object"
     },
     "apiserverDeleteSchemaResponse": {
-      "type": "object"
-    },
-    "apiserverDeleteWebhookResponse": {
       "type": "object"
     },
     "apiserverGetAgentResponse": {
@@ -786,75 +680,6 @@
         }
       }
     },
-    "apiserverListWebhookResponse": {
-      "type": "object",
-      "properties": {
-        "hooks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiserverWebhook"
-          }
-        }
-      }
-    },
-    "apiserverPredicateInfo": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "p_type": {
-          "type": "string"
-        },
-        "p_value": {
-          "type": "string"
-        },
-        "restrictions": {
-          "type": "string"
-        },
-        "non_revoked": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "apiserverRequestPresentation": {
-      "type": "object",
-      "properties": {
-        "schema_id": {
-          "type": "string"
-        },
-        "comment": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "will_confirm": {
-          "type": "boolean"
-        },
-        "requested_attributes": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/apiserverAttrInfo"
-          }
-        },
-        "requested_predicates": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/apiserverPredicateInfo"
-          }
-        }
-      }
-    },
-    "apiserverRequestPresentationResponse": {
-      "type": "object",
-      "properties": {
-        "request_presentation_id": {
-          "type": "string"
-        }
-      }
-    },
     "apiserverSchema": {
       "type": "object",
       "properties": {
@@ -896,10 +721,75 @@
     "apiserverUpdateSchemaResponse": {
       "type": "object"
     },
-    "apiserverWebhook": {
+    "commonAttrInfo": {
       "type": "object",
       "properties": {
-        "url": {
+        "name": {
+          "type": "string"
+        },
+        "restrictions": {
+          "type": "string"
+        },
+        "non_revoked": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "commonPredicateInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "p_type": {
+          "type": "string"
+        },
+        "p_value": {
+          "type": "string"
+        },
+        "restrictions": {
+          "type": "string"
+        },
+        "non_revoked": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "commonRequestPresentation": {
+      "type": "object",
+      "properties": {
+        "schema_id": {
+          "type": "string"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "will_confirm": {
+          "type": "boolean"
+        },
+        "requested_attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/commonAttrInfo"
+          }
+        },
+        "requested_predicates": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/commonPredicateInfo"
+          }
+        }
+      }
+    },
+    "commonRequestPresentationResponse": {
+      "type": "object",
+      "properties": {
+        "request_presentation_id": {
           "type": "string"
         }
       }
@@ -930,6 +820,31 @@
           "format": "int32"
         },
         "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "runtimeStreamError": {
+      "type": "object",
+      "properties": {
+        "grpc_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "http_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "http_status": {
           "type": "string"
         },
         "details": {

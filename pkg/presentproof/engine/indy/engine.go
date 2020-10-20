@@ -10,7 +10,7 @@ import (
 	ursaWrapper "github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
-	"github.com/scoir/canis/pkg/didcomm/verifier/api"
+	api "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/ursa"
 )

@@ -12,6 +12,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"protogen/common"
 
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
@@ -698,7 +699,7 @@ func local_request_Admin_UpdateAgent_0(ctx context.Context, marshaler runtime.Ma
 }
 
 func request_Admin_RequestPresentation_0(ctx context.Context, marshaler runtime.Marshaler, client AdminClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RequestPresentationRequest
+	var protoReq common.RequestPresentationRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -744,7 +745,7 @@ func request_Admin_RequestPresentation_0(ctx context.Context, marshaler runtime.
 }
 
 func local_request_Admin_RequestPresentation_0(ctx context.Context, marshaler runtime.Marshaler, server AdminServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RequestPresentationRequest
+	var protoReq common.RequestPresentationRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)

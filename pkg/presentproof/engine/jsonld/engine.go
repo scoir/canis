@@ -9,11 +9,10 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 
-	"github.com/scoir/canis/pkg/didcomm/verifier/api"
+	api "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/indy"
-	"github.com/scoir/canis/pkg/ursa"
-
 	"github.com/scoir/canis/pkg/presentproof"
+	"github.com/scoir/canis/pkg/ursa"
 )
 
 type provider interface {

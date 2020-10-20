@@ -31,6 +31,7 @@ import (
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
+	"github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/static"
 )
 
@@ -463,20 +464,20 @@ func (r *APIServer) IssueCredential(ctx context.Context, req *api.IssueCredentia
 	}, nil
 }
 
-func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPresentationRequest) (*api.RequestPresentationResponse, error) {
+func (r *APIServer) RequestPresentation(ctx context.Context, req *common.RequestPresentationRequest) (*common.RequestPresentationResponse, error) {
 
-	pp := make(map[string]*verifier.AttrInfo)
+	pp := make(map[string]*common.AttrInfo)
 	for k, v := range req.Presentation.RequestedAttributes {
-		pp[k] = &verifier.AttrInfo{
+		pp[k] = &common.AttrInfo{
 			Name:         v.Name,
 			Restrictions: v.Restrictions,
 			NonRevoked:   v.NonRevoked,
 		}
 	}
 
-	pq := make(map[string]*verifier.PredicateInfo)
+	pq := make(map[string]*common.PredicateInfo)
 	for k, v := range req.Presentation.RequestedPredicates {
-		pq[k] = &verifier.PredicateInfo{
+		pq[k] = &common.PredicateInfo{
 			Name:         v.Name,
 			PType:        v.PType,
 			PValue:       v.PValue,
@@ -485,15 +486,17 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPre
 		}
 	}
 
-	rpr := &verifier.RequestPresentationRequest{
-		AgentId:             req.AgentId,
-		ExternalId:          "",
-		SchemaId:            "",
-		Comment:             "",
-		Type:                "",
-		WillConfirm:         false,
-		RequestedAttributes: pp,
-		RequestedPredicates: pq,
+	rpr := &common.RequestPresentationRequest{
+		AgentId:    req.AgentId,
+		ExternalId: "",
+		Presentation: &common.RequestPresentation{
+			SchemaId:            "",
+			Comment:             "",
+			Type:                "",
+			WillConfirm:         false,
+			RequestedAttributes: pp,
+			RequestedPredicates: pq,
+		},
 	}
 
 	resp, err := r.verifier.RequestPresentation(ctx, rpr)
@@ -501,8 +504,8 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPre
 		return nil, err
 	}
 
-	return &api.RequestPresentationResponse{
-		RequestPresentationId: resp.RequestPresentationId,
+	return &common.RequestPresentationResponse{
+		RequestPresentationId: resp.,
 	}, nil
 }
 

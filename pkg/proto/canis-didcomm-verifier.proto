@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package proto;
+
+import "common/messages.proto";
+
+option go_package = "didcomm/verifier/api/protogen";
+
+service Verifier {
+  rpc RequestPresentation (common.RequestPresentationRequest) returns (common.RequestPresentationResponse) {}
+}
