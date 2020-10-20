@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
-	"github.com/scoir/canis/pkg/ursa"
+	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 )
 
 func main() {

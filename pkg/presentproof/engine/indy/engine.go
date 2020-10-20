@@ -7,6 +7,7 @@ import (
 
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
+	ursaWrapper "github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/didcomm/verifier/api"
@@ -116,5 +117,5 @@ type ursaCrypto struct {
 
 // NewNonce wraps ursa.NewNonce until we switch to the go wrapper
 func (r *ursaCrypto) NewNonce() (string, error) {
-	return ursa.NewNonce()
+	return ursaWrapper.NewNonce()
 }
