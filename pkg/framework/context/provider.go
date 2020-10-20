@@ -8,15 +8,12 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/client/mediator"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/spf13/viper"
-
-	"github.com/scoir/canis/pkg/runtime"
 )
 
 type Provider struct {
 	vp *viper.Viper
 
 	lock    sync.Mutex
-	exec    runtime.Executor
 	ctx     *context.Provider
 	didcl   *didexchange.Client
 	credcl  *issuecredential.Client

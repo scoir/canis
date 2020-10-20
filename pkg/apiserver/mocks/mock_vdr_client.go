@@ -5,6 +5,8 @@ import (
 )
 
 type MockVDRClient struct {
+	GetNymReply *vdr.ReadReply
+	GetNymErr   error
 }
 
 func (r *MockVDRClient) CreateNym(did, verkey, role, from string, signer vdr.Signer) error {
@@ -16,7 +18,11 @@ func (r *MockVDRClient) SetEndpoint(did, from string, ep string, signer vdr.Sign
 }
 
 func (r *MockVDRClient) GetNym(did string) (*vdr.ReadReply, error) {
-	return &vdr.ReadReply{}, nil
+	if r.GetNymErr != nil {
+		return nil, r.GetNymErr
+	}
+
+	return r.GetNymReply, nil
 }
 
 func (r *MockVDRClient) GetPoolStatus() (*vdr.PoolStatus, error) {

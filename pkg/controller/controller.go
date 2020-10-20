@@ -99,7 +99,7 @@ func (r *Runner) launchGRPC() error {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer(r.ac.GetServerOpts()...)
+	grpcServer := grpc.NewServer()
 	r.ac.RegisterGRPCHandler(grpcServer)
 	log.Println("GRPC Listening for on ", addr)
 	return grpcServer.Serve(lis)
