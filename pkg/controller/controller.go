@@ -23,7 +23,6 @@ import (
 
 type AgentController interface {
 	RegisterGRPCHandler(server *grpc.Server)
-	GetServerOpts() []grpc.ServerOption
 	RegisterGRPCGateway(mux *runtime.ServeMux, endpoint string, opts ...grpc.DialOption)
 	APISpec() (http.HandlerFunc, error)
 }

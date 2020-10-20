@@ -75,12 +75,7 @@ func (r *Doorman) RegisterGRPCHandler(server *grpc.Server) {
 	api.RegisterDoormanServer(server, r)
 }
 
-func (r *Doorman) GetServerOpts() []grpc.ServerOption {
-	return []grpc.ServerOption{}
-}
-
 func (r *Doorman) RegisterGRPCGateway(_ *runtime.ServeMux, _ string, _ ...grpc.DialOption) {
-
 }
 
 func (r *Doorman) APISpec() (http.HandlerFunc, error) {
