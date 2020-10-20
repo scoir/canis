@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-echo "" >coverage.txt
+echo -n > coverage.txt
 
 # docker rm returns 1 if the image isn't found. This is OK and expected, so we suppress it
 # Any return status other than 0 or 1 is unusual and so we exit
