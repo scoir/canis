@@ -29,7 +29,7 @@ require (
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/jackc/pgx/v4 v4.8.0 // indirect
 	github.com/lib/pq v1.7.0 // indirect
-	github.com/makiuchi-d/gozxing v0.0.0-20200903113411-25f730ed83da // indirect
+	github.com/makiuchi-d/gozxing v0.0.0-20200903113411-25f730ed83da
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/mr-tron/base58 v1.2.0
@@ -41,7 +41,7 @@ require (
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35
 	github.com/rs/cors v1.7.0
 	github.com/scoir/aries-storage-mongo v0.0.0-20200924155006-8a599355491e
-	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.4.0
