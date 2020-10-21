@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-echo "" >coverage.txt
+echo -n > coverage.txt
 
 # docker rm returns 1 if the image isn't found. This is OK and expected, so we suppress it
 # Any return status other than 0 or 1 is unusual and so we exit
@@ -26,14 +26,11 @@ docker run -d --hostname my-rabbit --name RabbitMQTest rabbitmq:3 > /dev/null ||
 export RABBITMQ_HOST=${RABBITMQ_HOST:-localhost}
 export MONGODB_HOST=${MONGODB_HOST:-localhost}
 
-for d in $(go list ./pkg/... | grep -v vendor | grep -v mocks | grep -v cmd | grep -v pb.go); do
-  go test -race -coverprofile=profile.out -covermode=atomic $d
-  if [ -f profile.out ]; then
-    cat profile.out >>coverage.txt
-    rm profile.out
-  fi
-done
-
-
+PKGS=$(go list github.com/scoir/canis/... 2> /dev/null | grep -v vendor | grep -v mocks | grep -v cmd | grep -v pb.go)
+go test $PKGS -count=1 -race -coverprofile=profile.out -covermode=atomic -timeout=10m
+if [ -f profile.out ]; then
+  cat profile.out >>coverage.txt
+  rm profile.out
+fi
 
 remove_docker_container

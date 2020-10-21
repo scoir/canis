@@ -94,10 +94,6 @@ func (r *Server) RegisterGRPCHandler(server *grpc.Server) {
 	api.RegisterIssuerServer(server, r)
 }
 
-func (r *Server) GetServerOpts() []grpc.ServerOption {
-	return []grpc.ServerOption{}
-}
-
 func (r *Server) RegisterGRPCGateway(_ *runtime.ServeMux, _ string, _ ...grpc.DialOption) {
 	//NO-OP
 }

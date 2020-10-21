@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -30,6 +31,7 @@ var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = descriptor.ForMessage
+var _ = metadata.Join
 
 func request_Admin_CreateSchema_0(ctx context.Context, marshaler runtime.Marshaler, client AdminClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateSchemaRequest
@@ -968,11 +970,14 @@ func local_request_Admin_DeleteWebhook_0(ctx context.Context, marshaler runtime.
 // RegisterAdminHandlerServer registers the http handlers for service Admin to "mux".
 // UnaryRPC     :call AdminServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAdminHandlerFromEndpoint instead.
 func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AdminServer) error {
 
 	mux.Handle("POST", pattern_Admin_CreateSchema_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -980,6 +985,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_CreateSchema_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -993,6 +999,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("GET", pattern_Admin_ListSchema_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1000,6 +1008,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_ListSchema_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1013,6 +1022,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("GET", pattern_Admin_GetSchema_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1020,6 +1031,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_GetSchema_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1033,6 +1045,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("DELETE", pattern_Admin_DeleteSchema_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1040,6 +1054,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_DeleteSchema_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1053,6 +1068,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("POST", pattern_Admin_UpdateSchema_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1060,6 +1077,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_UpdateSchema_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1073,6 +1091,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("POST", pattern_Admin_IssueCredential_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1080,6 +1100,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_IssueCredential_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1093,6 +1114,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("POST", pattern_Admin_CreateAgent_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1100,6 +1123,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_CreateAgent_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1113,6 +1137,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("GET", pattern_Admin_ListAgent_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1120,6 +1146,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_ListAgent_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1133,6 +1160,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("GET", pattern_Admin_GetAgent_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1140,6 +1169,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_GetAgent_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1153,6 +1183,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("GET", pattern_Admin_GetAgentInvitation_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1160,6 +1192,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_GetAgentInvitation_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1173,6 +1206,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("DELETE", pattern_Admin_DeleteAgent_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1180,6 +1215,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_DeleteAgent_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1193,6 +1229,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("POST", pattern_Admin_UpdateAgent_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1200,6 +1238,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_UpdateAgent_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1213,6 +1252,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("POST", pattern_Admin_RequestPresentation_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1220,6 +1261,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_RequestPresentation_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1233,6 +1275,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("POST", pattern_Admin_CreateWebhook_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1240,6 +1284,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_CreateWebhook_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1253,6 +1298,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("GET", pattern_Admin_ListWebhook_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1260,6 +1307,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_ListWebhook_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -1273,6 +1321,8 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 	mux.Handle("DELETE", pattern_Admin_DeleteWebhook_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
 		if err != nil {
@@ -1280,6 +1330,7 @@ func RegisterAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 		resp, md, err := local_request_Admin_DeleteWebhook_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)

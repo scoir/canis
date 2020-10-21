@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/runtime"
 )
 
 var agentCfg = map[string]interface{}{
@@ -76,7 +75,6 @@ func TestProvider_StorageProvider(t *testing.T) {
 		vp      *viper.Viper
 		lock    sync.Mutex
 		ds      datastore.Provider
-		exec    runtime.Executor
 		ctx     *context.Provider
 		didcl   *didexchange.Client
 		credcl  *issuecredential.Client

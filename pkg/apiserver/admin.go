@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
+
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
@@ -202,7 +203,7 @@ func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) 
 		ID:                  req.Agent.Id,
 		Name:                req.Agent.Name,
 		AssignedSchemaId:    req.Agent.AssignedSchemaId,
-		EndorsableSchemaIds: req.Agent.EndorsableSchemaIds,
+		EndorsableSchemaIds: []string{},
 		HasPublicDID:        req.Agent.PublicDid,
 	}
 
@@ -220,15 +221,16 @@ func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) 
 			return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to provision agent wallet %s", req.Agent.Id).Error())
 		}
 
-		for _, schemaID := range a.EndorsableSchemaIds {
+		for _, schemaID := range req.Agent.EndorsableSchemaIds {
 			schema, err := r.schemaStore.GetSchema(schemaID)
 			if err != nil {
-				log.Println("unable to load schema for agent", err)
+				continue
 			}
 			err = r.schemaRegistry.RegisterSchema(a.PublicDID, schema)
 			if err != nil {
 				return nil, errors.Wrap(err, "")
 			}
+			a.EndorsableSchemaIds = append(a.EndorsableSchemaIds, schemaID)
 		}
 	}
 
@@ -236,11 +238,6 @@ func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) 
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
 	}
-
-	r.fireAgentEvent(&api.AgentEvent{
-		Type: api.AgentEvent_ADD,
-		New:  req.Agent,
-	})
 
 	return &api.CreateAgentResponse{
 		Id: id,
@@ -311,7 +308,7 @@ func (r *APIServer) GetAgentInvitation(ctx context.Context, request *api.Invitat
 
 func (r *APIServer) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) (*api.DeleteAgentResponse, error) {
 
-	old, err := r.agentStore.GetAgent(req.Id)
+	_, err := r.agentStore.GetAgent(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, errors.Wrapf(err, "unable to find agent %s to deleteS", req.Id).Error())
 	}
@@ -320,18 +317,6 @@ func (r *APIServer) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) 
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to delete agent %s", req.Id).Error())
 	}
-
-	out := &api.Agent{
-		Id:                  old.ID,
-		Name:                old.Name,
-		AssignedSchemaId:    old.AssignedSchemaId,
-		EndorsableSchemaIds: old.EndorsableSchemaIds,
-	}
-
-	r.fireAgentEvent(&api.AgentEvent{
-		Type: api.AgentEvent_DELETE,
-		Old:  out,
-	})
 
 	return &api.DeleteAgentResponse{}, nil
 }
@@ -352,10 +337,6 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 		upd.Name = req.Agent.Name
 	}
 
-	if req.Agent.EndorsableSchemaIds != nil {
-		upd.EndorsableSchemaIds = req.Agent.EndorsableSchemaIds
-	}
-
 	upd.HasPublicDID = req.Agent.PublicDid
 	if upd.HasPublicDID && upd.PublicDID == nil {
 		err := r.createAgentPublicDID(&upd)
@@ -364,15 +345,16 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 		}
 	}
 
-	for _, schemaID := range upd.EndorsableSchemaIds {
+	for _, schemaID := range req.Agent.EndorsableSchemaIds {
 		schema, err := r.schemaStore.GetSchema(schemaID)
 		if err != nil {
-			log.Println("unable to load schema for agent", err)
+			continue
 		}
 		err = r.schemaRegistry.RegisterSchema(upd.PublicDID, schema)
 		if err != nil {
 			return nil, errors.Wrap(err, "")
 		}
+		upd.EndorsableSchemaIds = append(upd.EndorsableSchemaIds, schemaID)
 	}
 
 	err = r.agentStore.UpdateAgent(&upd)
@@ -380,71 +362,7 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
 	}
 
-	r.fireAgentEvent(&api.AgentEvent{
-		Type: api.AgentEvent_UPDATE,
-		Old: &api.Agent{
-			Id:                  old.ID,
-			Name:                old.Name,
-			AssignedSchemaId:    old.AssignedSchemaId,
-			EndorsableSchemaIds: old.EndorsableSchemaIds,
-		},
-		New: &api.Agent{
-			Id:                  upd.ID,
-			Name:                upd.Name,
-			AssignedSchemaId:    upd.AssignedSchemaId,
-			EndorsableSchemaIds: upd.EndorsableSchemaIds,
-		},
-	})
-
 	return &api.UpdateAgentResponse{}, nil
-}
-
-func (r *APIServer) WatchAgents(_ *api.WatchRequest, stream api.Admin_WatchAgentsServer) error {
-
-	ch := r.registerWatcher()
-	defer r.removeWatcher(ch)
-	for ae := range ch {
-		if err := stream.Send(ae); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (r *APIServer) removeWatcher(ch chan *api.AgentEvent) {
-	r.watcherLock.Lock()
-	defer r.watcherLock.Unlock()
-
-	close(ch)
-
-	for i, watcher := range r.watchers {
-		if watcher == ch {
-			copy(r.watchers[i:], r.watchers[i+1:])
-			r.watchers[len(r.watchers)-1] = nil
-			r.watchers = r.watchers[:len(r.watchers)-1]
-			break
-		}
-	}
-}
-
-func (r *APIServer) registerWatcher() chan *api.AgentEvent {
-	r.watcherLock.Lock()
-	defer r.watcherLock.Unlock()
-
-	ch := make(chan *api.AgentEvent)
-	r.watchers = append(r.watchers, ch)
-
-	return ch
-}
-
-func (r *APIServer) fireAgentEvent(evt *api.AgentEvent) {
-	r.watcherLock.RLock()
-	defer r.watcherLock.RUnlock()
-
-	for _, watcher := range r.watchers {
-		watcher <- evt
-	}
 }
 
 func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDRequest) (*api.SeedPublicDIDResponse, error) {
@@ -465,9 +383,11 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 		if err != nil {
 			return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create new DID for apiserver PublicDID").Error())
 		}
-	} else {
+	} else if len(req.Seed) == ed25519.SeedSize {
 		privkey = ed25519.NewKeyFromSeed(edseed)
 		pubkey = privkey.Public().(ed25519.PublicKey)
+	} else {
+		return nil, status.Error(codes.InvalidArgument, "invalid seed")
 	}
 
 	did, err := identifiers.CreateDID(&identifiers.MyDIDInfo{
@@ -481,7 +401,7 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 
 	_, err = r.client.GetNym(did.String())
 	if err != nil {
-		log.Fatalln("DID must be registered to be public", err)
+		return nil, errors.Wrap(err, "DID must be registered")
 	}
 
 	encPubKey := base58.Encode(pubkey)
@@ -505,7 +425,7 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 
 	err = r.store.SetPublicDID(d)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, errors.Wrap(err, "unable to save public DID")
 	}
 
 	return &api.SeedPublicDIDResponse{}, nil

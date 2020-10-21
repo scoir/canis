@@ -2,12 +2,9 @@ package informer
 
 import (
 	"context"
-	"io"
 	"log"
 
 	"github.com/cenkalti/backoff"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/scoir/canis/pkg/apiserver/api"
 	"github.com/scoir/canis/pkg/util"
@@ -67,34 +64,5 @@ func (r *agentStreamAdapter) Close() {
 }
 
 func (r *agentStreamAdapter) watch() error {
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	stream, err := r.client.WatchAgents(ctx, &api.WatchRequest{})
-	if err != nil {
-		return err
-	}
-
-	r.cancel = cancelFunc
-
-	log.Println("stream successfully created")
-	for {
-		evt, err := stream.Recv()
-		if err == io.EOF || status.Code(err) == codes.Canceled {
-			return nil
-		}
-
-		if err != nil {
-			return err
-		}
-
-		switch evt.Type {
-		case api.AgentEvent_ADD:
-			r.addCh <- evt.New
-		case api.AgentEvent_UPDATE:
-			r.updCh <- Update{Old: evt.Old, New: evt.New}
-		case api.AgentEvent_DELETE:
-			r.delCh <- evt.Old
-		}
-
-	}
-
+	return nil
 }

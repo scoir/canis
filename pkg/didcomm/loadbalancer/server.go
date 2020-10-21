@@ -84,12 +84,7 @@ func (r *Server) RegisterGRPCHandler(server *grpc.Server) {
 	api.RegisterLoadbalancerServer(server, r)
 }
 
-func (r *Server) GetServerOpts() []grpc.ServerOption {
-	return []grpc.ServerOption{}
-}
-
 func (r *Server) RegisterGRPCGateway(_ *runtime.ServeMux, _ string, _ ...grpc.DialOption) {
-
 }
 
 func (r *Server) APISpec() (http.HandlerFunc, error) {

@@ -216,18 +216,6 @@ message RequestPresentationResponse {
     string request_presentation_id = 1;
 }
 
-message WatchRequest {}
-
-message AgentEvent {
-    enum Type {
-        ADD = 0;
-        UPDATE = 1;
-        DELETE = 2;
-    }
-    Type type = 1;
-    Agent Old = 2;
-    Agent New = 3;
-}
 
 message InvitationRequest {
   string agent_id = 1;
@@ -339,7 +327,6 @@ service Admin {
       };
     }
 
-    rpc WatchAgents (WatchRequest) returns (stream AgentEvent) {}
     rpc SeedPublicDID (SeedPublicDIDRequest) returns (SeedPublicDIDResponse) {}
 
     rpc CreateWebhook (CreateWebhookRequest) returns (CreateWebhookResponse) {

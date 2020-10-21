@@ -7,6 +7,9 @@ import (
 )
 
 type MockKMS struct {
+	ImportPrivateKeyKID    string
+	ImportPrivateKeyHandle interface{}
+	ImportPrivateKeyErr    error
 }
 
 func (r *MockKMS) Create(kt kms.KeyType) (string, interface{}, error) {
@@ -34,5 +37,9 @@ func (r *MockKMS) PubKeyBytesToHandle(pubKey []byte, kt kms.KeyType) (interface{
 }
 
 func (r *MockKMS) ImportPrivateKey(privKey interface{}, kt kms.KeyType, opts ...kms.PrivateKeyOpts) (string, interface{}, error) {
-	panic("implement me")
+	if r.ImportPrivateKeyErr != nil {
+		return "", nil, r.ImportPrivateKeyErr
+	}
+
+	return r.ImportPrivateKeyKID, r.ImportPrivateKeyHandle, nil
 }

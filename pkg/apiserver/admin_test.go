@@ -16,12 +16,15 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
+
 	"github.com/scoir/canis/pkg/apiserver/api"
 	apimocks "github.com/scoir/canis/pkg/apiserver/mocks"
 	emocks "github.com/scoir/canis/pkg/credential/engine/mocks"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/mocks"
-	lb "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	doormanapi "github.com/scoir/canis/pkg/didcomm/doorman/api"
+	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
+	verifierapi "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	dmocks "github.com/scoir/canis/pkg/didexchange/mocks"
 )
 
@@ -29,9 +32,12 @@ type AdminTestSuite struct {
 	Store             *mocks.Store
 	Bouncer           *dmocks.Bouncer
 	CredRegistry      *emocks.CredentialRegistry
-	LoadbalanceClient lb.LoadbalancerClient
+	LoadbalanceClient *apimocks.MockLoadbalancer
 	IndyClient        *apimocks.MockVDRClient
 	KMS               *apimocks.MockKMS
+	Doorman           *apimocks.MockDoorman
+	Issuer            *apimocks.MockIssuer
+	Verifier          *apimocks.MockVerifier
 }
 
 func SetupTest() (*APIServer, *AdminTestSuite) {
@@ -41,14 +47,24 @@ func SetupTest() (*APIServer, *AdminTestSuite) {
 	suite.CredRegistry = &emocks.CredentialRegistry{}
 	suite.IndyClient = &apimocks.MockVDRClient{}
 	suite.KMS = &apimocks.MockKMS{}
+	suite.Doorman = &apimocks.MockDoorman{}
+	suite.LoadbalanceClient = &apimocks.MockLoadbalancer{
+		EndpointValue: "0.0.0.0:420",
+	}
+	suite.Issuer = &apimocks.MockIssuer{}
+	suite.Verifier = &apimocks.MockVerifier{}
 
 	target := &APIServer{
+		keyMgr:         suite.KMS,
 		agentStore:     suite.Store,
 		schemaStore:    suite.Store,
 		store:          suite.Store,
 		client:         suite.IndyClient,
 		schemaRegistry: suite.CredRegistry,
-		keyMgr:         suite.KMS,
+		doorman:        suite.Doorman,
+		issuer:         suite.Issuer,
+		verifier:       suite.Verifier,
+		loadbalancer:   suite.LoadbalanceClient,
 	}
 
 	return target, suite
@@ -71,7 +87,7 @@ func TestCreateAgent(t *testing.T) {
 			ID:                  "123",
 			Name:                "Test Agent",
 			AssignedSchemaId:    "",
-			EndorsableSchemaIds: nil,
+			EndorsableSchemaIds: []string{},
 		}
 
 		suite.Store.On("GetAgent", "123").Return(nil, errors.New("not found"))
@@ -83,17 +99,13 @@ func TestCreateAgent(t *testing.T) {
 	})
 	t.Run("with public did", func(t *testing.T) {
 		target, suite := SetupTest()
-		mocklb := &apimocks.MockLoadbalancer{
-			EndpointValue: "0.0.0.0:420",
-		}
-		target.loadbalancer = mocklb
 
 		request := &api.CreateAgentRequest{
 			Agent: &api.Agent{
 				Id:                  "123",
 				Name:                "Test Agent",
 				AssignedSchemaId:    "",
-				EndorsableSchemaIds: nil,
+				EndorsableSchemaIds: []string{"test-schema-id"},
 				PublicDid:           true,
 			},
 		}
@@ -109,10 +121,13 @@ func TestCreateAgent(t *testing.T) {
 			DID:     d,
 			KeyPair: &datastore.KeyPair{},
 		}
+		s := &datastore.Schema{}
 
 		suite.Store.On("GetAgent", "123").Return(nil, errors.New("not found"))
 		suite.Store.On("InsertAgent", mock.AnythingOfType("*datastore.Agent")).Return("123", nil)
 		suite.Store.On("GetPublicDID").Return(did, nil)
+		suite.Store.On("GetSchema", "test-schema-id").Return(s, nil)
+		suite.CredRegistry.On("RegisterSchema", mock.AnythingOfType("*datastore.DID"), s).Return(nil)
 
 		_, err = target.CreateAgent(context.Background(), request)
 		assert.Nil(t, err)
@@ -135,7 +150,7 @@ func TestCreateAgentFails(t *testing.T) {
 		ID:                  "123",
 		Name:                "Test Agent",
 		AssignedSchemaId:    "",
-		EndorsableSchemaIds: nil,
+		EndorsableSchemaIds: []string{},
 	}
 
 	suite.Store.On("GetAgent", "123").Return(nil, errors.New("not found"))
@@ -237,59 +252,147 @@ func TestListAgentErr(t *testing.T) {
 }
 
 func TestDeleteAgent(t *testing.T) {
-	target, suite := SetupTest()
-	request := &api.DeleteAgentRequest{
-		Id: "123",
-	}
-	agent := &datastore.Agent{ID: "123"}
-	suite.Store.On("GetAgent", "123").Return(agent, nil)
-	suite.Store.On("DeleteAgent", "123").Return(nil)
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+		request := &api.DeleteAgentRequest{
+			Id: "123",
+		}
+		agent := &datastore.Agent{ID: "123"}
+		suite.Store.On("GetAgent", "123").Return(agent, nil)
+		suite.Store.On("DeleteAgent", "123").Return(nil)
 
-	resp, err := target.DeleteAgent(context.Background(), request)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-}
+		resp, err := target.DeleteAgent(context.Background(), request)
+		assert.Nil(t, err)
+		assert.NotNil(t, resp)
 
-func TestDeleteAgentErr(t *testing.T) {
-	target, suite := SetupTest()
-	request := &api.DeleteAgentRequest{
-		Id: "123",
-	}
+	})
+	t.Run("store get error", func(t *testing.T) {
+		target, suite := SetupTest()
+		request := &api.DeleteAgentRequest{
+			Id: "123",
+		}
 
-	agent := &datastore.Agent{ID: "123"}
-	suite.Store.On("GetAgent", "123").Return(agent, nil)
-	suite.Store.On("DeleteAgent", "123").Return(errors.New("BOOM"))
+		suite.Store.On("GetAgent", "123").Return(nil, errors.New("BOOM"))
 
-	resp, err := target.DeleteAgent(context.Background(), request)
-	assert.Nil(t, resp)
-	assert.NotNil(t, err)
-	assert.Equal(t, "rpc error: code = Internal desc = failed to delete agent 123: BOOM", err.Error())
+		resp, err := target.DeleteAgent(context.Background(), request)
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+
+	})
+
+	t.Run("store save error", func(t *testing.T) {
+		target, suite := SetupTest()
+		request := &api.DeleteAgentRequest{
+			Id: "123",
+		}
+
+		agent := &datastore.Agent{ID: "123"}
+		suite.Store.On("GetAgent", "123").Return(agent, nil)
+		suite.Store.On("DeleteAgent", "123").Return(errors.New("BOOM"))
+
+		resp, err := target.DeleteAgent(context.Background(), request)
+		assert.Nil(t, resp)
+		assert.NotNil(t, err)
+		assert.Equal(t, "rpc error: code = Internal desc = failed to delete agent 123: BOOM", err.Error())
+	})
 }
 
 func TestUpdateAgent(t *testing.T) {
-	target, suite := SetupTest()
-	request := &api.UpdateAgentRequest{
-		Agent: &api.Agent{
-			Id:                  "123",
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+		request := &api.UpdateAgentRequest{
+			Agent: &api.Agent{
+				Id:                  "123",
+				Name:                "Test Agent",
+				AssignedSchemaId:    "",
+				EndorsableSchemaIds: []string{"test-schema-id"},
+				PublicDid:           true,
+			},
+		}
+
+		a := &datastore.Agent{
+			ID:                  "123",
+			Name:                "Test Agent",
+			AssignedSchemaId:    "",
+			EndorsableSchemaIds: []string{"test-schema-id"},
+			HasPublicDID:        true,
+		}
+		d, err := identifiers.CreateDID(&identifiers.MyDIDInfo{
+			PublicKey:  []byte("abcdefghijklmnopqrs"),
+			Cid:        true,
+			MethodName: "scr",
+		})
+		require.NoError(t, err)
+		did := &datastore.DID{
+			DID:     d,
+			KeyPair: &datastore.KeyPair{},
+		}
+		s := &datastore.Schema{}
+
+		suite.Store.On("GetAgent", "123").Return(a, nil)
+		suite.Store.On("GetPublicDID").Return(did, nil)
+		suite.Store.On("GetSchema", "test-schema-id").Return(s, nil)
+		suite.CredRegistry.On("RegisterSchema", mock.AnythingOfType("*datastore.DID"), s).Return(nil)
+		suite.Store.On("UpdateAgent", mock.AnythingOfType("*datastore.Agent")).Return(nil)
+
+		resp, err := target.UpdateAgent(context.Background(), request)
+		assert.Nil(t, err)
+		assert.NotNil(t, resp)
+	})
+	t.Run("update agent error", func(t *testing.T) {
+		target, suite := SetupTest()
+		request := &api.UpdateAgentRequest{
+			Agent: &api.Agent{
+				Id:                  "123",
+				Name:                "Test Agent",
+				AssignedSchemaId:    "",
+				EndorsableSchemaIds: nil,
+			},
+		}
+
+		a := &datastore.Agent{
+			ID:                  "123",
 			Name:                "Test Agent",
 			AssignedSchemaId:    "",
 			EndorsableSchemaIds: nil,
-		},
-	}
+		}
 
-	a := &datastore.Agent{
-		ID:                  "123",
-		Name:                "Test Agent",
-		AssignedSchemaId:    "",
-		EndorsableSchemaIds: nil,
-	}
+		suite.Store.On("GetAgent", "123").Return(a, nil)
+		suite.Store.On("UpdateAgent", a).Return(errors.New("BOOM"))
 
-	suite.Store.On("GetAgent", "123").Return(a, nil)
-	suite.Store.On("UpdateAgent", a).Return(nil)
+		resp, err := target.UpdateAgent(context.Background(), request)
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+	})
+	t.Run("get agent error", func(t *testing.T) {
+		target, suite := SetupTest()
+		request := &api.UpdateAgentRequest{
+			Agent: &api.Agent{
+				Id:                  "123",
+				Name:                "Test Agent",
+				AssignedSchemaId:    "",
+				EndorsableSchemaIds: nil,
+			},
+		}
 
-	resp, err := target.UpdateAgent(context.Background(), request)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
+		suite.Store.On("GetAgent", "123").Return(nil, errors.New("BOOM"))
+
+		resp, err := target.UpdateAgent(context.Background(), request)
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+	})
+	t.Run("empty agent ID", func(t *testing.T) {
+		target, _ := SetupTest()
+		request := &api.UpdateAgentRequest{
+			Agent: &api.Agent{
+				Id: "",
+			},
+		}
+
+		resp, err := target.UpdateAgent(context.Background(), request)
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+	})
 }
 
 func TestCreateSchema(t *testing.T) {
@@ -566,4 +669,381 @@ func TestUpdateSchemaDataMissing(t *testing.T) {
 	resp, err := target.UpdateSchema(context.Background(), request)
 	assert.NotNil(t, err)
 	assert.Nil(t, resp)
+}
+
+func TestGetAgentInvitation(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.InvitationRequest{}
+
+		resp := &doormanapi.InvitationResponse{}
+		suite.Doorman.InviteResponse = resp
+
+		result, err := target.GetAgentInvitation(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+	t.Run("doorman error", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.InvitationRequest{}
+
+		suite.Doorman.InviteErr = errors.New("BOOM")
+
+		result, err := target.GetAgentInvitation(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+}
+
+func TestSeedPublicDID(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.SeedPublicDIDRequest{
+			Seed: "b2352b32947e188eb72871093ac6217e",
+		}
+
+		suite.Store.On("GetPublicDID").Return(nil, errors.New("not found"))
+		suite.Store.On("SetPublicDID", mock.AnythingOfType("*datastore.DID")).Return(nil)
+
+		resp, err := target.SeedPublicDID(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+	})
+	t.Run("happy with random seed", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.SeedPublicDIDRequest{
+			Seed: "",
+		}
+
+		suite.Store.On("GetPublicDID").Return(nil, errors.New("not found"))
+		suite.Store.On("SetPublicDID", mock.AnythingOfType("*datastore.DID")).Return(nil)
+
+		resp, err := target.SeedPublicDID(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+	})
+	t.Run("unregistered public DID", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.SeedPublicDIDRequest{
+			Seed: "b2352b32947e188eb72871093ac6217e",
+		}
+
+		suite.Store.On("GetPublicDID").Return(nil, errors.New("not found"))
+		suite.IndyClient.GetNymErr = errors.New("not found")
+
+		resp, err := target.SeedPublicDID(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
+	t.Run("public did already set", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.SeedPublicDIDRequest{
+			Seed: "abc",
+		}
+
+		suite.Store.On("GetPublicDID").Return(nil, nil)
+
+		resp, err := target.SeedPublicDID(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
+
+	t.Run("unable to import private key", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.SeedPublicDIDRequest{
+			Seed: "b2352b32947e188eb72871093ac6217e",
+		}
+
+		suite.Store.On("GetPublicDID").Return(nil, errors.New("not found"))
+		suite.KMS.ImportPrivateKeyErr = errors.New("unexpected")
+
+		resp, err := target.SeedPublicDID(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
+
+	t.Run("save fails", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.SeedPublicDIDRequest{
+			Seed: "b2352b32947e188eb72871093ac6217e",
+		}
+
+		suite.Store.On("GetPublicDID").Return(nil, errors.New("not found"))
+		suite.Store.On("SetPublicDID", mock.AnythingOfType("*datastore.DID")).Return(errors.New("BOOM"))
+
+		resp, err := target.SeedPublicDID(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
+
+	t.Run("bad seed", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.SeedPublicDIDRequest{
+			Seed: "abc",
+		}
+
+		suite.Store.On("GetPublicDID").Return(nil, errors.New("not found"))
+
+		resp, err := target.SeedPublicDID(context.Background(), req)
+
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
+}
+
+func TestIssueCredential(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.IssueCredentialRequest{
+			Credential: &api.Credential{
+				SchemaId: "test-schema-id",
+				Comment:  "test comment",
+				Type:     "lds/json-ld-proof",
+				Attributes: []*api.CredentialAttribute{
+					{
+						Name:  "test-field",
+						Value: "test-value",
+					},
+				},
+			},
+		}
+
+		suite.Issuer.IssueCredResponse = &issuerapi.IssueCredentialResponse{
+			CredentialId: "new-cred-id",
+		}
+
+		resp, err := target.IssueCredential(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.Equal(t, "new-cred-id", resp.CredentialId)
+	})
+	t.Run("issuer error", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.IssueCredentialRequest{
+			Credential: &api.Credential{
+				SchemaId: "test-schema-id",
+				Comment:  "test comment",
+				Type:     "lds/json-ld-proof",
+				Attributes: []*api.CredentialAttribute{
+					{
+						Name:  "test-field",
+						Value: "test-value",
+					},
+				},
+			},
+		}
+
+		suite.Issuer.IssueCredErr = errors.New("BOOM")
+
+		resp, err := target.IssueCredential(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+	})
+}
+
+func TestRequestPresentation(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.RequestPresentationRequest{
+			AgentId:    "test-agent-id",
+			ExternalId: "test-external-id",
+			Presentation: &api.RequestPresentation{
+				RequestedAttributes: map[string]*api.AttrInfo{
+					"test-attr": {
+						Name: "test-attr",
+					},
+				},
+				RequestedPredicates: map[string]*api.PredicateInfo{
+					"test-predicate": {
+						Name: "test-predicate",
+					},
+				},
+			},
+		}
+
+		suite.Verifier.RequestPresResponse = &verifierapi.RequestPresentationResponse{
+			RequestPresentationId: "test-presentation-id",
+		}
+
+		resp, err := target.RequestPresentation(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.Equal(t, "test-presentation-id", resp.RequestPresentationId)
+	})
+	t.Run("verifier fails", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.RequestPresentationRequest{
+			AgentId:    "test-agent-id",
+			ExternalId: "test-external-id",
+			Presentation: &api.RequestPresentation{
+				RequestedAttributes: map[string]*api.AttrInfo{
+					"test-attr": {
+						Name: "test-attr",
+					},
+				},
+				RequestedPredicates: map[string]*api.PredicateInfo{
+					"test-predicate": {
+						Name: "test-predicate",
+					},
+				},
+			},
+		}
+
+		suite.Verifier.RequestPresErr = errors.New("BOOM")
+
+		resp, err := target.RequestPresentation(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+	})
+}
+
+func TestCreateWebhook(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.CreateWebhookRequest{
+			Id: "test-webhook",
+			Webhook: []*api.Webhook{
+				{
+					Url: "test-url",
+				},
+				{
+					Url: "test-url2",
+				},
+			},
+		}
+
+		hook := &datastore.Webhook{
+			Type: "test-webhook",
+			URL:  "test-url",
+		}
+
+		hook2 := &datastore.Webhook{
+			Type: "test-webhook",
+			URL:  "test-url2",
+		}
+
+		suite.Store.On("AddWebhook", hook).Return(nil).Once()
+		suite.Store.On("AddWebhook", hook2).Return(nil).Once()
+
+		resp, err := target.CreateWebhook(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+	})
+	t.Run("store error", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.CreateWebhookRequest{
+			Id: "test-webhook",
+			Webhook: []*api.Webhook{
+				{
+					Url: "test-url",
+				},
+			},
+		}
+
+		hook := &datastore.Webhook{
+			Type: "test-webhook",
+			URL:  "test-url",
+		}
+
+		suite.Store.On("AddWebhook", hook).Return(errors.New("BOOM")).Once()
+
+		resp, err := target.CreateWebhook(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
+}
+
+func TestListWebhook(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.ListWebhookRequest{
+			Id: "test-webhook-id",
+		}
+
+		hooks := []*datastore.Webhook{
+			{
+				Type: "test-webhook-id",
+				URL:  "test-url",
+			},
+			{
+				Type: "test-webhook-id2",
+				URL:  "test-url2",
+			},
+		}
+		suite.Store.On("ListWebhooks", "test-webhook-id").Return(hooks, nil)
+
+		resp, err := target.ListWebhook(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		require.Equal(t, []*api.Webhook{
+			{
+				Url: "test-url",
+			},
+			{
+				Url: "test-url2",
+			},
+		}, resp.Hooks)
+
+	})
+	t.Run("store error", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.ListWebhookRequest{
+			Id: "test-webhook-id",
+		}
+
+		suite.Store.On("ListWebhooks", "test-webhook-id").Return(nil, errors.New("BOOM"))
+
+		resp, err := target.ListWebhook(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
+}
+
+func TestDeleteWebhook(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.DeleteWebhookRequest{
+			Id: "test-webhook-id",
+		}
+
+		suite.Store.On("DeleteWebhook", "test-webhook-id").Return(nil)
+
+		resp, err := target.DeleteWebhook(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+	})
+	t.Run("store error", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.DeleteWebhookRequest{
+			Id: "test-webhook-id",
+		}
+
+		suite.Store.On("DeleteWebhook", "test-webhook-id").Return(errors.New("BOOM"))
+
+		resp, err := target.DeleteWebhook(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
 }

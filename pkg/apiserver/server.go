@@ -7,15 +7,13 @@ SPDX-License-Identifier: Apache-2.0
 package apiserver
 
 import (
-	"sync"
-
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
-	"github.com/scoir/canis/pkg/apiserver/api"
+
 	cengine "github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
@@ -38,8 +36,6 @@ type APIServer struct {
 	issuer       issuer.IssuerClient
 	verifier     verifier.VerifierClient
 	loadbalancer loadbalancer.LoadbalancerClient
-	watcherLock  sync.RWMutex
-	watchers     []chan *api.AgentEvent
 }
 
 //go:generate mockery -name=provider --structname=Provider
@@ -64,9 +60,7 @@ type vdrClient interface {
 func New(ctx provider) (*APIServer, error) {
 
 	var err error
-	r := &APIServer{
-		watchers: make([]chan *api.AgentEvent, 0),
-	}
+	r := &APIServer{}
 
 	r.keyMgr = ctx.KMS()
 	r.schemaStore = ctx.Store()

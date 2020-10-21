@@ -23,7 +23,6 @@ import (
 
 type AgentController interface {
 	RegisterGRPCHandler(server *grpc.Server)
-	GetServerOpts() []grpc.ServerOption
 	RegisterGRPCGateway(mux *runtime.ServeMux, endpoint string, opts ...grpc.DialOption)
 	APISpec() (http.HandlerFunc, error)
 }
@@ -99,7 +98,7 @@ func (r *Runner) launchGRPC() error {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer(r.ac.GetServerOpts()...)
+	grpcServer := grpc.NewServer()
 	r.ac.RegisterGRPCHandler(grpcServer)
 	log.Println("GRPC Listening for on ", addr)
 	return grpcServer.Serve(lis)
