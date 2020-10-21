@@ -13,6 +13,7 @@ import (
 	"unsafe"
 
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
+	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
@@ -167,7 +168,7 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 
 	cr.BlindedMS = C.GoString(blindedSecretsJson)
 	cr.BlindedMSCorrectnessProof = C.GoString(proofJson)
-	cr.Nonce, err = NewNonce()
+	cr.Nonce, err = ursa.NewNonce()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to create nonce for cred request")
 	}

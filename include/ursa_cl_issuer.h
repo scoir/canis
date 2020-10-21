@@ -236,24 +236,6 @@ ErrorCode ursa_cl_non_credential_schema_builder_new(const void **non_credential_
  */
 ErrorCode ursa_cl_non_credential_schema_free(const void *non_credential_schema);
 
-/**
- * Deallocates nonce instance.
- *
- * # Arguments
- * * `nonce` - Reference that contains nonce instance pointer.
- */
-ErrorCode ursa_cl_nonce_free(const void *nonce);
-
-/**
- * Creates random nonce.
- *
- * Note that nonce deallocation must be performed by calling ursa_cl_nonce_free.
- *
- * # Arguments
- * * `nonce_p` - Reference that will contain nonce instance pointer.
- */
-ErrorCode ursa_cl_new_nonce(const void **nonce_p);
-
 
 /**
  * Creates and returns nonce json.
@@ -265,16 +247,6 @@ ErrorCode ursa_cl_new_nonce(const void **nonce_p);
  * * `nonce_p` - Reference that will contain nonce instance pointer.
  */
 ErrorCode ursa_cl_nonce_from_json(const char *nonce_json, const void **nonce_p);
-
-/**
- * Returns json representation of nonce.
- *
- * # Arguments
- * * `nonce` - Reference that contains nonce instance pointer.
- * * `nonce_json_p` - Reference that will contain nonce json.
- */
-ErrorCode ursa_cl_nonce_to_json(const void *nonce, const char **nonce_json_p);
-
 
 
 /**

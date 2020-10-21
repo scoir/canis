@@ -4,20 +4,21 @@ import "C"
 import (
 	"encoding/base64"
 	"encoding/json"
-
 	"github.com/google/tink/go/keyset"
 	"github.com/google/tink/go/signature/subtle"
 	"github.com/google/uuid"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
+	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/indy"
-	"github.com/scoir/canis/pkg/ursa"
+	ursaWrapper "github.com/scoir/canis/pkg/ursa"
 )
+
 
 const Indy = "hlindy-zkp-v1.0"
 
@@ -37,7 +38,7 @@ type provider interface {
 	IndyVDR() (indy.IndyVDRClient, error)
 	KMS() kms.KeyManager
 	StorageProvider() storage.Provider
-	Issuer() ursa.Issuer
+	Issuer() ursaWrapper.Issuer
 }
 
 type UrsaIssuer interface {
@@ -126,7 +127,7 @@ func (r *CredentialEngine) RegisterSchema(registrant *datastore.DID, s *datastor
 	}
 	mysig := prim.Primary.Primitive.(*subtle.ED25519Signer)
 
-	indycd := ursa.NewCredentailDefinition()
+	indycd := ursaWrapper.NewCredentailDefinition()
 
 	names := make([]string, len(s.Attributes))
 	for i, attr := range s.Attributes {
@@ -173,7 +174,7 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, subjectD
 		return "", nil, errors.Wrap(err, "unable to find schema on ledger to create cred def")
 	}
 
-	credDefID := ursa.CredentialDefinitionID(issuer, schema.SeqNo, CLSignatureType, DefaultTag)
+	credDefID := ursaWrapper.CredentialDefinitionID(issuer, schema.SeqNo, CLSignatureType, DefaultTag)
 
 	rec, err := r.getCredDefRecord(credDefID)
 	if err != nil {
@@ -185,7 +186,7 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, subjectD
 		return "", nil, errors.Wrap(err, "unexpected error creating nonce")
 	}
 
-	offer := ursa.CredentialOffer{
+	offer := ursaWrapper.CredentialOffer{
 		SchemaID:            s.ExternalSchemaID,
 		CredDefID:           credDefID,
 		KeyCorrectnessProof: rec.KeyCorrectnessProof,
@@ -222,7 +223,7 @@ func (r *CredentialEngine) getCredDefRecord(credDefID string) (*creddefWalletRec
 func (r *CredentialEngine) IssueCredential(issuerDID *datastore.DID, s *datastore.Schema, offerID string,
 	requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error) {
 
-	request := ursa.CredentialRequest{}
+	request := ursaWrapper.CredentialRequest{}
 	d, err := requestAttachment.Fetch()
 	if err != nil {
 		return nil, errors.New("invalid attachment for issuing indy credential")
@@ -232,7 +233,7 @@ func (r *CredentialEngine) IssueCredential(issuerDID *datastore.DID, s *datastor
 		return nil, errors.Wrap(err, "invalid attachment JSON for issuing indy credential")
 	}
 
-	offer := &ursa.CredentialOffer{}
+	offer := &ursaWrapper.CredentialOffer{}
 	d, err = r.store.Get(offerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load existing indy offer")
