@@ -113,7 +113,7 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 		return nil, nil, errors.Wrap(err, "unable to get correctness proof from JSON")
 	}
 
-	nonce, err = NonceFromJSON(offer.Nonce)
+	nonce, err = ursa.NonceFromJson(offer.Nonce)
 	if err != nil {
 		return nil, nil, err
 	}

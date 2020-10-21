@@ -12,9 +12,9 @@ import (
 	"unsafe"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
-	"github.com/pkg/errors"
-
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
+	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
+	"github.com/pkg/errors"
 )
 
 type Credential struct {
@@ -56,12 +56,12 @@ func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, of
 		return nil, err
 	}
 
-	credentialIssuanceNonce, err = NonceFromJSON(offerNonce)
+	credentialIssuanceNonce, err = ursa.NonceFromJson(offerNonce)
 	if err != nil {
 		return nil, err
 	}
 
-	credentialNonce, err = NonceFromJSON(requestNonce)
+	credentialNonce, err = ursa.NonceFromJson(requestNonce)
 	if err != nil {
 		return nil, err
 	}
