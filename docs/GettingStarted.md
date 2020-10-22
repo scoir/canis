@@ -60,7 +60,7 @@ TODO:  How to get the genesis file of your indy network and replace the transact
 
 ## Launch Canis
 
-Once you finsh setting your configuration, you can start Canis locally using the following `docker-compose` command:
+Once you finish setting your configuration, you can start Canis locally using the following `docker-compose` command:
 
 ```
 % docker-compose up
@@ -77,12 +77,14 @@ Starting compose_canis-didcomm-lb_1      ... done
 
 ## Ledger Access
 
-Once all the services have started, you will need to tell your instance of canis what DID to use when interacting with the ledger.  You
-use the `sirius` command line tool to seed your Canis instance.  Use the following command with the seed used to generate a DID 
-with at least ENDORSER role on your Indy network configured above.
+#### VON Network
+
+Follow the instructions [https://github.com/bcgov/von-network/blob/master/docs/UsingVONNetwork.md](here) after cloning the VON Network.
+
+After the network has started you can use the following command to seed your Canis instance, to use your VON Network.
 
 ```
-% bin/sirius init --config ./config/sirius-compose.yaml --seed "<seed for DID with admin role>"
+% bin/sirius init --config ./config/sirius-compose.yaml --seed "000000000000000000000000Trustee1"
 ```
 
 
