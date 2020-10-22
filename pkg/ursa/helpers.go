@@ -16,19 +16,6 @@ import (
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 )
 
-func NonceFromJSON(jsn string) (unsafe.Pointer, error) {
-	var handle unsafe.Pointer
-	cjson := C.CString(fmt.Sprintf(`"%s"`, jsn))
-	defer C.free(unsafe.Pointer(cjson))
-
-	result := C.ursa_cl_nonce_from_json(cjson, &handle)
-	if result != 0 {
-		return nil, ursaError("nonce")
-	}
-
-	return handle, nil
-}
-
 func CredentialKeyCorrectnessProofFromJSON(jsn string) (unsafe.Pointer, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(jsn)
