@@ -24,13 +24,11 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
-	api "github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 
 	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
-	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	"github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/static"
 )

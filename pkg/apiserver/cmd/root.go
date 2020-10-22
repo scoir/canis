@@ -13,8 +13,6 @@ import (
 	"os"
 	"strings"
 
-	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
-
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
@@ -29,6 +27,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
+
 	cengine "github.com/scoir/canis/pkg/credential/engine"
 	credengine "github.com/scoir/canis/pkg/credential/engine"
 	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"

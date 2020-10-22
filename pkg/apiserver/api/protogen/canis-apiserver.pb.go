@@ -143,55 +143,6 @@ func (Agent_Status) EnumDescriptor() ([]byte, []int) {
 	return file_canis_apiserver_proto_rawDescGZIP(), []int{14, 0}
 }
 
-type AgentEvent_Type int32
-
-const (
-	AgentEvent_ADD    AgentEvent_Type = 0
-	AgentEvent_UPDATE AgentEvent_Type = 1
-	AgentEvent_DELETE AgentEvent_Type = 2
-)
-
-// Enum value maps for AgentEvent_Type.
-var (
-	AgentEvent_Type_name = map[int32]string{
-		0: "ADD",
-		1: "UPDATE",
-		2: "DELETE",
-	}
-	AgentEvent_Type_value = map[string]int32{
-		"ADD":    0,
-		"UPDATE": 1,
-		"DELETE": 2,
-	}
-)
-
-func (x AgentEvent_Type) Enum() *AgentEvent_Type {
-	p := new(AgentEvent_Type)
-	*p = x
-	return p
-}
-
-func (x AgentEvent_Type) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (AgentEvent_Type) Descriptor() protoreflect.EnumDescriptor {
-	return file_canis_apiserver_proto_enumTypes[2].Descriptor()
-}
-
-func (AgentEvent_Type) Type() protoreflect.EnumType {
-	return &file_canis_apiserver_proto_enumTypes[2]
-}
-
-func (x AgentEvent_Type) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use AgentEvent_Type.Descriptor instead.
-func (AgentEvent_Type) EnumDescriptor() ([]byte, []int) {
-	return file_canis_apiserver_proto_rawDescGZIP(), []int{36, 0}
-}
-
 type PublicDIDRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1998,107 +1949,6 @@ func (x *IssueCredentialResponse) GetCredentialId() string {
 	return ""
 }
 
-type WatchRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *WatchRequest) Reset() {
-	*x = WatchRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_canis_apiserver_proto_msgTypes[35]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *WatchRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WatchRequest) ProtoMessage() {}
-
-func (x *WatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_canis_apiserver_proto_msgTypes[35]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WatchRequest.ProtoReflect.Descriptor instead.
-func (*WatchRequest) Descriptor() ([]byte, []int) {
-	return file_canis_apiserver_proto_rawDescGZIP(), []int{35}
-}
-
-type AgentEvent struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Type AgentEvent_Type `protobuf:"varint,1,opt,name=type,proto3,enum=apiserver.AgentEvent_Type" json:"type,omitempty"`
-	Old  *Agent          `protobuf:"bytes,2,opt,name=Old,proto3" json:"Old,omitempty"`
-	New  *Agent          `protobuf:"bytes,3,opt,name=New,proto3" json:"New,omitempty"`
-}
-
-func (x *AgentEvent) Reset() {
-	*x = AgentEvent{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_canis_apiserver_proto_msgTypes[36]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *AgentEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AgentEvent) ProtoMessage() {}
-
-func (x *AgentEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_canis_apiserver_proto_msgTypes[36]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AgentEvent.ProtoReflect.Descriptor instead.
-func (*AgentEvent) Descriptor() ([]byte, []int) {
-	return file_canis_apiserver_proto_rawDescGZIP(), []int{36}
-}
-
-func (x *AgentEvent) GetType() AgentEvent_Type {
-	if x != nil {
-		return x.Type
-	}
-	return AgentEvent_ADD
-}
-
-func (x *AgentEvent) GetOld() *Agent {
-	if x != nil {
-		return x.Old
-	}
-	return nil
-}
-
-func (x *AgentEvent) GetNew() *Agent {
-	if x != nil {
-		return x.New
-	}
-	return nil
-}
-
 type InvitationRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2106,13 +1956,12 @@ type InvitationRequest struct {
 
 	AgentId    string `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
 	ExternalId string `protobuf:"bytes,2,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
-	Name       string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 }
 
 func (x *InvitationRequest) Reset() {
 	*x = InvitationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_canis_apiserver_proto_msgTypes[37]
+		mi := &file_canis_apiserver_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2125,7 +1974,7 @@ func (x *InvitationRequest) String() string {
 func (*InvitationRequest) ProtoMessage() {}
 
 func (x *InvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_canis_apiserver_proto_msgTypes[37]
+	mi := &file_canis_apiserver_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2138,7 +1987,7 @@ func (x *InvitationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvitationRequest.ProtoReflect.Descriptor instead.
 func (*InvitationRequest) Descriptor() ([]byte, []int) {
-	return file_canis_apiserver_proto_rawDescGZIP(), []int{37}
+	return file_canis_apiserver_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *InvitationRequest) GetAgentId() string {
@@ -2155,13 +2004,6 @@ func (x *InvitationRequest) GetExternalId() string {
 	return ""
 }
 
-func (x *InvitationRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
 type InvitationResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2173,7 +2015,7 @@ type InvitationResponse struct {
 func (x *InvitationResponse) Reset() {
 	*x = InvitationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_canis_apiserver_proto_msgTypes[38]
+		mi := &file_canis_apiserver_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2186,7 +2028,7 @@ func (x *InvitationResponse) String() string {
 func (*InvitationResponse) ProtoMessage() {}
 
 func (x *InvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_canis_apiserver_proto_msgTypes[38]
+	mi := &file_canis_apiserver_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2199,7 +2041,7 @@ func (x *InvitationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvitationResponse.ProtoReflect.Descriptor instead.
 func (*InvitationResponse) Descriptor() ([]byte, []int) {
-	return file_canis_apiserver_proto_rawDescGZIP(), []int{38}
+	return file_canis_apiserver_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *InvitationResponse) GetInvitation() string {
@@ -2207,6 +2049,325 @@ func (x *InvitationResponse) GetInvitation() string {
 		return x.Invitation
 	}
 	return ""
+}
+
+type Webhook struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+}
+
+func (x *Webhook) Reset() {
+	*x = Webhook{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_canis_apiserver_proto_msgTypes[37]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Webhook) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Webhook) ProtoMessage() {}
+
+func (x *Webhook) ProtoReflect() protoreflect.Message {
+	mi := &file_canis_apiserver_proto_msgTypes[37]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Webhook.ProtoReflect.Descriptor instead.
+func (*Webhook) Descriptor() ([]byte, []int) {
+	return file_canis_apiserver_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *Webhook) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+type CreateWebhookRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id      string     `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Webhook []*Webhook `protobuf:"bytes,2,rep,name=webhook,proto3" json:"webhook,omitempty"`
+}
+
+func (x *CreateWebhookRequest) Reset() {
+	*x = CreateWebhookRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_canis_apiserver_proto_msgTypes[38]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateWebhookRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateWebhookRequest) ProtoMessage() {}
+
+func (x *CreateWebhookRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_canis_apiserver_proto_msgTypes[38]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateWebhookRequest.ProtoReflect.Descriptor instead.
+func (*CreateWebhookRequest) Descriptor() ([]byte, []int) {
+	return file_canis_apiserver_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *CreateWebhookRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CreateWebhookRequest) GetWebhook() []*Webhook {
+	if x != nil {
+		return x.Webhook
+	}
+	return nil
+}
+
+type CreateWebhookResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *CreateWebhookResponse) Reset() {
+	*x = CreateWebhookResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_canis_apiserver_proto_msgTypes[39]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateWebhookResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateWebhookResponse) ProtoMessage() {}
+
+func (x *CreateWebhookResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_canis_apiserver_proto_msgTypes[39]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateWebhookResponse.ProtoReflect.Descriptor instead.
+func (*CreateWebhookResponse) Descriptor() ([]byte, []int) {
+	return file_canis_apiserver_proto_rawDescGZIP(), []int{39}
+}
+
+type DeleteWebhookRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *DeleteWebhookRequest) Reset() {
+	*x = DeleteWebhookRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_canis_apiserver_proto_msgTypes[40]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteWebhookRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteWebhookRequest) ProtoMessage() {}
+
+func (x *DeleteWebhookRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_canis_apiserver_proto_msgTypes[40]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteWebhookRequest.ProtoReflect.Descriptor instead.
+func (*DeleteWebhookRequest) Descriptor() ([]byte, []int) {
+	return file_canis_apiserver_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *DeleteWebhookRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeleteWebhookResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DeleteWebhookResponse) Reset() {
+	*x = DeleteWebhookResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_canis_apiserver_proto_msgTypes[41]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteWebhookResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteWebhookResponse) ProtoMessage() {}
+
+func (x *DeleteWebhookResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_canis_apiserver_proto_msgTypes[41]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteWebhookResponse.ProtoReflect.Descriptor instead.
+func (*DeleteWebhookResponse) Descriptor() ([]byte, []int) {
+	return file_canis_apiserver_proto_rawDescGZIP(), []int{41}
+}
+
+type ListWebhookRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *ListWebhookRequest) Reset() {
+	*x = ListWebhookRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_canis_apiserver_proto_msgTypes[42]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListWebhookRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListWebhookRequest) ProtoMessage() {}
+
+func (x *ListWebhookRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_canis_apiserver_proto_msgTypes[42]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListWebhookRequest.ProtoReflect.Descriptor instead.
+func (*ListWebhookRequest) Descriptor() ([]byte, []int) {
+	return file_canis_apiserver_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *ListWebhookRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type ListWebhookResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Hooks []*Webhook `protobuf:"bytes,1,rep,name=hooks,proto3" json:"hooks,omitempty"`
+}
+
+func (x *ListWebhookResponse) Reset() {
+	*x = ListWebhookResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_canis_apiserver_proto_msgTypes[43]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListWebhookResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListWebhookResponse) ProtoMessage() {}
+
+func (x *ListWebhookResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_canis_apiserver_proto_msgTypes[43]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListWebhookResponse.ProtoReflect.Descriptor instead.
+func (*ListWebhookResponse) Descriptor() ([]byte, []int) {
+	return file_canis_apiserver_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *ListWebhookResponse) GetHooks() []*Webhook {
+	if x != nil {
+		return x.Hooks
+	}
+	return nil
 }
 
 var File_canis_apiserver_proto protoreflect.FileDescriptor
@@ -2380,28 +2541,34 @@ var file_canis_apiserver_proto_rawDesc = []byte{
 	0x69, 0x61, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x23, 0x0a, 0x0d, 0x63,
 	0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x09, 0x52, 0x0c, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x49, 0x64,
-	0x22, 0x0e, 0x0a, 0x0c, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x22, 0xad, 0x01, 0x0a, 0x0a, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12,
-	0x2e, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1a, 0x2e,
-	0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x45,
-	0x76, 0x65, 0x6e, 0x74, 0x2e, 0x54, 0x79, 0x70, 0x65, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12,
-	0x22, 0x0a, 0x03, 0x4f, 0x6c, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x61,
-	0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x03,
-	0x4f, 0x6c, 0x64, 0x12, 0x22, 0x0a, 0x03, 0x4e, 0x65, 0x77, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x10, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x41, 0x67, 0x65,
-	0x6e, 0x74, 0x52, 0x03, 0x4e, 0x65, 0x77, 0x22, 0x27, 0x0a, 0x04, 0x54, 0x79, 0x70, 0x65, 0x12,
-	0x07, 0x0a, 0x03, 0x41, 0x44, 0x44, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x55, 0x50, 0x44, 0x41,
-	0x54, 0x45, 0x10, 0x01, 0x12, 0x0a, 0x0a, 0x06, 0x44, 0x45, 0x4c, 0x45, 0x54, 0x45, 0x10, 0x02,
-	0x22, 0x63, 0x0a, 0x11, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65,
+	0x22, 0x4f, 0x0a, 0x11, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65,
 	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x19, 0x0a, 0x08, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x5f, 0x69,
 	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x49, 0x64,
 	0x12, 0x1f, 0x0a, 0x0b, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x5f, 0x69, 0x64, 0x18,
 	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x49,
-	0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x34, 0x0a, 0x12, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x69,
-	0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x0a, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x32, 0xe9, 0x0c, 0x0a, 0x05,
+	0x64, 0x22, 0x34, 0x0a, 0x12, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x69, 0x6e, 0x76, 0x69, 0x74,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x69, 0x6e, 0x76,
+	0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x1b, 0x0a, 0x07, 0x57, 0x65, 0x62, 0x68, 0x6f,
+	0x6f, 0x6b, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x03, 0x75, 0x72, 0x6c, 0x22, 0x54, 0x0a, 0x14, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x57, 0x65,
+	0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x2c, 0x0a, 0x07,
+	0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x12, 0x2e,
+	0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f,
+	0x6b, 0x52, 0x07, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x22, 0x17, 0x0a, 0x15, 0x43, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x26, 0x0a, 0x14, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x57, 0x65, 0x62,
+	0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x17, 0x0a, 0x15, 0x44,
+	0x65, 0x6c, 0x65, 0x74, 0x65, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x24, 0x0a, 0x12, 0x4c, 0x69, 0x73, 0x74, 0x57, 0x65, 0x62, 0x68,
+	0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x3f, 0x0a, 0x13, 0x4c, 0x69,
+	0x73, 0x74, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x28, 0x0a, 0x05, 0x68, 0x6f, 0x6f, 0x6b, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x12, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x57, 0x65, 0x62,
+	0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x05, 0x68, 0x6f, 0x6f, 0x6b, 0x73, 0x32, 0xe7, 0x0e, 0x0a, 0x05,
 	0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x68, 0x0a, 0x0c, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53,
 	0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x1e, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65,
 	0x72, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65,
@@ -2467,7 +2634,7 @@ var file_canis_apiserver_proto_rawDesc = []byte{
 	0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72,
 	0x76, 0x65, 0x72, 0x2e, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x33, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2d, 0x22, 0x2b,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x33, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2d, 0x12, 0x2b,
 	0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x7b, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x5f, 0x69,
 	0x64, 0x7d, 0x2f, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x7b, 0x65,
 	0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x5f, 0x69, 0x64, 0x7d, 0x12, 0x62, 0x0a, 0x0b, 0x44,
@@ -2494,20 +2661,36 @@ var file_canis_apiserver_proto_rawDesc = []byte{
 	0x74, 0x73, 0x2f, 0x7b, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x7d, 0x2f, 0x70, 0x72,
 	0x65, 0x73, 0x65, 0x6e, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x7b, 0x65, 0x78, 0x74, 0x65,
 	0x72, 0x6e, 0x61, 0x6c, 0x5f, 0x69, 0x64, 0x7d, 0x2f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x3a, 0x0c, 0x70, 0x72, 0x65, 0x73, 0x65, 0x6e, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x41,
-	0x0a, 0x0b, 0x57, 0x61, 0x74, 0x63, 0x68, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x17, 0x2e,
-	0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76,
-	0x65, 0x72, 0x2e, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x22, 0x00, 0x30,
-	0x01, 0x12, 0x54, 0x0a, 0x0d, 0x53, 0x65, 0x65, 0x64, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x44,
-	0x49, 0x44, 0x12, 0x1f, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x53,
-	0x65, 0x65, 0x64, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x44, 0x49, 0x44, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e,
-	0x53, 0x65, 0x65, 0x64, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x44, 0x49, 0x44, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x2c, 0x5a, 0x0d, 0x61, 0x70, 0x69, 0x73, 0x65,
-	0x72, 0x76, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x92, 0x41, 0x1a, 0x12, 0x18, 0x0a, 0x0f, 0x43,
-	0x61, 0x6e, 0x69, 0x73, 0x20, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x20, 0x41, 0x50, 0x49, 0x32, 0x05,
-	0x30, 0x2e, 0x30, 0x2e, 0x32, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x3a, 0x0c, 0x70, 0x72, 0x65, 0x73, 0x65, 0x6e, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x54,
+	0x0a, 0x0d, 0x53, 0x65, 0x65, 0x64, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x44, 0x49, 0x44, 0x12,
+	0x1f, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x53, 0x65, 0x65, 0x64,
+	0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x44, 0x49, 0x44, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x20, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x53, 0x65, 0x65,
+	0x64, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x44, 0x49, 0x44, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x6d, 0x0a, 0x0d, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x57, 0x65,
+	0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x12, 0x1f, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65,
+	0x72, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76,
+	0x65, 0x72, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x19, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x13,
+	0x22, 0x0e, 0x2f, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x73, 0x2f, 0x7b, 0x69, 0x64, 0x7d,
+	0x3a, 0x01, 0x2a, 0x12, 0x64, 0x0a, 0x0b, 0x4c, 0x69, 0x73, 0x74, 0x57, 0x65, 0x62, 0x68, 0x6f,
+	0x6f, 0x6b, 0x12, 0x1d, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x4c,
+	0x69, 0x73, 0x74, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x1e, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x4c, 0x69,
+	0x73, 0x74, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x16, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x10, 0x12, 0x0e, 0x2f, 0x77, 0x65, 0x62, 0x68,
+	0x6f, 0x6f, 0x6b, 0x73, 0x2f, 0x7b, 0x69, 0x64, 0x7d, 0x12, 0x6a, 0x0a, 0x0d, 0x44, 0x65, 0x6c,
+	0x65, 0x74, 0x65, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x12, 0x1f, 0x2e, 0x61, 0x70, 0x69,
+	0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x57, 0x65, 0x62,
+	0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e, 0x61, 0x70,
+	0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x57, 0x65,
+	0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x16, 0x82,
+	0xd3, 0xe4, 0x93, 0x02, 0x10, 0x2a, 0x0e, 0x2f, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x73,
+	0x2f, 0x7b, 0x69, 0x64, 0x7d, 0x42, 0x2c, 0x5a, 0x0d, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76,
+	0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x92, 0x41, 0x1a, 0x12, 0x18, 0x0a, 0x0f, 0x43, 0x61, 0x6e,
+	0x69, 0x73, 0x20, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x20, 0x41, 0x50, 0x49, 0x32, 0x05, 0x30, 0x2e,
+	0x30, 0x2e, 0x32, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2522,107 +2705,114 @@ func file_canis_apiserver_proto_rawDescGZIP() []byte {
 	return file_canis_apiserver_proto_rawDescData
 }
 
-var file_canis_apiserver_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_canis_apiserver_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_canis_apiserver_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_canis_apiserver_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
 var file_canis_apiserver_proto_goTypes = []interface{}{
 	(Attribute_Type)(0),                        // 0: apiserver.Attribute.Type
 	(Agent_Status)(0),                          // 1: apiserver.Agent.Status
-	(AgentEvent_Type)(0),                       // 2: apiserver.AgentEvent.Type
-	(*PublicDIDRequest)(nil),                   // 3: apiserver.PublicDIDRequest
-	(*PublicDIDResponse)(nil),                  // 4: apiserver.PublicDIDResponse
-	(*Schema)(nil),                             // 5: apiserver.Schema
-	(*Attribute)(nil),                          // 6: apiserver.Attribute
-	(*CreateSchemaRequest)(nil),                // 7: apiserver.CreateSchemaRequest
-	(*CreateSchemaResponse)(nil),               // 8: apiserver.CreateSchemaResponse
-	(*ListSchemaRequest)(nil),                  // 9: apiserver.ListSchemaRequest
-	(*ListSchemaResponse)(nil),                 // 10: apiserver.ListSchemaResponse
-	(*GetSchemaRequest)(nil),                   // 11: apiserver.GetSchemaRequest
-	(*GetSchemaResponse)(nil),                  // 12: apiserver.GetSchemaResponse
-	(*DeleteSchemaRequest)(nil),                // 13: apiserver.DeleteSchemaRequest
-	(*DeleteSchemaResponse)(nil),               // 14: apiserver.DeleteSchemaResponse
-	(*UpdateSchemaRequest)(nil),                // 15: apiserver.UpdateSchemaRequest
-	(*UpdateSchemaResponse)(nil),               // 16: apiserver.UpdateSchemaResponse
-	(*Agent)(nil),                              // 17: apiserver.Agent
-	(*CreateAgentRequest)(nil),                 // 18: apiserver.CreateAgentRequest
-	(*CreateAgentResponse)(nil),                // 19: apiserver.CreateAgentResponse
-	(*ListAgentRequest)(nil),                   // 20: apiserver.ListAgentRequest
-	(*ListAgentResponse)(nil),                  // 21: apiserver.ListAgentResponse
-	(*GetAgentRequest)(nil),                    // 22: apiserver.GetAgentRequest
-	(*GetAgentResponse)(nil),                   // 23: apiserver.GetAgentResponse
-	(*DeleteAgentRequest)(nil),                 // 24: apiserver.DeleteAgentRequest
-	(*DeleteAgentResponse)(nil),                // 25: apiserver.DeleteAgentResponse
-	(*UpdateAgentRequest)(nil),                 // 26: apiserver.UpdateAgentRequest
-	(*UpdateAgentResponse)(nil),                // 27: apiserver.UpdateAgentResponse
-	(*LaunchAgentRequest)(nil),                 // 28: apiserver.LaunchAgentRequest
-	(*LaunchAgentResponse)(nil),                // 29: apiserver.LaunchAgentResponse
-	(*ShutdownAgentRequest)(nil),               // 30: apiserver.ShutdownAgentRequest
-	(*ShutdownAgentResponse)(nil),              // 31: apiserver.ShutdownAgentResponse
-	(*SeedPublicDIDRequest)(nil),               // 32: apiserver.SeedPublicDIDRequest
-	(*SeedPublicDIDResponse)(nil),              // 33: apiserver.SeedPublicDIDResponse
-	(*CredentialAttribute)(nil),                // 34: apiserver.CredentialAttribute
-	(*Credential)(nil),                         // 35: apiserver.Credential
-	(*IssueCredentialRequest)(nil),             // 36: apiserver.IssueCredentialRequest
-	(*IssueCredentialResponse)(nil),            // 37: apiserver.IssueCredentialResponse
-	(*WatchRequest)(nil),                       // 38: apiserver.WatchRequest
-	(*AgentEvent)(nil),                         // 39: apiserver.AgentEvent
-	(*InvitationRequest)(nil),                  // 40: apiserver.InvitationRequest
-	(*InvitationResponse)(nil),                 // 41: apiserver.InvitationResponse
-	(*common.RequestPresentationRequest)(nil),  // 42: common.RequestPresentationRequest
-	(*common.RequestPresentationResponse)(nil), // 43: common.RequestPresentationResponse
+	(*PublicDIDRequest)(nil),                   // 2: apiserver.PublicDIDRequest
+	(*PublicDIDResponse)(nil),                  // 3: apiserver.PublicDIDResponse
+	(*Schema)(nil),                             // 4: apiserver.Schema
+	(*Attribute)(nil),                          // 5: apiserver.Attribute
+	(*CreateSchemaRequest)(nil),                // 6: apiserver.CreateSchemaRequest
+	(*CreateSchemaResponse)(nil),               // 7: apiserver.CreateSchemaResponse
+	(*ListSchemaRequest)(nil),                  // 8: apiserver.ListSchemaRequest
+	(*ListSchemaResponse)(nil),                 // 9: apiserver.ListSchemaResponse
+	(*GetSchemaRequest)(nil),                   // 10: apiserver.GetSchemaRequest
+	(*GetSchemaResponse)(nil),                  // 11: apiserver.GetSchemaResponse
+	(*DeleteSchemaRequest)(nil),                // 12: apiserver.DeleteSchemaRequest
+	(*DeleteSchemaResponse)(nil),               // 13: apiserver.DeleteSchemaResponse
+	(*UpdateSchemaRequest)(nil),                // 14: apiserver.UpdateSchemaRequest
+	(*UpdateSchemaResponse)(nil),               // 15: apiserver.UpdateSchemaResponse
+	(*Agent)(nil),                              // 16: apiserver.Agent
+	(*CreateAgentRequest)(nil),                 // 17: apiserver.CreateAgentRequest
+	(*CreateAgentResponse)(nil),                // 18: apiserver.CreateAgentResponse
+	(*ListAgentRequest)(nil),                   // 19: apiserver.ListAgentRequest
+	(*ListAgentResponse)(nil),                  // 20: apiserver.ListAgentResponse
+	(*GetAgentRequest)(nil),                    // 21: apiserver.GetAgentRequest
+	(*GetAgentResponse)(nil),                   // 22: apiserver.GetAgentResponse
+	(*DeleteAgentRequest)(nil),                 // 23: apiserver.DeleteAgentRequest
+	(*DeleteAgentResponse)(nil),                // 24: apiserver.DeleteAgentResponse
+	(*UpdateAgentRequest)(nil),                 // 25: apiserver.UpdateAgentRequest
+	(*UpdateAgentResponse)(nil),                // 26: apiserver.UpdateAgentResponse
+	(*LaunchAgentRequest)(nil),                 // 27: apiserver.LaunchAgentRequest
+	(*LaunchAgentResponse)(nil),                // 28: apiserver.LaunchAgentResponse
+	(*ShutdownAgentRequest)(nil),               // 29: apiserver.ShutdownAgentRequest
+	(*ShutdownAgentResponse)(nil),              // 30: apiserver.ShutdownAgentResponse
+	(*SeedPublicDIDRequest)(nil),               // 31: apiserver.SeedPublicDIDRequest
+	(*SeedPublicDIDResponse)(nil),              // 32: apiserver.SeedPublicDIDResponse
+	(*CredentialAttribute)(nil),                // 33: apiserver.CredentialAttribute
+	(*Credential)(nil),                         // 34: apiserver.Credential
+	(*IssueCredentialRequest)(nil),             // 35: apiserver.IssueCredentialRequest
+	(*IssueCredentialResponse)(nil),            // 36: apiserver.IssueCredentialResponse
+	(*InvitationRequest)(nil),                  // 37: apiserver.InvitationRequest
+	(*InvitationResponse)(nil),                 // 38: apiserver.InvitationResponse
+	(*Webhook)(nil),                            // 39: apiserver.Webhook
+	(*CreateWebhookRequest)(nil),               // 40: apiserver.CreateWebhookRequest
+	(*CreateWebhookResponse)(nil),              // 41: apiserver.CreateWebhookResponse
+	(*DeleteWebhookRequest)(nil),               // 42: apiserver.DeleteWebhookRequest
+	(*DeleteWebhookResponse)(nil),              // 43: apiserver.DeleteWebhookResponse
+	(*ListWebhookRequest)(nil),                 // 44: apiserver.ListWebhookRequest
+	(*ListWebhookResponse)(nil),                // 45: apiserver.ListWebhookResponse
+	(*common.RequestPresentationRequest)(nil),  // 46: common.RequestPresentationRequest
+	(*common.RequestPresentationResponse)(nil), // 47: common.RequestPresentationResponse
 }
 var file_canis_apiserver_proto_depIdxs = []int32{
-	6,  // 0: apiserver.Schema.attributes:type_name -> apiserver.Attribute
+	5,  // 0: apiserver.Schema.attributes:type_name -> apiserver.Attribute
 	0,  // 1: apiserver.Attribute.type:type_name -> apiserver.Attribute.Type
-	5,  // 2: apiserver.CreateSchemaRequest.schema:type_name -> apiserver.Schema
-	5,  // 3: apiserver.ListSchemaResponse.schema:type_name -> apiserver.Schema
-	5,  // 4: apiserver.GetSchemaResponse.schema:type_name -> apiserver.Schema
-	5,  // 5: apiserver.UpdateSchemaRequest.schema:type_name -> apiserver.Schema
+	4,  // 2: apiserver.CreateSchemaRequest.schema:type_name -> apiserver.Schema
+	4,  // 3: apiserver.ListSchemaResponse.schema:type_name -> apiserver.Schema
+	4,  // 4: apiserver.GetSchemaResponse.schema:type_name -> apiserver.Schema
+	4,  // 5: apiserver.UpdateSchemaRequest.schema:type_name -> apiserver.Schema
 	1,  // 6: apiserver.Agent.status:type_name -> apiserver.Agent.Status
-	17, // 7: apiserver.CreateAgentRequest.agent:type_name -> apiserver.Agent
-	17, // 8: apiserver.ListAgentResponse.agents:type_name -> apiserver.Agent
-	17, // 9: apiserver.GetAgentResponse.agent:type_name -> apiserver.Agent
-	17, // 10: apiserver.UpdateAgentRequest.agent:type_name -> apiserver.Agent
+	16, // 7: apiserver.CreateAgentRequest.agent:type_name -> apiserver.Agent
+	16, // 8: apiserver.ListAgentResponse.agents:type_name -> apiserver.Agent
+	16, // 9: apiserver.GetAgentResponse.agent:type_name -> apiserver.Agent
+	16, // 10: apiserver.UpdateAgentRequest.agent:type_name -> apiserver.Agent
 	1,  // 11: apiserver.LaunchAgentResponse.status:type_name -> apiserver.Agent.Status
-	34, // 12: apiserver.Credential.attributes:type_name -> apiserver.CredentialAttribute
-	35, // 13: apiserver.IssueCredentialRequest.credential:type_name -> apiserver.Credential
-	2,  // 14: apiserver.AgentEvent.type:type_name -> apiserver.AgentEvent.Type
-	17, // 15: apiserver.AgentEvent.Old:type_name -> apiserver.Agent
-	17, // 16: apiserver.AgentEvent.New:type_name -> apiserver.Agent
-	7,  // 17: apiserver.Admin.CreateSchema:input_type -> apiserver.CreateSchemaRequest
-	9,  // 18: apiserver.Admin.ListSchema:input_type -> apiserver.ListSchemaRequest
-	11, // 19: apiserver.Admin.GetSchema:input_type -> apiserver.GetSchemaRequest
-	13, // 20: apiserver.Admin.DeleteSchema:input_type -> apiserver.DeleteSchemaRequest
-	15, // 21: apiserver.Admin.UpdateSchema:input_type -> apiserver.UpdateSchemaRequest
-	36, // 22: apiserver.Admin.IssueCredential:input_type -> apiserver.IssueCredentialRequest
-	18, // 23: apiserver.Admin.CreateAgent:input_type -> apiserver.CreateAgentRequest
-	20, // 24: apiserver.Admin.ListAgent:input_type -> apiserver.ListAgentRequest
-	22, // 25: apiserver.Admin.GetAgent:input_type -> apiserver.GetAgentRequest
-	40, // 26: apiserver.Admin.GetAgentInvitation:input_type -> apiserver.InvitationRequest
-	24, // 27: apiserver.Admin.DeleteAgent:input_type -> apiserver.DeleteAgentRequest
-	26, // 28: apiserver.Admin.UpdateAgent:input_type -> apiserver.UpdateAgentRequest
-	42, // 29: apiserver.Admin.RequestPresentation:input_type -> common.RequestPresentationRequest
-	38, // 30: apiserver.Admin.WatchAgents:input_type -> apiserver.WatchRequest
-	32, // 31: apiserver.Admin.SeedPublicDID:input_type -> apiserver.SeedPublicDIDRequest
-	8,  // 32: apiserver.Admin.CreateSchema:output_type -> apiserver.CreateSchemaResponse
-	10, // 33: apiserver.Admin.ListSchema:output_type -> apiserver.ListSchemaResponse
-	12, // 34: apiserver.Admin.GetSchema:output_type -> apiserver.GetSchemaResponse
-	14, // 35: apiserver.Admin.DeleteSchema:output_type -> apiserver.DeleteSchemaResponse
-	16, // 36: apiserver.Admin.UpdateSchema:output_type -> apiserver.UpdateSchemaResponse
-	37, // 37: apiserver.Admin.IssueCredential:output_type -> apiserver.IssueCredentialResponse
-	19, // 38: apiserver.Admin.CreateAgent:output_type -> apiserver.CreateAgentResponse
-	21, // 39: apiserver.Admin.ListAgent:output_type -> apiserver.ListAgentResponse
-	23, // 40: apiserver.Admin.GetAgent:output_type -> apiserver.GetAgentResponse
-	41, // 41: apiserver.Admin.GetAgentInvitation:output_type -> apiserver.InvitationResponse
-	25, // 42: apiserver.Admin.DeleteAgent:output_type -> apiserver.DeleteAgentResponse
-	27, // 43: apiserver.Admin.UpdateAgent:output_type -> apiserver.UpdateAgentResponse
-	43, // 44: apiserver.Admin.RequestPresentation:output_type -> common.RequestPresentationResponse
-	39, // 45: apiserver.Admin.WatchAgents:output_type -> apiserver.AgentEvent
-	33, // 46: apiserver.Admin.SeedPublicDID:output_type -> apiserver.SeedPublicDIDResponse
-	32, // [32:47] is the sub-list for method output_type
-	17, // [17:32] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	33, // 12: apiserver.Credential.attributes:type_name -> apiserver.CredentialAttribute
+	34, // 13: apiserver.IssueCredentialRequest.credential:type_name -> apiserver.Credential
+	39, // 14: apiserver.CreateWebhookRequest.webhook:type_name -> apiserver.Webhook
+	39, // 15: apiserver.ListWebhookResponse.hooks:type_name -> apiserver.Webhook
+	6,  // 16: apiserver.Admin.CreateSchema:input_type -> apiserver.CreateSchemaRequest
+	8,  // 17: apiserver.Admin.ListSchema:input_type -> apiserver.ListSchemaRequest
+	10, // 18: apiserver.Admin.GetSchema:input_type -> apiserver.GetSchemaRequest
+	12, // 19: apiserver.Admin.DeleteSchema:input_type -> apiserver.DeleteSchemaRequest
+	14, // 20: apiserver.Admin.UpdateSchema:input_type -> apiserver.UpdateSchemaRequest
+	35, // 21: apiserver.Admin.IssueCredential:input_type -> apiserver.IssueCredentialRequest
+	17, // 22: apiserver.Admin.CreateAgent:input_type -> apiserver.CreateAgentRequest
+	19, // 23: apiserver.Admin.ListAgent:input_type -> apiserver.ListAgentRequest
+	21, // 24: apiserver.Admin.GetAgent:input_type -> apiserver.GetAgentRequest
+	37, // 25: apiserver.Admin.GetAgentInvitation:input_type -> apiserver.InvitationRequest
+	23, // 26: apiserver.Admin.DeleteAgent:input_type -> apiserver.DeleteAgentRequest
+	25, // 27: apiserver.Admin.UpdateAgent:input_type -> apiserver.UpdateAgentRequest
+	46, // 28: apiserver.Admin.RequestPresentation:input_type -> common.RequestPresentationRequest
+	31, // 29: apiserver.Admin.SeedPublicDID:input_type -> apiserver.SeedPublicDIDRequest
+	40, // 30: apiserver.Admin.CreateWebhook:input_type -> apiserver.CreateWebhookRequest
+	44, // 31: apiserver.Admin.ListWebhook:input_type -> apiserver.ListWebhookRequest
+	42, // 32: apiserver.Admin.DeleteWebhook:input_type -> apiserver.DeleteWebhookRequest
+	7,  // 33: apiserver.Admin.CreateSchema:output_type -> apiserver.CreateSchemaResponse
+	9,  // 34: apiserver.Admin.ListSchema:output_type -> apiserver.ListSchemaResponse
+	11, // 35: apiserver.Admin.GetSchema:output_type -> apiserver.GetSchemaResponse
+	13, // 36: apiserver.Admin.DeleteSchema:output_type -> apiserver.DeleteSchemaResponse
+	15, // 37: apiserver.Admin.UpdateSchema:output_type -> apiserver.UpdateSchemaResponse
+	36, // 38: apiserver.Admin.IssueCredential:output_type -> apiserver.IssueCredentialResponse
+	18, // 39: apiserver.Admin.CreateAgent:output_type -> apiserver.CreateAgentResponse
+	20, // 40: apiserver.Admin.ListAgent:output_type -> apiserver.ListAgentResponse
+	22, // 41: apiserver.Admin.GetAgent:output_type -> apiserver.GetAgentResponse
+	38, // 42: apiserver.Admin.GetAgentInvitation:output_type -> apiserver.InvitationResponse
+	24, // 43: apiserver.Admin.DeleteAgent:output_type -> apiserver.DeleteAgentResponse
+	26, // 44: apiserver.Admin.UpdateAgent:output_type -> apiserver.UpdateAgentResponse
+	47, // 45: apiserver.Admin.RequestPresentation:output_type -> common.RequestPresentationResponse
+	32, // 46: apiserver.Admin.SeedPublicDID:output_type -> apiserver.SeedPublicDIDResponse
+	41, // 47: apiserver.Admin.CreateWebhook:output_type -> apiserver.CreateWebhookResponse
+	45, // 48: apiserver.Admin.ListWebhook:output_type -> apiserver.ListWebhookResponse
+	43, // 49: apiserver.Admin.DeleteWebhook:output_type -> apiserver.DeleteWebhookResponse
+	33, // [33:50] is the sub-list for method output_type
+	16, // [16:33] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_canis_apiserver_proto_init() }
@@ -3052,30 +3242,6 @@ func file_canis_apiserver_proto_init() {
 			}
 		}
 		file_canis_apiserver_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_canis_apiserver_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AgentEvent); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_canis_apiserver_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*InvitationRequest); i {
 			case 0:
 				return &v.state
@@ -3087,8 +3253,92 @@ func file_canis_apiserver_proto_init() {
 				return nil
 			}
 		}
-		file_canis_apiserver_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
+		file_canis_apiserver_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*InvitationResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_canis_apiserver_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Webhook); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_canis_apiserver_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateWebhookRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_canis_apiserver_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateWebhookResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_canis_apiserver_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteWebhookRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_canis_apiserver_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteWebhookResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_canis_apiserver_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListWebhookRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_canis_apiserver_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListWebhookResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3105,8 +3355,8 @@ func file_canis_apiserver_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_canis_apiserver_proto_rawDesc,
-			NumEnums:      3,
-			NumMessages:   39,
+			NumEnums:      2,
+			NumMessages:   44,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -3146,8 +3396,10 @@ type AdminClient interface {
 	DeleteAgent(ctx context.Context, in *DeleteAgentRequest, opts ...grpc.CallOption) (*DeleteAgentResponse, error)
 	UpdateAgent(ctx context.Context, in *UpdateAgentRequest, opts ...grpc.CallOption) (*UpdateAgentResponse, error)
 	RequestPresentation(ctx context.Context, in *common.RequestPresentationRequest, opts ...grpc.CallOption) (*common.RequestPresentationResponse, error)
-	WatchAgents(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (Admin_WatchAgentsClient, error)
 	SeedPublicDID(ctx context.Context, in *SeedPublicDIDRequest, opts ...grpc.CallOption) (*SeedPublicDIDResponse, error)
+	CreateWebhook(ctx context.Context, in *CreateWebhookRequest, opts ...grpc.CallOption) (*CreateWebhookResponse, error)
+	ListWebhook(ctx context.Context, in *ListWebhookRequest, opts ...grpc.CallOption) (*ListWebhookResponse, error)
+	DeleteWebhook(ctx context.Context, in *DeleteWebhookRequest, opts ...grpc.CallOption) (*DeleteWebhookResponse, error)
 }
 
 type adminClient struct {
@@ -3275,41 +3527,36 @@ func (c *adminClient) RequestPresentation(ctx context.Context, in *common.Reques
 	return out, nil
 }
 
-func (c *adminClient) WatchAgents(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (Admin_WatchAgentsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Admin_serviceDesc.Streams[0], "/apiserver.Admin/WatchAgents", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &adminWatchAgentsClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type Admin_WatchAgentsClient interface {
-	Recv() (*AgentEvent, error)
-	grpc.ClientStream
-}
-
-type adminWatchAgentsClient struct {
-	grpc.ClientStream
-}
-
-func (x *adminWatchAgentsClient) Recv() (*AgentEvent, error) {
-	m := new(AgentEvent)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 func (c *adminClient) SeedPublicDID(ctx context.Context, in *SeedPublicDIDRequest, opts ...grpc.CallOption) (*SeedPublicDIDResponse, error) {
 	out := new(SeedPublicDIDResponse)
 	err := c.cc.Invoke(ctx, "/apiserver.Admin/SeedPublicDID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) CreateWebhook(ctx context.Context, in *CreateWebhookRequest, opts ...grpc.CallOption) (*CreateWebhookResponse, error) {
+	out := new(CreateWebhookResponse)
+	err := c.cc.Invoke(ctx, "/apiserver.Admin/CreateWebhook", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) ListWebhook(ctx context.Context, in *ListWebhookRequest, opts ...grpc.CallOption) (*ListWebhookResponse, error) {
+	out := new(ListWebhookResponse)
+	err := c.cc.Invoke(ctx, "/apiserver.Admin/ListWebhook", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) DeleteWebhook(ctx context.Context, in *DeleteWebhookRequest, opts ...grpc.CallOption) (*DeleteWebhookResponse, error) {
+	out := new(DeleteWebhookResponse)
+	err := c.cc.Invoke(ctx, "/apiserver.Admin/DeleteWebhook", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3331,8 +3578,10 @@ type AdminServer interface {
 	DeleteAgent(context.Context, *DeleteAgentRequest) (*DeleteAgentResponse, error)
 	UpdateAgent(context.Context, *UpdateAgentRequest) (*UpdateAgentResponse, error)
 	RequestPresentation(context.Context, *common.RequestPresentationRequest) (*common.RequestPresentationResponse, error)
-	WatchAgents(*WatchRequest, Admin_WatchAgentsServer) error
 	SeedPublicDID(context.Context, *SeedPublicDIDRequest) (*SeedPublicDIDResponse, error)
+	CreateWebhook(context.Context, *CreateWebhookRequest) (*CreateWebhookResponse, error)
+	ListWebhook(context.Context, *ListWebhookRequest) (*ListWebhookResponse, error)
+	DeleteWebhook(context.Context, *DeleteWebhookRequest) (*DeleteWebhookResponse, error)
 }
 
 // UnimplementedAdminServer can be embedded to have forward compatible implementations.
@@ -3378,11 +3627,17 @@ func (*UnimplementedAdminServer) UpdateAgent(context.Context, *UpdateAgentReques
 func (*UnimplementedAdminServer) RequestPresentation(context.Context, *common.RequestPresentationRequest) (*common.RequestPresentationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestPresentation not implemented")
 }
-func (*UnimplementedAdminServer) WatchAgents(*WatchRequest, Admin_WatchAgentsServer) error {
-	return status.Errorf(codes.Unimplemented, "method WatchAgents not implemented")
-}
 func (*UnimplementedAdminServer) SeedPublicDID(context.Context, *SeedPublicDIDRequest) (*SeedPublicDIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SeedPublicDID not implemented")
+}
+func (*UnimplementedAdminServer) CreateWebhook(context.Context, *CreateWebhookRequest) (*CreateWebhookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateWebhook not implemented")
+}
+func (*UnimplementedAdminServer) ListWebhook(context.Context, *ListWebhookRequest) (*ListWebhookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListWebhook not implemented")
+}
+func (*UnimplementedAdminServer) DeleteWebhook(context.Context, *DeleteWebhookRequest) (*DeleteWebhookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteWebhook not implemented")
 }
 
 func RegisterAdminServer(s *grpc.Server, srv AdminServer) {
@@ -3623,27 +3878,6 @@ func _Admin_RequestPresentation_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Admin_WatchAgents_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(WatchRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(AdminServer).WatchAgents(m, &adminWatchAgentsServer{stream})
-}
-
-type Admin_WatchAgentsServer interface {
-	Send(*AgentEvent) error
-	grpc.ServerStream
-}
-
-type adminWatchAgentsServer struct {
-	grpc.ServerStream
-}
-
-func (x *adminWatchAgentsServer) Send(m *AgentEvent) error {
-	return x.ServerStream.SendMsg(m)
-}
-
 func _Admin_SeedPublicDID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SeedPublicDIDRequest)
 	if err := dec(in); err != nil {
@@ -3658,6 +3892,60 @@ func _Admin_SeedPublicDID_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServer).SeedPublicDID(ctx, req.(*SeedPublicDIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_CreateWebhook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateWebhookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).CreateWebhook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/apiserver.Admin/CreateWebhook",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).CreateWebhook(ctx, req.(*CreateWebhookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_ListWebhook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWebhookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).ListWebhook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/apiserver.Admin/ListWebhook",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).ListWebhook(ctx, req.(*ListWebhookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_DeleteWebhook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteWebhookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).DeleteWebhook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/apiserver.Admin/DeleteWebhook",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).DeleteWebhook(ctx, req.(*DeleteWebhookRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3722,13 +4010,19 @@ var _Admin_serviceDesc = grpc.ServiceDesc{
 			MethodName: "SeedPublicDID",
 			Handler:    _Admin_SeedPublicDID_Handler,
 		},
-	},
-	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "WatchAgents",
-			Handler:       _Admin_WatchAgents_Handler,
-			ServerStreams: true,
+			MethodName: "CreateWebhook",
+			Handler:    _Admin_CreateWebhook_Handler,
+		},
+		{
+			MethodName: "ListWebhook",
+			Handler:    _Admin_ListWebhook_Handler,
+		},
+		{
+			MethodName: "DeleteWebhook",
+			Handler:    _Admin_DeleteWebhook_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "canis-apiserver.proto",
 }

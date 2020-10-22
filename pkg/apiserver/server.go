@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package apiserver
 
 import (
-	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
-
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/pkg/errors"
 
