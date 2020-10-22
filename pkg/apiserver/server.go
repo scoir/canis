@@ -14,7 +14,7 @@ import (
 
 	cengine "github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
-	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
+	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"

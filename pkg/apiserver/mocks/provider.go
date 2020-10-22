@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	api "github.com/scoir/canis/pkg/didcomm/doorman/api"
+	api "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 
 	datastore "github.com/scoir/canis/pkg/datastore"
 

@@ -184,16 +184,6 @@ message IssueCredentialResponse {
     string credential_id = 1;
 }
 
-message InvitationRequest {
-  string agent_id = 1;
-  string external_id = 2;
-}
-
-message InvitationResponse {
-  string invitation = 1;
-}
-
-
 message Webhook {
     string url = 1;
 }
@@ -270,7 +260,7 @@ service Admin {
             get: "/agents/{id}"
         };
     }
-    rpc GetAgentInvitation (InvitationRequest) returns (InvitationResponse) {
+    rpc GetAgentInvitation (common.InvitationRequest) returns (common.InvitationResponse) {
         option (google.api.http) = {
             get: "/agents/{agent_id}/invitation/{external_id}"
         };

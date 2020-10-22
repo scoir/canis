@@ -5,15 +5,15 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/scoir/canis/pkg/didcomm/doorman/api"
+	"github.com/scoir/canis/pkg/protogen/common"
 )
 
 type MockDoorman struct {
-	InviteResponse *api.InvitationResponse
+	InviteResponse *common.InvitationResponse
 	InviteErr      error
 }
 
-func (r *MockDoorman) GetInvitation(ctx context.Context, in *api.InvitationRequest, opts ...grpc.CallOption) (*api.InvitationResponse, error) {
+func (r *MockDoorman) GetInvitation(ctx context.Context, in *common.InvitationRequest, opts ...grpc.CallOption) (*common.InvitationResponse, error) {
 	if r.InviteErr != nil {
 		return nil, r.InviteErr
 	}

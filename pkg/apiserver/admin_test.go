@@ -22,7 +22,6 @@ import (
 	emocks "github.com/scoir/canis/pkg/credential/engine/mocks"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/mocks"
-	doormanapi "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	dmocks "github.com/scoir/canis/pkg/didexchange/mocks"
 	"github.com/scoir/canis/pkg/protogen/common"
@@ -674,9 +673,9 @@ func TestUpdateSchemaDataMissing(t *testing.T) {
 func TestGetAgentInvitation(t *testing.T) {
 	t.Run("happy", func(t *testing.T) {
 		target, suite := SetupTest()
-		req := &api.InvitationRequest{}
+		req := &common.InvitationRequest{}
 
-		resp := &doormanapi.InvitationResponse{}
+		resp := &common.InvitationResponse{}
 		suite.Doorman.InviteResponse = resp
 
 		result, err := target.GetAgentInvitation(context.Background(), req)
@@ -685,7 +684,7 @@ func TestGetAgentInvitation(t *testing.T) {
 	})
 	t.Run("doorman error", func(t *testing.T) {
 		target, suite := SetupTest()
-		req := &api.InvitationRequest{}
+		req := &common.InvitationRequest{}
 
 		suite.Doorman.InviteErr = errors.New("BOOM")
 

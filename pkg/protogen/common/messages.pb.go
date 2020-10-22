@@ -365,6 +365,116 @@ func (x *RequestPresentationResponse) GetRequestPresentationId() string {
 	return ""
 }
 
+type InvitationRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AgentId    string `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	ExternalId string `protobuf:"bytes,2,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	Name       string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *InvitationRequest) Reset() {
+	*x = InvitationRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *InvitationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvitationRequest) ProtoMessage() {}
+
+func (x *InvitationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvitationRequest.ProtoReflect.Descriptor instead.
+func (*InvitationRequest) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *InvitationRequest) GetAgentId() string {
+	if x != nil {
+		return x.AgentId
+	}
+	return ""
+}
+
+func (x *InvitationRequest) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
+	}
+	return ""
+}
+
+func (x *InvitationRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type InvitationResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Invitation string `protobuf:"bytes,1,opt,name=Invitation,proto3" json:"Invitation,omitempty"`
+}
+
+func (x *InvitationResponse) Reset() {
+	*x = InvitationResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *InvitationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvitationResponse) ProtoMessage() {}
+
+func (x *InvitationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvitationResponse.ProtoReflect.Descriptor instead.
+func (*InvitationResponse) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *InvitationResponse) GetInvitation() string {
+	if x != nil {
+		return x.Invitation
+	}
+	return ""
+}
+
 var File_messages_proto protoreflect.FileDescriptor
 
 var file_messages_proto_rawDesc = []byte{
@@ -439,10 +549,20 @@ var file_messages_proto_rawDesc = []byte{
 	0x17, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x6e, 0x74,
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x15,
 	0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x50, 0x72, 0x65, 0x73, 0x65, 0x6e, 0x74, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x49, 0x64, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x63, 0x6f, 0x69, 0x72, 0x2f, 0x63, 0x61, 0x6e, 0x69, 0x73, 0x2f,
-	0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x67, 0x65, 0x6e, 0x2f, 0x63, 0x6f, 0x6d,
-	0x6d, 0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x69, 0x6f, 0x6e, 0x49, 0x64, 0x22, 0x63, 0x0a, 0x11, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x19, 0x0a, 0x08, 0x61, 0x67,
+	0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x67,
+	0x65, 0x6e, 0x74, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x0b, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61,
+	0x6c, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x65, 0x78, 0x74, 0x65,
+	0x72, 0x6e, 0x61, 0x6c, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x34, 0x0a, 0x12, 0x49, 0x6e,
+	0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x1e, 0x0a, 0x0a, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73,
+	0x63, 0x6f, 0x69, 0x72, 0x2f, 0x63, 0x61, 0x6e, 0x69, 0x73, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x67, 0x65, 0x6e, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -457,23 +577,25 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_messages_proto_goTypes = []interface{}{
 	(*AttrInfo)(nil),                    // 0: common.AttrInfo
 	(*PredicateInfo)(nil),               // 1: common.PredicateInfo
 	(*RequestPresentationRequest)(nil),  // 2: common.RequestPresentationRequest
 	(*RequestPresentation)(nil),         // 3: common.RequestPresentation
 	(*RequestPresentationResponse)(nil), // 4: common.RequestPresentationResponse
-	nil,                                 // 5: common.RequestPresentation.RequestedAttributesEntry
-	nil,                                 // 6: common.RequestPresentation.RequestedPredicatesEntry
-	(*timestamp.Timestamp)(nil),         // 7: google.protobuf.Timestamp
+	(*InvitationRequest)(nil),           // 5: common.InvitationRequest
+	(*InvitationResponse)(nil),          // 6: common.InvitationResponse
+	nil,                                 // 7: common.RequestPresentation.RequestedAttributesEntry
+	nil,                                 // 8: common.RequestPresentation.RequestedPredicatesEntry
+	(*timestamp.Timestamp)(nil),         // 9: google.protobuf.Timestamp
 }
 var file_messages_proto_depIdxs = []int32{
-	7, // 0: common.AttrInfo.non_revoked:type_name -> google.protobuf.Timestamp
-	7, // 1: common.PredicateInfo.non_revoked:type_name -> google.protobuf.Timestamp
+	9, // 0: common.AttrInfo.non_revoked:type_name -> google.protobuf.Timestamp
+	9, // 1: common.PredicateInfo.non_revoked:type_name -> google.protobuf.Timestamp
 	3, // 2: common.RequestPresentationRequest.presentation:type_name -> common.RequestPresentation
-	5, // 3: common.RequestPresentation.requested_attributes:type_name -> common.RequestPresentation.RequestedAttributesEntry
-	6, // 4: common.RequestPresentation.requested_predicates:type_name -> common.RequestPresentation.RequestedPredicatesEntry
+	7, // 3: common.RequestPresentation.requested_attributes:type_name -> common.RequestPresentation.RequestedAttributesEntry
+	8, // 4: common.RequestPresentation.requested_predicates:type_name -> common.RequestPresentation.RequestedPredicatesEntry
 	0, // 5: common.RequestPresentation.RequestedAttributesEntry.value:type_name -> common.AttrInfo
 	1, // 6: common.RequestPresentation.RequestedPredicatesEntry.value:type_name -> common.PredicateInfo
 	7, // [7:7] is the sub-list for method output_type
@@ -549,6 +671,30 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
+		file_messages_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*InvitationRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_messages_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*InvitationResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -556,7 +702,7 @@ func file_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_messages_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

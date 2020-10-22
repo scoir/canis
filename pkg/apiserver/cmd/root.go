@@ -33,7 +33,7 @@ import (
 	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
 	credldsengine "github.com/scoir/canis/pkg/credential/engine/lds"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/didcomm/doorman/api"
+	api "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"

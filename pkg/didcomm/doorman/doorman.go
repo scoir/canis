@@ -18,12 +18,14 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
+
 	"github.com/scoir/canis/pkg/amqp"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/didcomm/doorman/api"
+	api "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 	"github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/notifier"
+	"github.com/scoir/canis/pkg/protogen/common"
 )
 
 const ConnectionTopic = "connections"
@@ -82,7 +84,7 @@ func (r *Doorman) APISpec() (http.HandlerFunc, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (r *Doorman) GetInvitation(_ context.Context, request *api.InvitationRequest) (*api.InvitationResponse, error) {
+func (r *Doorman) GetInvitation(_ context.Context, request *common.InvitationRequest) (*common.InvitationResponse, error) {
 
 	agent, err := r.store.GetAgent(request.AgentId)
 	if err != nil {
@@ -111,7 +113,7 @@ func (r *Doorman) GetInvitation(_ context.Context, request *api.InvitationReques
 
 	//invite.Type = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation"
 	d, _ := json.MarshalIndent(invite, " ", " ")
-	return &api.InvitationResponse{
+	return &common.InvitationResponse{
 		Invitation: string(d),
 	}, nil
 }

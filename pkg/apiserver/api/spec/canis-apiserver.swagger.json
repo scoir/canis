@@ -174,7 +174,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiserverInvitationResponse"
+              "$ref": "#/definitions/commonInvitationResponse"
             }
           },
           "default": {
@@ -195,6 +195,12 @@
             "name": "external_id",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -725,14 +731,6 @@
         }
       }
     },
-    "apiserverInvitationResponse": {
-      "type": "object",
-      "properties": {
-        "invitation": {
-          "type": "string"
-        }
-      }
-    },
     "apiserverIssueCredentialResponse": {
       "type": "object",
       "properties": {
@@ -843,6 +841,14 @@
         "non_revoked": {
           "type": "string",
           "format": "date-time"
+        }
+      }
+    },
+    "commonInvitationResponse": {
+      "type": "object",
+      "properties": {
+        "Invitation": {
+          "type": "string"
         }
       }
     },

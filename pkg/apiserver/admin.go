@@ -27,7 +27,6 @@ import (
 
 	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	"github.com/scoir/canis/pkg/datastore"
-	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
 	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	"github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/static"
@@ -291,8 +290,8 @@ func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.
 	return out, nil
 }
 
-func (r *APIServer) GetAgentInvitation(ctx context.Context, request *api.InvitationRequest) (*api.InvitationResponse, error) {
-	doormanReq := &doorman.InvitationRequest{
+func (r *APIServer) GetAgentInvitation(ctx context.Context, request *common.InvitationRequest) (*common.InvitationResponse, error) {
+	doormanReq := &common.InvitationRequest{
 		AgentId:    request.AgentId,
 		ExternalId: request.ExternalId,
 	}
@@ -301,7 +300,7 @@ func (r *APIServer) GetAgentInvitation(ctx context.Context, request *api.Invitat
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to get agent invitation").Error())
 	}
 
-	return &api.InvitationResponse{
+	return &common.InvitationResponse{
 		Invitation: invite.Invitation,
 	}, nil
 }

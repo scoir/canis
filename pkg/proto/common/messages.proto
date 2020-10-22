@@ -38,3 +38,14 @@ message RequestPresentation {
 message RequestPresentationResponse {
   string request_presentation_id = 1;
 }
+
+message InvitationRequest {
+  string agent_id = 1;
+  string external_id = 2;
+  string name = 3;
+}
+
+message InvitationResponse {
+  string Invitation = 1;
+}
+

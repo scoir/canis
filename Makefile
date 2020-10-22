@@ -106,9 +106,10 @@ pkg/apiserver/api/canis-apiserver.pb.go:pkg/proto/canis-apiserver.proto
 	cd pkg && protoc -I proto -I proto/include/ -I proto/common/ -I apiserver/api/ proto/canis-apiserver.proto --swagger_out=logtostderr=true:.
 	mv pkg/canis-apiserver.swagger.json pkg/apiserver/api/spec
 
-canis-didcomm-doorman-pb: canis-common-pb pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go
-pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go:pkg/didcomm/doorman/api/canis-didcomm-doorman.proto
-	cd pkg && protoc -I proto/include/ -I didcomm/doorman/api/ didcomm/doorman/api/canis-didcomm-doorman.proto --go_out=plugins=grpc:.
+canis-didcomm-doorman-pb: canis-common-pb pkg/didcomm/doorman/api/protogen/canis-didcomm-doorman.pb.go
+pkg/didcomm/doorman/api/protogen/canis-didcomm-doorman.pb.go:pkg/proto/canis-didcomm-doorman.proto
+	cd pkg && protoc -I proto -I proto/include/ -I proto/common -I didcomm/doorman/api/ proto/canis-didcomm-doorman.proto --go_out=plugins=grpc:.
+	mv pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go pkg/didcomm/doorman/api/protogen/canis-didcomm-doorman.pb.go
 
 canis-didcomm-issuer-pb: canis-common-pb pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go
 pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go:pkg/didcomm/issuer/api/canis-didcomm-issuer.proto
