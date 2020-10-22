@@ -22,12 +22,11 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/vdri"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 
+	"github.com/scoir/canis/pkg/config"
 	cengine "github.com/scoir/canis/pkg/credential/engine"
 	credengine "github.com/scoir/canis/pkg/credential/engine"
 	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
@@ -47,8 +46,9 @@ import (
 )
 
 var (
-	cfgFile string
-	ctx     *Provider
+	cfgFile        string
+	ctx            *Provider
+	configProvider config.Provider
 )
 
 var rootCmd = &cobra.Command{
@@ -60,12 +60,12 @@ var rootCmd = &cobra.Command{
 }
 
 type Provider struct {
-	vp      *viper.Viper
 	lock    secretlock.Service
 	store   datastore.Store
 	ariesSP storage.Provider
 	vdriReg vdriapi.Registry
 	keyMgr  kms.KeyManager
+	conf    config.Config
 }
 
 func Execute() {
@@ -77,37 +77,25 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	configProvider = &config.ViperConfigProvider{
+		DefaultConfigName: "canis-apiserver-config",
+	}
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/canis/canis-apiserver-config.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	vp := viper.New()
-	if cfgFile != "" {
-		// Use vp file from the flag.
-		vp.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		vp.SetConfigType("yaml")
-		vp.AddConfigPath("/etc/canis/")
-		vp.AddConfigPath("./config/docker/")
-		vp.SetConfigName("canis-apiserver-config")
-	}
+	conf := configProvider.
+		Load(cfgFile).
+		WithDatastore().
+		WithLedgerStore().
+		WithMasterLockKey().
+		WithVDRI().
+		WithLedgerGenesis()
 
-	vp.SetEnvPrefix("CANIS")
-	vp.AutomaticEnv() // read in environment variables that match
-	_ = vp.BindPFlags(pflag.CommandLine)
-
-	// If a vp file is found, read it in.
-	if err := vp.ReadInConfig(); err != nil {
-		fmt.Println("unable to read vp:", vp.ConfigFileUsed(), err)
-		os.Exit(1)
-	}
-
-	dc := &framework.DatastoreConfig{}
-	err := vp.UnmarshalKey("datastore", dc)
+	dc, err := conf.DataStore()
 	if err != nil {
-		log.Fatalln("invalid datastore key in configuration")
+		log.Fatalln("invalid datastore key in configuration", err)
 	}
 
 	sp, err := dc.StorageProvider()
@@ -120,8 +108,7 @@ func initConfig() {
 		log.Fatalln("unable to open datastore")
 	}
 
-	lc := &framework.LedgerStoreConfig{}
-	err = vp.UnmarshalKey("ledgerstore", lc)
+	lc, err := conf.LedgerStore()
 	if err != nil {
 		log.Fatalln("invalid ledgerstore key in configuration")
 	}
@@ -131,30 +118,33 @@ func initConfig() {
 		log.Fatalln(err)
 	}
 
-	mlk := vp.GetString("masterLockKey")
-	if mlk == "" {
-		mlk = "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
-	}
-
-	lock, err := local.NewService(strings.NewReader(mlk), nil)
+	lock, err := local.NewService(strings.NewReader(conf.MasterLockKey()), nil)
 	if err != nil {
 		log.Fatalln("error creating lock service")
 	}
 
 	ctx = &Provider{
-		vp:      vp,
 		lock:    lock,
 		store:   store,
 		ariesSP: ls,
+		conf:    conf,
 	}
 
 	ctx.keyMgr, err = localkms.New("local-lock://default/master/key/", ctx)
 	if err != nil {
-		log.Fatalln("unable to create local kms")
+		log.Fatalln("unable to create local kms", err)
 	}
 
-	ariesSub := vp.Sub("aries")
-	vdris, err := context.GetAriesVDRIs(ariesSub)
+	vdrisConfig, err := conf.VDRIs()
+	if err != nil {
+		log.Fatalln("unable to load aries config", err)
+	}
+
+	vdris, err := context.GetAriesVDRIs(vdrisConfig)
+	if err != nil {
+		log.Fatalln("unable to get aries vdris", err)
+	}
+
 	var vopts []vdri.Option
 	for _, v := range vdris {
 		vopts = append(vopts, vdri.WithVDRI(v))
@@ -181,7 +171,7 @@ func (r *Provider) Verifier() ursa.Verifier {
 }
 
 func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
-	genesisFile := r.vp.GetString("genesisFile")
+	genesisFile := r.conf.LedgerGenesis()
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
 	if err != nil {
@@ -192,28 +182,15 @@ func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
 }
 
 func (r *Provider) GetGRPCEndpoint() (*framework.Endpoint, error) {
-	ep := &framework.Endpoint{}
-	err := r.vp.UnmarshalKey("api.grpc", ep)
-	if err != nil {
-		return nil, errors.Wrap(err, "grpc is not properly configured")
-	}
-
-	return ep, nil
+	return r.conf.Endpoint("api.grpc")
 }
 
 func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
-	ep := &framework.Endpoint{}
-	err := r.vp.UnmarshalKey("api.grpcBridge", ep)
-	if err != nil {
-		return nil, errors.Wrap(err, "grpc bridge is not properly configured")
-	}
-
-	return ep, nil
+	return r.conf.Endpoint("api.grpcBridge")
 }
 
 func (r *Provider) GetDoormanClient() (doormanapi.DoormanClient, error) {
-	ep := &framework.Endpoint{}
-	err := r.vp.UnmarshalKey("doorman.grpc", ep)
+	ep, err := r.conf.Endpoint("doorman.grpc")
 	if err != nil {
 		return nil, errors.Wrap(err, "doorman grpc is not properly configured")
 	}
@@ -227,8 +204,7 @@ func (r *Provider) GetDoormanClient() (doormanapi.DoormanClient, error) {
 }
 
 func (r *Provider) GetIssuerClient() (issuerapi.IssuerClient, error) {
-	ep := &framework.Endpoint{}
-	err := r.vp.UnmarshalKey("issuer.grpc", ep)
+	ep, err := r.conf.Endpoint("issuer.grpc")
 	if err != nil {
 		return nil, errors.Wrap(err, "issuer grpc is not properly configured")
 	}
@@ -242,8 +218,7 @@ func (r *Provider) GetIssuerClient() (issuerapi.IssuerClient, error) {
 }
 
 func (r *Provider) GetVerifierClient() (verifier.VerifierClient, error) {
-	ep := &framework.Endpoint{}
-	err := r.vp.UnmarshalKey("verifier.grpc", ep)
+	ep, err := r.conf.Endpoint("verifier.grpc")
 	if err != nil {
 		return nil, errors.Wrap(err, "verifier grpc is not properly configured")
 	}
@@ -257,8 +232,7 @@ func (r *Provider) GetVerifierClient() (verifier.VerifierClient, error) {
 }
 
 func (r *Provider) GetLoadbalancerClient() (lbapi.LoadbalancerClient, error) {
-	ep := &framework.Endpoint{}
-	err := r.vp.UnmarshalKey("loadbalancer.grpc", ep)
+	ep, err := r.conf.Endpoint("loadbalancer.grpc")
 	if err != nil {
 		return nil, errors.Wrap(err, "loadbalancer grpc is not properly configured")
 	}

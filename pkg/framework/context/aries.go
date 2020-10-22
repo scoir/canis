@@ -11,16 +11,13 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
-	"sync"
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
-	"github.com/hyperledger/aries-framework-go/pkg/client/mediator"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/messaging/msghandler"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
-	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
@@ -30,29 +27,19 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage/mem"
 	"github.com/pkg/errors"
 	mongodbstore "github.com/scoir/aries-storage-mongo/pkg"
-	"github.com/spf13/viper"
 
 	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
-	didex "github.com/scoir/canis/pkg/didexchange"
-	"github.com/scoir/canis/pkg/framework"
 )
 
 const (
-	dbPathKey           = "dbpath"
-	wsinboundKey        = "wsinbound"
 	defaultMasterKeyURI = "local-lock://default/master/key/"
 )
 
-func GetAriesVDRIs(vp *viper.Viper) ([]vdriapi.VDRI, error) {
-	var vdri []map[string]interface{}
-	err := vp.UnmarshalKey("vdri", &vdri)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get vdri")
-	}
+func GetAriesVDRIs(vdriConfig []map[string]interface{}) ([]vdriapi.VDRI, error) {
 
 	var out []vdriapi.VDRI
-	for _, v := range vdri {
+	for _, v := range vdriConfig {
 		typ, _ := v["type"].(string)
 		switch typ {
 		case "indy":
@@ -68,19 +55,6 @@ func GetAriesVDRIs(vp *viper.Viper) ([]vdriapi.VDRI, error) {
 	}
 
 	return out, nil
-}
-
-type AgentConfig struct {
-	framework.Endpoint
-	DBPath     string             `mapstructure:"dbpath"`
-	WSInbound  framework.Endpoint `mapstructure:"wsinbound"`
-	GRPC       framework.Endpoint `mapstructure:"grpc"`
-	GRPCBridge framework.Endpoint `mapstructure:"grpcbridge"`
-	LedgerURL  string             `mapstructure:"ledgerURL"`
-
-	GetAriesOptions func() []aries.Option
-
-	lock sync.Mutex
 }
 
 type kmsProvider struct {
@@ -103,26 +77,23 @@ func (r *kmsProvider) SecretLock() secretlock.Service {
 func (r *Provider) newProvider() (*kmsProvider, error) {
 	out := &kmsProvider{}
 
-	dc := &framework.DatastoreConfig{}
-	err := r.vp.UnmarshalKey("datastore", dc)
+	cfg := r.conf.WithDatastore().
+		WithMasterLockKey().
+		WithVDRI()
+
+	dc, err := cfg.DataStore()
 	if err != nil {
-		return nil, errors.Wrap(err, "execution environment is not correctly configured")
+		return nil, err
 	}
+
 	switch dc.Database {
 	case "mongo":
 		out.sp = mongodbstore.NewProvider(dc.Mongo.URL)
-	case "postgres":
-		//out.sp = pgstore.NewProvider(dc.Postgres.Connection)
 	default:
 		out.sp = mem.NewProvider()
 	}
 
-	mlk := r.vp.GetString("masterLockKey")
-	if mlk == "" {
-		mlk = "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
-	}
-
-	out.lock, err = local.NewService(strings.NewReader(mlk), nil)
+	out.lock, err = local.NewService(strings.NewReader(r.conf.MasterLockKey()), nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
@@ -177,25 +148,26 @@ func (r *Provider) getOptions() []aries.Option {
 	}
 	out = append(out, aries.WithStoreProvider(p.StorageProvider()))
 
-	genesisFile := r.vp.GetString("genesisFile")
-	if genesisFile != "" {
-		genesisData := strings.NewReader(genesisFile)
-		indyVDRI, err := indy.New("scr", indy.WithIndyVDRGenesisReader(ioutil.NopCloser(genesisData)))
-		if err == nil {
-			out = append(out, aries.WithVDRI(indyVDRI))
+	vdriConfig, err := r.conf.VDRIs()
+	if err != nil {
+		log.Println("failed to load VDRI config", err)
+	}
+
+	if err == nil {
+		for _, v := range vdriConfig {
+			typ, _ := v["type"].(string)
+			switch typ {
+			case "indy":
+				method, _ := v["method"].(string)
+				genesisFile, _ := v["genesisFile"].(string)
+				re := strings.NewReader(genesisFile)
+				indyVDRI, err := indy.New(method, indy.WithIndyVDRGenesisReader(ioutil.NopCloser(re)))
+				if err == nil {
+					out = append(out, aries.WithVDRI(indyVDRI))
+				}
+
+			}
 		}
-	}
-
-	if r.vp.IsSet(wsinboundKey) {
-		wsinbound := &framework.Endpoint{}
-		_ = r.vp.UnmarshalKey(wsinboundKey, wsinbound)
-		out = append(out, defaults.WithInboundWSAddr(wsinbound.Address(), wsinbound.Address(), "", ""))
-	}
-
-	if r.vp.IsSet("host") && r.vp.IsSet("port") {
-		ep := &framework.Endpoint{}
-		_ = r.vp.Unmarshal(ep)
-		//out = append(out, aries.WithServiceEndpoint(ep.Address()))
 	}
 
 	out = append(out, []aries.Option{
@@ -238,20 +210,6 @@ func (r *Provider) GetCredentialClient() (*issuecredential.Client, error) {
 	return r.credcl, nil
 }
 
-func (r *Provider) GetRouterClient() (*mediator.Client, error) {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-	if r.routecl != nil {
-		return r.routecl, nil
-	}
-
-	routecl, err := mediator.New(r.GetAriesContext())
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create route client for college: %v\n")
-	}
-	r.routecl = routecl
-	return r.routecl, nil
-}
 
 func (r *Provider) GetSupervisor(h credential.Handler) (*credential.Supervisor, error) {
 	sup, err := credential.New(r)
@@ -264,13 +222,4 @@ func (r *Provider) GetSupervisor(h credential.Handler) (*credential.Supervisor, 
 	}
 
 	return sup, nil
-}
-
-func (r *Provider) GetBouncer() (didex.Bouncer, error) {
-	bouncer, err := didex.NewBouncer(r)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to create did supervisor for high school agent")
-	}
-
-	return bouncer, nil
 }

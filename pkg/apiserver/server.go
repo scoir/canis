@@ -30,11 +30,10 @@ type APIServer struct {
 	client               vdrClient
 	schemaRegistry       cengine.CredentialRegistry
 	presentationRegistry pengine.PresentationRegistry
-
-	doorman      doorman.DoormanClient
-	issuer       api.IssuerClient
-	verifier     verifier.VerifierClient
-	loadbalancer lbapi.LoadbalancerClient
+	doorman              doorman.DoormanClient
+	issuer               api.IssuerClient
+	verifier             verifier.VerifierClient
+	loadbalancer         lbapi.LoadbalancerClient
 }
 
 //go:generate mockery -name=provider --structname=Provider

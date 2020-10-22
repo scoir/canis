@@ -7,12 +7,12 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
 	"github.com/hyperledger/aries-framework-go/pkg/client/mediator"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/context"
-	"github.com/spf13/viper"
+
+	"github.com/scoir/canis/pkg/config"
 )
 
 type Provider struct {
-	vp *viper.Viper
-
+	conf    config.Config
 	lock    sync.Mutex
 	ctx     *context.Provider
 	didcl   *didexchange.Client
@@ -20,10 +20,6 @@ type Provider struct {
 	routecl *mediator.Client
 }
 
-func NewProvider(vp *viper.Viper) *Provider {
-	return &Provider{vp: vp}
-}
-
-func (r *Provider) UnmarshalConfig(dest interface{}) error {
-	return r.vp.Unmarshal(dest)
+func NewProvider(conf config.Config) *Provider {
+	return &Provider{conf: conf}
 }

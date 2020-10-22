@@ -1,0 +1,5 @@
+inbound:
+  external: ws://0.0.0.0:3001-test
+grpc:
+  host: 172.17.0.1
+  port: 7776

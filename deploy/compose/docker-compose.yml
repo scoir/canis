@@ -11,6 +11,16 @@ services:
     secrets:
       - source: canis-apiserver-config
         target: /etc/canis/canis-apiserver-config.yml
+      - source: aries-indy-vdri-config
+        target: /etc/canis/canis-aries-indy-vdri-config.yml
+      - source: data-store-config
+        target: /etc/canis/canis-data-store-config.yml
+      - source: ledger-store-config
+        target: /etc/canis/canis-ledger-store-config.yml
+      - source: master-lock-key
+        target: /etc/canis/canis-master-lock-key.yml
+      - source: genesis-file
+        target: /etc/canis/canis-genesis-file.yml
     deploy:
       replicas: 1
       update_config:
@@ -28,6 +38,18 @@ services:
     secrets:
       - source: canis-didcomm-issuer-config
         target: /etc/canis/canis-issuer-config.yml
+      - source: aries-indy-vdri-config
+        target: /etc/canis/canis-aries-indy-vdri-config.yml
+      - source: data-store-config
+        target: /etc/canis/canis-data-store-config.yml
+      - source: ledger-store-config
+        target: /etc/canis/canis-ledger-store-config.yml
+      - source: amqp-config
+        target: /etc/canis/canis-amqp-config.yml
+      - source: master-lock-key
+        target: /etc/canis/canis-master-lock-key.yml
+      - source: indy-registry
+        target: /etc/canis/canis-indy-registry.yml
     deploy:
       replicas: 1
       update_config:
@@ -44,7 +66,19 @@ services:
       - backend
     secrets:
       - source: canis-didcomm-verifier-config
-        target: /etc/canis/canis-didcomm-config.yml
+        target: /etc/canis/canis-verifier-config.yml
+      - source: aries-indy-vdri-config
+        target: /etc/canis/canis-aries-indy-vdri-config.yml
+      - source: data-store-config
+        target: /etc/canis/canis-data-store-config.yml
+      - source: ledger-store-config
+        target: /etc/canis/canis-ledger-store-config.yml
+      - source: amqp-config
+        target: /etc/canis/canis-amqp-config.yml
+      - source: master-lock-key
+        target: /etc/canis/canis-master-lock-key.yml
+      - source: indy-registry
+        target: /etc/canis/canis-indy-registry.yml
     deploy:
       replicas: 1
       update_config:
@@ -62,6 +96,16 @@ services:
     secrets:
       - source: canis-didcomm-doorman-config
         target: /etc/canis/canis-doorman-config.yml
+      - source: aries-indy-vdri-config
+        target: /etc/canis/canis-aries-indy-vdri-config.yml
+      - source: data-store-config
+        target: /etc/canis/canis-data-store-config.yml
+      - source: ledger-store-config
+        target: /etc/canis/canis-ledger-store-config.yml
+      - source: amqp-config
+        target: /etc/canis/canis-amqp-config.yml
+      - source: master-lock-key
+        target: /etc/canis/canis-master-lock-key.yml
     deploy:
       replicas: 1
       update_config:
@@ -81,6 +125,12 @@ services:
     secrets:
       - source: canis-didcomm-lb-config
         target: /etc/canis/canis-lb-config.yml
+      - source: ledger-store-config
+        target: /etc/canis/canis-ledger-store-config.yml
+      - source: amqp-config
+        target: /etc/canis/canis-amqp-config.yml
+      - source: master-lock-key
+        target: /etc/canis/canis-master-lock-key.yml
     deploy:
       replicas: 1
       update_config:
@@ -98,6 +148,8 @@ services:
     secrets:
       - source: http-indy-resolver-config
         target: /etc/canis/http-indy-resolver.yml
+      - source: genesis-file
+        target: /etc/canis/canis-genesis-file.yml
     deploy:
       replicas: 1
       update_config:
@@ -113,6 +165,10 @@ services:
     secrets:
       - source: canis-webhook-notifier-config
         target: /etc/canis/canis-webhook-notifier.yml
+      - source: amqp-config
+        target: /etc/canis/canis-amqp-config.yml
+      - source: data-store-config
+        target: /etc/canis/canis-data-store-config.yml
     deploy:
       replicas: 1
       update_config:
@@ -132,10 +188,25 @@ secrets:
     file: ./canis-didcomm-doorman.yaml
   canis-didcomm-lb-config:
     file: ./canis-didcomm-lb.yaml
-  http-indy-resolver-config:
-    file: ./http-indy-resolver.yaml
   canis-webhook-notifier-config:
     file: ./canis-webhook-notifier.yaml
+  data-store-config:
+    file: ./data-store-config.yaml
+  ledger-store-config:
+    file: ./ledger-store-config.yaml
+  aries-indy-vdri-config:
+    file: ./aries-indy-vdri-config.yaml
+  http-indy-resolver-config:
+    file: ./http-indy-resolver.yaml
+  amqp-config:
+    file: ./amqp-config.yaml
+  master-lock-key:
+    file: ./master-lock-key.yaml
+  indy-registry:
+    file: ./indy-registry.yaml
+  genesis-file:
+    file: ./genesis-file.yaml
+
 
 networks:
   backend:

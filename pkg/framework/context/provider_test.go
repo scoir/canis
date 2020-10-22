@@ -1,7 +1,6 @@
 package context
 
 import (
-	"reflect"
 	"sync"
 	"testing"
 
@@ -50,25 +49,25 @@ var stewardFullCfg = map[string]interface{}{
 	},
 }
 
-func TestNewProvider(t *testing.T) {
-	type args struct {
-		vp *viper.Viper
-	}
-	tests := []struct {
-		name string
-		args args
-		want *Provider
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewProvider(tt.args.vp); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewProvider() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+//func TestNewProvider(t *testing.T) {
+//	type args struct {
+//		vp *viper.Viper
+//	}
+//	tests := []struct {
+//		name string
+//		args args
+//		want *Provider
+//	}{
+//		// TODO: Add test cases.
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			if got := NewProvider(tt.args.vp); !reflect.DeepEqual(got, tt.want) {
+//				t.Errorf("NewProvider() = %v, want %v", got, tt.want)
+//			}
+//		})
+//	}
+//}
 
 func TestProvider_StorageProvider(t *testing.T) {
 	type fields struct {

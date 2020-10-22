@@ -1,0 +1,6 @@
+aries:
+  vdri:
+    - type: indy
+      method: "scr"
+      genesisFile: |
+        genesis-file

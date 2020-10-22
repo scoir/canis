@@ -13,32 +13,31 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
+	"github.com/spf13/cobra"
+
+	"github.com/scoir/canis/pkg/config"
 	"github.com/scoir/canis/pkg/framework"
 	indywrapper "github.com/scoir/canis/pkg/indy"
 )
 
 var (
-	cfgFile string
-	prov    *Provider
+	cfgFile        string
+	prov           *Provider
+	configProvider config.Provider
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "canis-didcomm",
-	Short: "The canis didcomm load balancer.",
-	Long: `"The canis didcomm load balancer but longer.".
+	Short: "The canis resolver.",
+	Long: `"The canis  resolver but longer.".
 
  Find more information at: https://canis.io/docs/reference/canis/overview`,
 }
 
 type Provider struct {
-	vp         *viper.Viper
 	indyClient indywrapper.IndyVDRClient
+	conf       config.Config
 }
 
 func Execute() {
@@ -50,34 +49,18 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	configProvider = &config.ViperConfigProvider{
+		DefaultConfigName: "http-indy-resolver",
+	}
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/canis/http-indy-resolver.yml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	vp := viper.New()
-	if cfgFile != "" {
-		// Use vp file from the flag.
-		vp.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		vp.SetConfigType("yaml")
-		vp.AddConfigPath("/etc/canis/")
-		vp.AddConfigPath("./deploy/compose/")
-		vp.SetConfigName("http-indy-resolver")
-	}
+	conf := configProvider.Load(cfgFile).
+		WithLedgerGenesis()
 
-	vp.SetEnvPrefix("CANIS")
-	vp.AutomaticEnv() // read in environment variables that match
-	_ = vp.BindPFlags(pflag.CommandLine)
-
-	// If a vp file is found, read it in.
-	if err := vp.ReadInConfig(); err != nil {
-		fmt.Println("unable to read vp:", vp.ConfigFileUsed(), err)
-		os.Exit(1)
-	}
-
-	genesisFile := vp.GetString("genesisFile")
+	genesisFile := conf.LedgerGenesis()
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
 	if err != nil {
@@ -85,20 +68,14 @@ func initConfig() {
 	}
 
 	prov = &Provider{
-		vp:         vp,
+		conf:       conf,
 		indyClient: cl,
 	}
 
 }
 
 func (r *Provider) GetHTTPEndpoint() (*framework.Endpoint, error) {
-	ep := &framework.Endpoint{}
-	err := r.vp.UnmarshalKey("resolver.http", ep)
-	if err != nil {
-		return nil, errors.Wrap(err, "http is not properly configured")
-	}
-
-	return ep, nil
+	return r.conf.Endpoint("resolver.http")
 }
 
 func (r *Provider) IndyVDR() indywrapper.IndyVDRClient {
