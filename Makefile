@@ -94,6 +94,8 @@ all-pb: canis-common-pb canis-apiserver-pb canis-didcomm-doorman-pb canis-didcom
 canis-common-pb: pkg/proto/canis-common.pb.go
 pkg/proto/canis-common.pb.go:pkg/proto
 	cd pkg && protoc -I proto/include/ -I proto/common/ proto/common/messages.proto --go_out=plugins=grpc:.
+	mv pkg/github.com/scoir/canis/pkg/protogen/common/messages.pb.go pkg/protogen/common/messages.pb.go
+	rm -rf pkg/github.com
 
 canis-apiserver-pb: canis-common-pb pkg/apiserver/api/canis-apiserver.pb.go
 pkg/apiserver/api/canis-apiserver.pb.go:pkg/proto/canis-apiserver.proto
@@ -112,7 +114,7 @@ canis-didcomm-issuer-pb: canis-common-pb pkg/didcomm/issuer/api/canis-didcomm-is
 pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go:pkg/didcomm/issuer/api/canis-didcomm-issuer.proto
 	cd pkg && protoc -I proto/include/ -I didcomm/issuer/api/ didcomm/issuer/api/canis-didcomm-issuer.proto --go_out=plugins=grpc:.
 
-canis-didcomm-verifier-pb: canis-common-pb
+canis-didcomm-verifier-pb: canis-common-pb pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go
 pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go:pkg/proto/canis-didcomm-verifier.proto
 	cd pkg && protoc -I proto -I proto/include/ -I proto/common/ -I didcomm/verifier/api/ proto/canis-didcomm-verifier.proto --go_out=plugins=grpc:.
 	mv pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go pkg/didcomm/verifier/api/protogen/canis-didcomm-verifier.pb.go

@@ -25,6 +25,7 @@ import (
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/presentproof"
 	"github.com/scoir/canis/pkg/presentproof/engine"
+	"github.com/scoir/canis/pkg/protogen/common"
 )
 
 type proofClient interface {
@@ -104,7 +105,7 @@ func (r *Server) APISpec() (http.HandlerFunc, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (r *Server) RequestPresentation(_ context.Context, req *api.RequestPresentationRequest) (*api.RequestPresentationResponse, error) {
+func (r *Server) RequestPresentation(_ context.Context, req *common.RequestPresentationRequest) (*common.RequestPresentationResponse, error) {
 	agent, err := r.store.GetAgent(req.AgentId)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unable to load agent: %v", err))
@@ -115,12 +116,12 @@ func (r *Server) RequestPresentation(_ context.Context, req *api.RequestPresenta
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load connection: %v", err))
 	}
 
-	schema, err := r.store.GetSchema(req.SchemaId)
+	schema, err := r.store.GetSchema(req.Presentation.SchemaId)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load schema: %v", err))
 	}
 
-	presentation, err := r.registry.RequestPresentation(schema.Type, req.RequestedAttributes, req.RequestedPredicates)
+	presentation, err := r.registry.RequestPresentation(schema.Type, req.Presentation.RequestedAttributes, req.Presentation.RequestedPredicates)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating presentation request: %v", err))
 	}
@@ -142,5 +143,5 @@ func (r *Server) RequestPresentation(_ context.Context, req *api.RequestPresenta
 		return nil, err
 	}
 
-	return &api.RequestPresentationResponse{RequestPresentationId: id}, nil
+	return &common.RequestPresentationResponse{RequestPresentationId: id}, nil
 }

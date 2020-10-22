@@ -4,7 +4,7 @@ package common;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "protogen/common";
+option go_package = "github.com/scoir/canis/pkg/protogen/common";
 
 message AttrInfo {
   string name = 1;

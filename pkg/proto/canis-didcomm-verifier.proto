@@ -4,7 +4,7 @@ package proto;
 
 import "common/messages.proto";
 
-option go_package = "didcomm/verifier/api/protogen";
+option go_package = "didcomm/verifier/api";
 
 service Verifier {
   rpc RequestPresentation (common.RequestPresentationRequest) returns (common.RequestPresentationResponse) {}

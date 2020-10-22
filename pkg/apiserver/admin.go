@@ -505,7 +505,7 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *common.Request
 	}
 
 	return &common.RequestPresentationResponse{
-		RequestPresentationId: resp.,
+		RequestPresentationId: resp.RequestPresentationId,
 	}, nil
 }
 

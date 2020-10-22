@@ -10,8 +10,8 @@ import (
 	ursaWrapper "github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
-	api "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/indy"
+	api "github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/ursa"
 )
 
@@ -98,7 +98,6 @@ func (r *Engine) RequestPresentationAttach(attrInfo map[string]*api.AttrInfo,
 	if err != nil {
 		return "", err
 	}
-
 
 	return base64.StdEncoding.EncodeToString(b), nil
 }
