@@ -35,7 +35,7 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 	doormanapi "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
-	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	lbapi "github.com/scoir/canis/pkg/didcomm/loadbalancer/api/protogen"
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
@@ -256,7 +256,7 @@ func (r *Provider) GetVerifierClient() (verifier.VerifierClient, error) {
 	return vc, nil
 }
 
-func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error) {
+func (r *Provider) GetLoadbalancerClient() (lbapi.LoadbalancerClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("loadbalancer.grpc", ep)
 	if err != nil {
@@ -267,7 +267,7 @@ func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, err
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial grpc for load balancer client")
 	}
-	lb := loadbalancer.NewLoadbalancerClient(cc)
+	lb := lbapi.NewLoadbalancerClient(cc)
 	return lb, nil
 }
 

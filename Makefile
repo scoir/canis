@@ -121,9 +121,10 @@ pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go:pkg/proto/canis-didcomm-ve
 	cd pkg && protoc -I proto -I proto/include/ -I proto/common/ -I didcomm/verifier/api/ proto/canis-didcomm-verifier.proto --go_out=plugins=grpc:.
 	mv pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go pkg/didcomm/verifier/api/protogen/canis-didcomm-verifier.pb.go
 
-canis-didcomm-lb-pb: canis-common-pb pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go
-pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go:pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.proto
-	cd pkg && protoc -I proto/include/ -I didcomm/loadbalancer/api/ didcomm/loadbalancer/api/canis-didcomm-loadbalancer.proto --go_out=plugins=grpc:.
+canis-didcomm-lb-pb: canis-common-pb pkg/didcomm/loadbalancer/api/protogen/canis-didcomm-loadbalancer.pb.go
+pkg/didcomm/loadbalancer/api/protogen/canis-didcomm-loadbalancer.pb.go:pkg/proto/canis-didcomm-loadbalancer.proto
+	cd pkg && protoc -I proto -I proto/include/ -I proto/common/ -I didcomm/loadbalancer/api/ proto/canis-didcomm-loadbalancer.proto --go_out=plugins=grpc:.
+	mv pkg/didcomm/loadbalancer/api/canis-didcomm-loadbalancer.pb.go pkg/didcomm/loadbalancer/api/protogen/canis-didcomm-loadbalancer.pb.go
 
 demo-web:
 	cd demo && npm run build

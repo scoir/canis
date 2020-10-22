@@ -16,7 +16,7 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 	api "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
-	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	lbapi "github.com/scoir/canis/pkg/didcomm/loadbalancer/api/protogen"
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/indy"
 	pengine "github.com/scoir/canis/pkg/presentproof/engine"
@@ -34,7 +34,7 @@ type APIServer struct {
 	doorman      doorman.DoormanClient
 	issuer       api.IssuerClient
 	verifier     verifier.VerifierClient
-	loadbalancer loadbalancer.LoadbalancerClient
+	loadbalancer lbapi.LoadbalancerClient
 }
 
 //go:generate mockery -name=provider --structname=Provider
@@ -45,7 +45,7 @@ type provider interface {
 	GetDoormanClient() (doorman.DoormanClient, error)
 	GetIssuerClient() (api.IssuerClient, error)
 	GetVerifierClient() (verifier.VerifierClient, error)
-	GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error)
+	GetLoadbalancerClient() (lbapi.LoadbalancerClient, error)
 	GetCredentialEngineRegistry() (cengine.CredentialRegistry, error)
 	GetPresentationEngineRegistry() (pengine.PresentationRegistry, error)
 }

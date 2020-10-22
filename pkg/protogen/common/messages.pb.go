@@ -711,6 +711,91 @@ func (x *IssueCredentialResponse) GetCredentialId() string {
 	return ""
 }
 
+type EndpointRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *EndpointRequest) Reset() {
+	*x = EndpointRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *EndpointRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EndpointRequest) ProtoMessage() {}
+
+func (x *EndpointRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EndpointRequest.ProtoReflect.Descriptor instead.
+func (*EndpointRequest) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{11}
+}
+
+type EndpointResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Endpoint string `protobuf:"bytes,1,opt,name=Endpoint,proto3" json:"Endpoint,omitempty"`
+}
+
+func (x *EndpointResponse) Reset() {
+	*x = EndpointResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *EndpointResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EndpointResponse) ProtoMessage() {}
+
+func (x *EndpointResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EndpointResponse.ProtoReflect.Descriptor instead.
+func (*EndpointResponse) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *EndpointResponse) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
 var File_messages_proto protoreflect.FileDescriptor
 
 var file_messages_proto_rawDesc = []byte{
@@ -821,10 +906,14 @@ var file_messages_proto_rawDesc = []byte{
 	0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x23,
 	0x0a, 0x0d, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x5f, 0x69, 0x64, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61,
-	0x6c, 0x49, 0x64, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
-	0x6d, 0x2f, 0x73, 0x63, 0x6f, 0x69, 0x72, 0x2f, 0x63, 0x61, 0x6e, 0x69, 0x73, 0x2f, 0x70, 0x6b,
-	0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x67, 0x65, 0x6e, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f,
-	0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x49, 0x64, 0x22, 0x11, 0x0a, 0x0f, 0x45, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x2e, 0x0a, 0x10, 0x45, 0x6e, 0x64, 0x70, 0x6f, 0x69,
+	0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x45, 0x6e,
+	0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x45, 0x6e,
+	0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x63, 0x6f, 0x69, 0x72, 0x2f, 0x63, 0x61, 0x6e, 0x69, 0x73,
+	0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x67, 0x65, 0x6e, 0x2f, 0x63, 0x6f,
+	0x6d, 0x6d, 0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -839,7 +928,7 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_messages_proto_goTypes = []interface{}{
 	(*AttrInfo)(nil),                    // 0: common.AttrInfo
 	(*PredicateInfo)(nil),               // 1: common.PredicateInfo
@@ -852,16 +941,18 @@ var file_messages_proto_goTypes = []interface{}{
 	(*Credential)(nil),                  // 8: common.Credential
 	(*IssueCredentialRequest)(nil),      // 9: common.IssueCredentialRequest
 	(*IssueCredentialResponse)(nil),     // 10: common.IssueCredentialResponse
-	nil,                                 // 11: common.RequestPresentation.RequestedAttributesEntry
-	nil,                                 // 12: common.RequestPresentation.RequestedPredicatesEntry
-	(*timestamp.Timestamp)(nil),         // 13: google.protobuf.Timestamp
+	(*EndpointRequest)(nil),             // 11: common.EndpointRequest
+	(*EndpointResponse)(nil),            // 12: common.EndpointResponse
+	nil,                                 // 13: common.RequestPresentation.RequestedAttributesEntry
+	nil,                                 // 14: common.RequestPresentation.RequestedPredicatesEntry
+	(*timestamp.Timestamp)(nil),         // 15: google.protobuf.Timestamp
 }
 var file_messages_proto_depIdxs = []int32{
-	13, // 0: common.AttrInfo.non_revoked:type_name -> google.protobuf.Timestamp
-	13, // 1: common.PredicateInfo.non_revoked:type_name -> google.protobuf.Timestamp
+	15, // 0: common.AttrInfo.non_revoked:type_name -> google.protobuf.Timestamp
+	15, // 1: common.PredicateInfo.non_revoked:type_name -> google.protobuf.Timestamp
 	3,  // 2: common.RequestPresentationRequest.presentation:type_name -> common.RequestPresentation
-	11, // 3: common.RequestPresentation.requested_attributes:type_name -> common.RequestPresentation.RequestedAttributesEntry
-	12, // 4: common.RequestPresentation.requested_predicates:type_name -> common.RequestPresentation.RequestedPredicatesEntry
+	13, // 3: common.RequestPresentation.requested_attributes:type_name -> common.RequestPresentation.RequestedAttributesEntry
+	14, // 4: common.RequestPresentation.requested_predicates:type_name -> common.RequestPresentation.RequestedPredicatesEntry
 	7,  // 5: common.Credential.attributes:type_name -> common.CredentialAttribute
 	8,  // 6: common.IssueCredentialRequest.credential:type_name -> common.Credential
 	0,  // 7: common.RequestPresentation.RequestedAttributesEntry.value:type_name -> common.AttrInfo
@@ -1011,6 +1102,30 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
+		file_messages_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*EndpointRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_messages_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*EndpointResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1018,7 +1133,7 @@ func file_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_messages_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

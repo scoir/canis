@@ -11,8 +11,9 @@ import (
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
+
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	"github.com/scoir/canis/pkg/protogen/common"
 )
 
 func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
@@ -28,7 +29,7 @@ func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 		return errors.Wrap(err, "unable to get signer for public DID")
 	}
 
-	endpoint, err := r.loadbalancer.GetEndpoint(context.Background(), &api.EndpointRequest{})
+	endpoint, err := r.loadbalancer.GetEndpoint(context.Background(), &common.EndpointRequest{})
 	if err != nil {
 		return errors.Wrap(err, "unable to retrieve endpoint for new agent")
 	}

@@ -71,3 +71,10 @@ message IssueCredentialResponse {
     string credential_id = 1;
 }
 
+message EndpointRequest {
+}
+
+message EndpointResponse {
+  string Endpoint = 1;
+}
+

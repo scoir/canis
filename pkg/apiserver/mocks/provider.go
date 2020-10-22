@@ -5,6 +5,7 @@ package mocks
 import (
 	api "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 	protogen2 "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
+	protogen3 "github.com/scoir/canis/pkg/didcomm/loadbalancer/api/protogen"
 
 	datastore "github.com/scoir/canis/pkg/datastore"
 
@@ -13,8 +14,6 @@ import (
 	indy "github.com/scoir/canis/pkg/indy"
 
 	kms "github.com/hyperledger/aries-framework-go/pkg/kms"
-
-	loadbalancerapi "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -98,15 +97,15 @@ func (_m *Provider) GetIssuerClient() (protogen2.IssuerClient, error) {
 }
 
 // GetLoadbalancerClient provides a mock function with given fields:
-func (_m *Provider) GetLoadbalancerClient() (loadbalancerapi.LoadbalancerClient, error) {
+func (_m *Provider) GetLoadbalancerClient() (protogen3.LoadbalancerClient, error) {
 	ret := _m.Called()
 
-	var r0 loadbalancerapi.LoadbalancerClient
-	if rf, ok := ret.Get(0).(func() loadbalancerapi.LoadbalancerClient); ok {
+	var r0 protogen3.LoadbalancerClient
+	if rf, ok := ret.Get(0).(func() protogen3.LoadbalancerClient); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(loadbalancerapi.LoadbalancerClient)
+			r0 = ret.Get(0).(protogen3.LoadbalancerClient)
 		}
 	}
 
