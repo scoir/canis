@@ -2,3 +2,4 @@
 /bin/
 *.out
 coverage.txt
+pkg/static/canis-apiserver_swagger.go

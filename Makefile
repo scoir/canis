@@ -116,7 +116,7 @@ demo-web:
 	cd demo && npm run build
 
 # Development Local Run Shortcuts
-test: clean tools
+test: clean tools swagger_pack
 	@. ./canis.sh; ./scripts/test.sh
 
 cover:
