@@ -283,7 +283,7 @@ func local_request_Admin_UpdateSchema_0(ctx context.Context, marshaler runtime.M
 }
 
 func request_Admin_IssueCredential_0(ctx context.Context, marshaler runtime.Marshaler, client AdminClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq IssueCredentialRequest
+	var protoReq common.IssueCredentialRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -329,7 +329,7 @@ func request_Admin_IssueCredential_0(ctx context.Context, marshaler runtime.Mars
 }
 
 func local_request_Admin_IssueCredential_0(ctx context.Context, marshaler runtime.Marshaler, server AdminServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq IssueCredentialRequest
+	var protoReq common.IssueCredentialRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)

@@ -111,9 +111,10 @@ pkg/didcomm/doorman/api/protogen/canis-didcomm-doorman.pb.go:pkg/proto/canis-did
 	cd pkg && protoc -I proto -I proto/include/ -I proto/common -I didcomm/doorman/api/ proto/canis-didcomm-doorman.proto --go_out=plugins=grpc:.
 	mv pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go pkg/didcomm/doorman/api/protogen/canis-didcomm-doorman.pb.go
 
-canis-didcomm-issuer-pb: canis-common-pb pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go
-pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go:pkg/didcomm/issuer/api/canis-didcomm-issuer.proto
-	cd pkg && protoc -I proto/include/ -I didcomm/issuer/api/ didcomm/issuer/api/canis-didcomm-issuer.proto --go_out=plugins=grpc:.
+canis-didcomm-issuer-pb: canis-common-pb pkg/didcomm/issuer/api/protogen/canis-didcomm-issuer.pb.go
+pkg/didcomm/issuer/api/protogen/canis-didcomm-issuer.pb.go:pkg/proto/canis-didcomm-issuer.proto
+	cd pkg && protoc -I proto -I proto/include/ -I proto/common  -I didcomm/issuer/api/ proto/canis-didcomm-issuer.proto --go_out=plugins=grpc:.
+	mv pkg/didcomm/issuer/api/canis-didcomm-issuer.pb.go pkg/didcomm/issuer/api/protogen/canis-didcomm-issuer.pb.go
 
 canis-didcomm-verifier-pb: canis-common-pb pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go
 pkg/didcomm/verifier/api/canis-didcomm-verifier.pb.go:pkg/proto/canis-didcomm-verifier.proto

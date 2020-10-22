@@ -130,7 +130,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiserverIssueCredentialResponse"
+              "$ref": "#/definitions/commonIssueCredentialResponse"
             }
           },
           "default": {
@@ -158,7 +158,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiserverCredential"
+              "$ref": "#/definitions/commonCredential"
             }
           }
         ],
@@ -675,37 +675,6 @@
     "apiserverCreateWebhookResponse": {
       "type": "object"
     },
-    "apiserverCredential": {
-      "type": "object",
-      "properties": {
-        "schema_id": {
-          "type": "string"
-        },
-        "comment": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "attributes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiserverCredentialAttribute"
-          }
-        }
-      }
-    },
-    "apiserverCredentialAttribute": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        }
-      }
-    },
     "apiserverDeleteAgentResponse": {
       "type": "object"
     },
@@ -728,14 +697,6 @@
       "properties": {
         "schema": {
           "$ref": "#/definitions/apiserverSchema"
-        }
-      }
-    },
-    "apiserverIssueCredentialResponse": {
-      "type": "object",
-      "properties": {
-        "credential_id": {
-          "type": "string"
         }
       }
     },
@@ -844,10 +805,49 @@
         }
       }
     },
+    "commonCredential": {
+      "type": "object",
+      "properties": {
+        "schema_id": {
+          "type": "string"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/commonCredentialAttribute"
+          }
+        }
+      }
+    },
+    "commonCredentialAttribute": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
     "commonInvitationResponse": {
       "type": "object",
       "properties": {
         "Invitation": {
+          "type": "string"
+        }
+      }
+    },
+    "commonIssueCredentialResponse": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
           "type": "string"
         }
       }

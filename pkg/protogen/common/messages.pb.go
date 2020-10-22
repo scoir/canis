@@ -475,6 +475,242 @@ func (x *InvitationResponse) GetInvitation() string {
 	return ""
 }
 
+type CredentialAttribute struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name  string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *CredentialAttribute) Reset() {
+	*x = CredentialAttribute{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CredentialAttribute) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CredentialAttribute) ProtoMessage() {}
+
+func (x *CredentialAttribute) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CredentialAttribute.ProtoReflect.Descriptor instead.
+func (*CredentialAttribute) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CredentialAttribute) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CredentialAttribute) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type Credential struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SchemaId   string                 `protobuf:"bytes,1,opt,name=schema_id,json=schemaId,proto3" json:"schema_id,omitempty"`
+	Comment    string                 `protobuf:"bytes,2,opt,name=comment,proto3" json:"comment,omitempty"`
+	Type       string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
+	Attributes []*CredentialAttribute `protobuf:"bytes,4,rep,name=attributes,proto3" json:"attributes,omitempty"`
+}
+
+func (x *Credential) Reset() {
+	*x = Credential{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Credential) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Credential) ProtoMessage() {}
+
+func (x *Credential) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Credential.ProtoReflect.Descriptor instead.
+func (*Credential) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Credential) GetSchemaId() string {
+	if x != nil {
+		return x.SchemaId
+	}
+	return ""
+}
+
+func (x *Credential) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+func (x *Credential) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *Credential) GetAttributes() []*CredentialAttribute {
+	if x != nil {
+		return x.Attributes
+	}
+	return nil
+}
+
+type IssueCredentialRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AgentId    string      `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	ExternalId string      `protobuf:"bytes,2,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	Credential *Credential `protobuf:"bytes,3,opt,name=credential,proto3" json:"credential,omitempty"`
+}
+
+func (x *IssueCredentialRequest) Reset() {
+	*x = IssueCredentialRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *IssueCredentialRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IssueCredentialRequest) ProtoMessage() {}
+
+func (x *IssueCredentialRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IssueCredentialRequest.ProtoReflect.Descriptor instead.
+func (*IssueCredentialRequest) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *IssueCredentialRequest) GetAgentId() string {
+	if x != nil {
+		return x.AgentId
+	}
+	return ""
+}
+
+func (x *IssueCredentialRequest) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
+	}
+	return ""
+}
+
+func (x *IssueCredentialRequest) GetCredential() *Credential {
+	if x != nil {
+		return x.Credential
+	}
+	return nil
+}
+
+type IssueCredentialResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CredentialId string `protobuf:"bytes,1,opt,name=credential_id,json=credentialId,proto3" json:"credential_id,omitempty"`
+}
+
+func (x *IssueCredentialResponse) Reset() {
+	*x = IssueCredentialResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *IssueCredentialResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IssueCredentialResponse) ProtoMessage() {}
+
+func (x *IssueCredentialResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IssueCredentialResponse.ProtoReflect.Descriptor instead.
+func (*IssueCredentialResponse) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *IssueCredentialResponse) GetCredentialId() string {
+	if x != nil {
+		return x.CredentialId
+	}
+	return ""
+}
+
 var File_messages_proto protoreflect.FileDescriptor
 
 var file_messages_proto_rawDesc = []byte{
@@ -559,10 +795,36 @@ var file_messages_proto_rawDesc = []byte{
 	0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
 	0x12, 0x1e, 0x0a, 0x0a, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73,
-	0x63, 0x6f, 0x69, 0x72, 0x2f, 0x63, 0x61, 0x6e, 0x69, 0x73, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x67, 0x65, 0x6e, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x22, 0x3f, 0x0a, 0x13, 0x43, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x41, 0x74,
+	0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x22, 0x94, 0x01, 0x0a, 0x0a, 0x43, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c,
+	0x12, 0x1b, 0x0a, 0x09, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x49, 0x64, 0x12, 0x18, 0x0a,
+	0x07, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
+	0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x3b, 0x0a, 0x0a, 0x61,
+	0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x1b, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x43, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74,
+	0x69, 0x61, 0x6c, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x52, 0x0a, 0x61, 0x74,
+	0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x22, 0x88, 0x01, 0x0a, 0x16, 0x49, 0x73, 0x73,
+	0x75, 0x65, 0x43, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x19, 0x0a, 0x08, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x49, 0x64, 0x12, 0x1f,
+	0x0a, 0x0b, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0a, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x49, 0x64, 0x12,
+	0x32, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x43, 0x72, 0x65,
+	0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x52, 0x0a, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74,
+	0x69, 0x61, 0x6c, 0x22, 0x3e, 0x0a, 0x17, 0x49, 0x73, 0x73, 0x75, 0x65, 0x43, 0x72, 0x65, 0x64,
+	0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x23,
+	0x0a, 0x0d, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x5f, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61,
+	0x6c, 0x49, 0x64, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x73, 0x63, 0x6f, 0x69, 0x72, 0x2f, 0x63, 0x61, 0x6e, 0x69, 0x73, 0x2f, 0x70, 0x6b,
+	0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x67, 0x65, 0x6e, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f,
+	0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -577,7 +839,7 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_messages_proto_goTypes = []interface{}{
 	(*AttrInfo)(nil),                    // 0: common.AttrInfo
 	(*PredicateInfo)(nil),               // 1: common.PredicateInfo
@@ -586,23 +848,29 @@ var file_messages_proto_goTypes = []interface{}{
 	(*RequestPresentationResponse)(nil), // 4: common.RequestPresentationResponse
 	(*InvitationRequest)(nil),           // 5: common.InvitationRequest
 	(*InvitationResponse)(nil),          // 6: common.InvitationResponse
-	nil,                                 // 7: common.RequestPresentation.RequestedAttributesEntry
-	nil,                                 // 8: common.RequestPresentation.RequestedPredicatesEntry
-	(*timestamp.Timestamp)(nil),         // 9: google.protobuf.Timestamp
+	(*CredentialAttribute)(nil),         // 7: common.CredentialAttribute
+	(*Credential)(nil),                  // 8: common.Credential
+	(*IssueCredentialRequest)(nil),      // 9: common.IssueCredentialRequest
+	(*IssueCredentialResponse)(nil),     // 10: common.IssueCredentialResponse
+	nil,                                 // 11: common.RequestPresentation.RequestedAttributesEntry
+	nil,                                 // 12: common.RequestPresentation.RequestedPredicatesEntry
+	(*timestamp.Timestamp)(nil),         // 13: google.protobuf.Timestamp
 }
 var file_messages_proto_depIdxs = []int32{
-	9, // 0: common.AttrInfo.non_revoked:type_name -> google.protobuf.Timestamp
-	9, // 1: common.PredicateInfo.non_revoked:type_name -> google.protobuf.Timestamp
-	3, // 2: common.RequestPresentationRequest.presentation:type_name -> common.RequestPresentation
-	7, // 3: common.RequestPresentation.requested_attributes:type_name -> common.RequestPresentation.RequestedAttributesEntry
-	8, // 4: common.RequestPresentation.requested_predicates:type_name -> common.RequestPresentation.RequestedPredicatesEntry
-	0, // 5: common.RequestPresentation.RequestedAttributesEntry.value:type_name -> common.AttrInfo
-	1, // 6: common.RequestPresentation.RequestedPredicatesEntry.value:type_name -> common.PredicateInfo
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	13, // 0: common.AttrInfo.non_revoked:type_name -> google.protobuf.Timestamp
+	13, // 1: common.PredicateInfo.non_revoked:type_name -> google.protobuf.Timestamp
+	3,  // 2: common.RequestPresentationRequest.presentation:type_name -> common.RequestPresentation
+	11, // 3: common.RequestPresentation.requested_attributes:type_name -> common.RequestPresentation.RequestedAttributesEntry
+	12, // 4: common.RequestPresentation.requested_predicates:type_name -> common.RequestPresentation.RequestedPredicatesEntry
+	7,  // 5: common.Credential.attributes:type_name -> common.CredentialAttribute
+	8,  // 6: common.IssueCredentialRequest.credential:type_name -> common.Credential
+	0,  // 7: common.RequestPresentation.RequestedAttributesEntry.value:type_name -> common.AttrInfo
+	1,  // 8: common.RequestPresentation.RequestedPredicatesEntry.value:type_name -> common.PredicateInfo
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_messages_proto_init() }
@@ -695,6 +963,54 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
+		file_messages_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CredentialAttribute); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_messages_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Credential); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_messages_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IssueCredentialRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_messages_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IssueCredentialResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -702,7 +1018,7 @@ func file_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_messages_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

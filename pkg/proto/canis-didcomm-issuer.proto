@@ -1,0 +1,10 @@
+syntax = "proto3";
+package didcomm;
+
+import "common/messages.proto";
+
+option go_package = "didcomm/issuer/api";
+
+service Issuer {
+  rpc IssueCredential (common.IssueCredentialRequest) returns (common.IssueCredentialResponse) {}
+}

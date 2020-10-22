@@ -22,7 +22,6 @@ import (
 	emocks "github.com/scoir/canis/pkg/credential/engine/mocks"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/mocks"
-	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	dmocks "github.com/scoir/canis/pkg/didexchange/mocks"
 	"github.com/scoir/canis/pkg/protogen/common"
 )
@@ -801,12 +800,12 @@ func TestSeedPublicDID(t *testing.T) {
 func TestIssueCredential(t *testing.T) {
 	t.Run("happy", func(t *testing.T) {
 		target, suite := SetupTest()
-		req := &api.IssueCredentialRequest{
-			Credential: &api.Credential{
+		req := &common.IssueCredentialRequest{
+			Credential: &common.Credential{
 				SchemaId: "test-schema-id",
 				Comment:  "test comment",
 				Type:     "lds/json-ld-proof",
-				Attributes: []*api.CredentialAttribute{
+				Attributes: []*common.CredentialAttribute{
 					{
 						Name:  "test-field",
 						Value: "test-value",
@@ -815,7 +814,7 @@ func TestIssueCredential(t *testing.T) {
 			},
 		}
 
-		suite.Issuer.IssueCredResponse = &issuerapi.IssueCredentialResponse{
+		suite.Issuer.IssueCredResponse = &common.IssueCredentialResponse{
 			CredentialId: "new-cred-id",
 		}
 
@@ -826,12 +825,12 @@ func TestIssueCredential(t *testing.T) {
 	})
 	t.Run("issuer error", func(t *testing.T) {
 		target, suite := SetupTest()
-		req := &api.IssueCredentialRequest{
-			Credential: &api.Credential{
+		req := &common.IssueCredentialRequest{
+			Credential: &common.Credential{
 				SchemaId: "test-schema-id",
 				Comment:  "test comment",
 				Type:     "lds/json-ld-proof",
-				Attributes: []*api.CredentialAttribute{
+				Attributes: []*common.CredentialAttribute{
 					{
 						Name:  "test-field",
 						Value: "test-value",

@@ -15,7 +15,7 @@ import (
 	cengine "github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
-	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
+	api "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/indy"
@@ -32,7 +32,7 @@ type APIServer struct {
 	presentationRegistry pengine.PresentationRegistry
 
 	doorman      doorman.DoormanClient
-	issuer       issuer.IssuerClient
+	issuer       api.IssuerClient
 	verifier     verifier.VerifierClient
 	loadbalancer loadbalancer.LoadbalancerClient
 }
@@ -43,7 +43,7 @@ type provider interface {
 	Store() datastore.Store
 	IndyVDR() (indy.IndyVDRClient, error)
 	GetDoormanClient() (doorman.DoormanClient, error)
-	GetIssuerClient() (issuer.IssuerClient, error)
+	GetIssuerClient() (api.IssuerClient, error)
 	GetVerifierClient() (verifier.VerifierClient, error)
 	GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error)
 	GetCredentialEngineRegistry() (cengine.CredentialRegistry, error)

@@ -27,7 +27,6 @@ import (
 
 	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	"github.com/scoir/canis/pkg/datastore"
-	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
 	"github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/static"
 )
@@ -430,25 +429,25 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 	return &api.SeedPublicDIDResponse{}, nil
 }
 
-func (r *APIServer) IssueCredential(ctx context.Context, req *api.IssueCredentialRequest) (*api.IssueCredentialResponse, error) {
+func (r *APIServer) IssueCredential(ctx context.Context, req *common.IssueCredentialRequest) (*common.IssueCredentialResponse, error) {
 
-	issuerCred := issuer.Credential{
+	issuerCred := common.Credential{
 		SchemaId:   req.Credential.SchemaId,
 		Comment:    req.Credential.Comment,
 		Type:       req.Credential.Type,
-		Attributes: make([]*issuer.CredentialAttribute, len(req.Credential.Attributes)),
+		Attributes: make([]*common.CredentialAttribute, len(req.Credential.Attributes)),
 	}
 
 	for i, attr := range req.Credential.Attributes {
-		issuerCred.Attributes[i] = &issuer.CredentialAttribute{
+		issuerCred.Attributes[i] = &common.CredentialAttribute{
 			Name:  attr.Name,
 			Value: attr.Value,
 		}
 	}
 
-	issuerReq := &issuer.IssueCredentialRequest{
+	issuerReq := &common.IssueCredentialRequest{
 		AgentId:    req.AgentId,
-		SubjectId:  req.ExternalId,
+		ExternalId: req.ExternalId,
 		Credential: &issuerCred,
 	}
 	issuerResp, err := r.issuer.IssueCredential(ctx, issuerReq)
@@ -456,7 +455,7 @@ func (r *APIServer) IssueCredential(ctx context.Context, req *api.IssueCredentia
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to initiate credential offer").Error())
 	}
 
-	return &api.IssueCredentialResponse{
+	return &common.IssueCredentialResponse{
 		CredentialId: issuerResp.CredentialId,
 	}, nil
 }

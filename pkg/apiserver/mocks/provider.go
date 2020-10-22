@@ -4,14 +4,13 @@ package mocks
 
 import (
 	api "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
+	protogen2 "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
 
 	datastore "github.com/scoir/canis/pkg/datastore"
 
 	engine "github.com/scoir/canis/pkg/credential/engine"
 
 	indy "github.com/scoir/canis/pkg/indy"
-
-	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
 
 	kms "github.com/hyperledger/aries-framework-go/pkg/kms"
 
@@ -76,15 +75,15 @@ func (_m *Provider) GetDoormanClient() (api.DoormanClient, error) {
 }
 
 // GetIssuerClient provides a mock function with given fields:
-func (_m *Provider) GetIssuerClient() (issuerapi.IssuerClient, error) {
+func (_m *Provider) GetIssuerClient() (protogen2.IssuerClient, error) {
 	ret := _m.Called()
 
-	var r0 issuerapi.IssuerClient
-	if rf, ok := ret.Get(0).(func() issuerapi.IssuerClient); ok {
+	var r0 protogen2.IssuerClient
+	if rf, ok := ret.Get(0).(func() protogen2.IssuerClient); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(issuerapi.IssuerClient)
+			r0 = ret.Get(0).(protogen2.IssuerClient)
 		}
 	}
 

@@ -33,8 +33,8 @@ import (
 	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
 	credldsengine "github.com/scoir/canis/pkg/credential/engine/lds"
 	"github.com/scoir/canis/pkg/datastore"
-	api "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
-	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
+	doormanapi "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
+	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
 	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/framework"
@@ -211,7 +211,7 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	return ep, nil
 }
 
-func (r *Provider) GetDoormanClient() (api.DoormanClient, error) {
+func (r *Provider) GetDoormanClient() (doormanapi.DoormanClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("doorman.grpc", ep)
 	if err != nil {
@@ -222,11 +222,11 @@ func (r *Provider) GetDoormanClient() (api.DoormanClient, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial grpc for doorman client")
 	}
-	cl := api.NewDoormanClient(cc)
+	cl := doormanapi.NewDoormanClient(cc)
 	return cl, nil
 }
 
-func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
+func (r *Provider) GetIssuerClient() (issuerapi.IssuerClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("issuer.grpc", ep)
 	if err != nil {
@@ -237,7 +237,7 @@ func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial grpc for issuer client")
 	}
-	cl := issuer.NewIssuerClient(cc)
+	cl := issuerapi.NewIssuerClient(cc)
 	return cl, nil
 }
 
