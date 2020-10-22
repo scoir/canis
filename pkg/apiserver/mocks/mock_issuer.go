@@ -5,15 +5,15 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/scoir/canis/pkg/didcomm/issuer/api"
+	"github.com/scoir/canis/pkg/protogen/common"
 )
 
 type MockIssuer struct {
-	IssueCredResponse *api.IssueCredentialResponse
+	IssueCredResponse *common.IssueCredentialResponse
 	IssueCredErr      error
 }
 
-func (r *MockIssuer) IssueCredential(ctx context.Context, in *api.IssueCredentialRequest, opts ...grpc.CallOption) (*api.IssueCredentialResponse, error) {
+func (r *MockIssuer) IssueCredential(ctx context.Context, in *common.IssueCredentialRequest, opts ...grpc.CallOption) (*common.IssueCredentialResponse, error) {
 	if r.IssueCredErr != nil {
 		return nil, r.IssueCredErr
 	}

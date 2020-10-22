@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package apiserver
 
 import (
-	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
-
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/pkg/errors"
 
@@ -16,9 +14,10 @@ import (
 
 	cengine "github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
-	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
-	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
-	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
+	api "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
+	lbapi "github.com/scoir/canis/pkg/didcomm/loadbalancer/api/protogen"
+	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/indy"
 	pengine "github.com/scoir/canis/pkg/presentproof/engine"
 )
@@ -33,9 +32,9 @@ type APIServer struct {
 	presentationRegistry pengine.PresentationRegistry
 
 	doorman      doorman.DoormanClient
-	issuer       issuer.IssuerClient
+	issuer       api.IssuerClient
 	verifier     verifier.VerifierClient
-	loadbalancer loadbalancer.LoadbalancerClient
+	loadbalancer lbapi.LoadbalancerClient
 }
 
 //go:generate mockery -name=provider --structname=Provider
@@ -44,9 +43,9 @@ type provider interface {
 	Store() datastore.Store
 	IndyVDR() (indy.IndyVDRClient, error)
 	GetDoormanClient() (doorman.DoormanClient, error)
-	GetIssuerClient() (issuer.IssuerClient, error)
+	GetIssuerClient() (api.IssuerClient, error)
 	GetVerifierClient() (verifier.VerifierClient, error)
-	GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error)
+	GetLoadbalancerClient() (lbapi.LoadbalancerClient, error)
 	GetCredentialEngineRegistry() (cengine.CredentialRegistry, error)
 	GetPresentationEngineRegistry() (pengine.PresentationRegistry, error)
 }

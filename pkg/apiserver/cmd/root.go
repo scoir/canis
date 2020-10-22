@@ -13,8 +13,6 @@ import (
 	"os"
 	"strings"
 
-	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
-
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
@@ -29,14 +27,16 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
+
 	cengine "github.com/scoir/canis/pkg/credential/engine"
 	credengine "github.com/scoir/canis/pkg/credential/engine"
 	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
 	credldsengine "github.com/scoir/canis/pkg/credential/engine/lds"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/didcomm/doorman/api"
-	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
-	loadbalancer "github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	doormanapi "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
+	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
+	lbapi "github.com/scoir/canis/pkg/didcomm/loadbalancer/api/protogen"
+	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
 	indywrapper "github.com/scoir/canis/pkg/indy"
@@ -211,7 +211,7 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 	return ep, nil
 }
 
-func (r *Provider) GetDoormanClient() (api.DoormanClient, error) {
+func (r *Provider) GetDoormanClient() (doormanapi.DoormanClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("doorman.grpc", ep)
 	if err != nil {
@@ -222,11 +222,11 @@ func (r *Provider) GetDoormanClient() (api.DoormanClient, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial grpc for doorman client")
 	}
-	cl := api.NewDoormanClient(cc)
+	cl := doormanapi.NewDoormanClient(cc)
 	return cl, nil
 }
 
-func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
+func (r *Provider) GetIssuerClient() (issuerapi.IssuerClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("issuer.grpc", ep)
 	if err != nil {
@@ -237,7 +237,7 @@ func (r *Provider) GetIssuerClient() (issuer.IssuerClient, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial grpc for issuer client")
 	}
-	cl := issuer.NewIssuerClient(cc)
+	cl := issuerapi.NewIssuerClient(cc)
 	return cl, nil
 }
 
@@ -256,7 +256,7 @@ func (r *Provider) GetVerifierClient() (verifier.VerifierClient, error) {
 	return vc, nil
 }
 
-func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, error) {
+func (r *Provider) GetLoadbalancerClient() (lbapi.LoadbalancerClient, error) {
 	ep := &framework.Endpoint{}
 	err := r.vp.UnmarshalKey("loadbalancer.grpc", ep)
 	if err != nil {
@@ -267,7 +267,7 @@ func (r *Provider) GetLoadbalancerClient() (loadbalancer.LoadbalancerClient, err
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial grpc for load balancer client")
 	}
-	lb := loadbalancer.NewLoadbalancerClient(cc)
+	lb := lbapi.NewLoadbalancerClient(cc)
 	return lb, nil
 }
 

@@ -35,7 +35,8 @@ import (
 	"goji.io/pat"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
-	"github.com/scoir/canis/pkg/apiserver/api"
+
+	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"

@@ -25,11 +25,9 @@ import (
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 
-	"github.com/scoir/canis/pkg/apiserver/api"
+	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	"github.com/scoir/canis/pkg/datastore"
-	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api"
-	issuer "github.com/scoir/canis/pkg/didcomm/issuer/api"
-	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api"
+	"github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/static"
 )
 
@@ -291,8 +289,8 @@ func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.
 	return out, nil
 }
 
-func (r *APIServer) GetAgentInvitation(ctx context.Context, request *api.InvitationRequest) (*api.InvitationResponse, error) {
-	doormanReq := &doorman.InvitationRequest{
+func (r *APIServer) GetAgentInvitation(ctx context.Context, request *common.InvitationRequest) (*common.InvitationResponse, error) {
+	doormanReq := &common.InvitationRequest{
 		AgentId:    request.AgentId,
 		ExternalId: request.ExternalId,
 	}
@@ -301,7 +299,7 @@ func (r *APIServer) GetAgentInvitation(ctx context.Context, request *api.Invitat
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to get agent invitation").Error())
 	}
 
-	return &api.InvitationResponse{
+	return &common.InvitationResponse{
 		Invitation: invite.Invitation,
 	}, nil
 }
@@ -431,25 +429,25 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 	return &api.SeedPublicDIDResponse{}, nil
 }
 
-func (r *APIServer) IssueCredential(ctx context.Context, req *api.IssueCredentialRequest) (*api.IssueCredentialResponse, error) {
+func (r *APIServer) IssueCredential(ctx context.Context, req *common.IssueCredentialRequest) (*common.IssueCredentialResponse, error) {
 
-	issuerCred := issuer.Credential{
+	issuerCred := common.Credential{
 		SchemaId:   req.Credential.SchemaId,
 		Comment:    req.Credential.Comment,
 		Type:       req.Credential.Type,
-		Attributes: make([]*issuer.CredentialAttribute, len(req.Credential.Attributes)),
+		Attributes: make([]*common.CredentialAttribute, len(req.Credential.Attributes)),
 	}
 
 	for i, attr := range req.Credential.Attributes {
-		issuerCred.Attributes[i] = &issuer.CredentialAttribute{
+		issuerCred.Attributes[i] = &common.CredentialAttribute{
 			Name:  attr.Name,
 			Value: attr.Value,
 		}
 	}
 
-	issuerReq := &issuer.IssueCredentialRequest{
+	issuerReq := &common.IssueCredentialRequest{
 		AgentId:    req.AgentId,
-		SubjectId:  req.ExternalId,
+		ExternalId: req.ExternalId,
 		Credential: &issuerCred,
 	}
 	issuerResp, err := r.issuer.IssueCredential(ctx, issuerReq)
@@ -457,25 +455,25 @@ func (r *APIServer) IssueCredential(ctx context.Context, req *api.IssueCredentia
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to initiate credential offer").Error())
 	}
 
-	return &api.IssueCredentialResponse{
+	return &common.IssueCredentialResponse{
 		CredentialId: issuerResp.CredentialId,
 	}, nil
 }
 
-func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPresentationRequest) (*api.RequestPresentationResponse, error) {
+func (r *APIServer) RequestPresentation(ctx context.Context, req *common.RequestPresentationRequest) (*common.RequestPresentationResponse, error) {
 
-	pp := make(map[string]*verifier.AttrInfo)
+	pp := make(map[string]*common.AttrInfo)
 	for k, v := range req.Presentation.RequestedAttributes {
-		pp[k] = &verifier.AttrInfo{
+		pp[k] = &common.AttrInfo{
 			Name:         v.Name,
 			Restrictions: v.Restrictions,
 			NonRevoked:   v.NonRevoked,
 		}
 	}
 
-	pq := make(map[string]*verifier.PredicateInfo)
+	pq := make(map[string]*common.PredicateInfo)
 	for k, v := range req.Presentation.RequestedPredicates {
-		pq[k] = &verifier.PredicateInfo{
+		pq[k] = &common.PredicateInfo{
 			Name:         v.Name,
 			PType:        v.PType,
 			PValue:       v.PValue,
@@ -484,15 +482,17 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPre
 		}
 	}
 
-	rpr := &verifier.RequestPresentationRequest{
-		AgentId:             req.AgentId,
-		ExternalId:          "",
-		SchemaId:            "",
-		Comment:             "",
-		Type:                "",
-		WillConfirm:         false,
-		RequestedAttributes: pp,
-		RequestedPredicates: pq,
+	rpr := &common.RequestPresentationRequest{
+		AgentId:    req.AgentId,
+		ExternalId: "",
+		Presentation: &common.RequestPresentation{
+			SchemaId:            "",
+			Comment:             "",
+			Type:                "",
+			WillConfirm:         false,
+			RequestedAttributes: pp,
+			RequestedPredicates: pq,
+		},
 	}
 
 	resp, err := r.verifier.RequestPresentation(ctx, rpr)
@@ -500,7 +500,7 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *api.RequestPre
 		return nil, err
 	}
 
-	return &api.RequestPresentationResponse{
+	return &common.RequestPresentationResponse{
 		RequestPresentationId: resp.RequestPresentationId,
 	}, nil
 }

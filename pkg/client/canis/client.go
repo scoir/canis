@@ -6,7 +6,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/scoir/canis/pkg/apiserver/api"
+	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	"github.com/scoir/canis/pkg/client/informer"
 )
 

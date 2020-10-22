@@ -130,7 +130,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiserverIssueCredentialResponse"
+              "$ref": "#/definitions/commonIssueCredentialResponse"
             }
           },
           "default": {
@@ -158,7 +158,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiserverCredential"
+              "$ref": "#/definitions/commonCredential"
             }
           }
         ],
@@ -174,7 +174,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiserverInvitationResponse"
+              "$ref": "#/definitions/commonInvitationResponse"
             }
           },
           "default": {
@@ -196,6 +196,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -210,7 +216,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiserverRequestPresentationResponse"
+              "$ref": "#/definitions/commonRequestPresentationResponse"
             }
           },
           "default": {
@@ -238,7 +244,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiserverRequestPresentation"
+              "$ref": "#/definitions/commonRequestPresentation"
             }
           }
         ],
@@ -613,21 +619,6 @@
         }
       }
     },
-    "apiserverAttrInfo": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "restrictions": {
-          "type": "string"
-        },
-        "non_revoked": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
     "apiserverAttribute": {
       "type": "object",
       "properties": {
@@ -684,37 +675,6 @@
     "apiserverCreateWebhookResponse": {
       "type": "object"
     },
-    "apiserverCredential": {
-      "type": "object",
-      "properties": {
-        "schema_id": {
-          "type": "string"
-        },
-        "comment": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "attributes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiserverCredentialAttribute"
-          }
-        }
-      }
-    },
-    "apiserverCredentialAttribute": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        }
-      }
-    },
     "apiserverDeleteAgentResponse": {
       "type": "object"
     },
@@ -737,22 +697,6 @@
       "properties": {
         "schema": {
           "$ref": "#/definitions/apiserverSchema"
-        }
-      }
-    },
-    "apiserverInvitationResponse": {
-      "type": "object",
-      "properties": {
-        "invitation": {
-          "type": "string"
-        }
-      }
-    },
-    "apiserverIssueCredentialResponse": {
-      "type": "object",
-      "properties": {
-        "credential_id": {
-          "type": "string"
         }
       }
     },
@@ -794,64 +738,6 @@
           "items": {
             "$ref": "#/definitions/apiserverWebhook"
           }
-        }
-      }
-    },
-    "apiserverPredicateInfo": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "p_type": {
-          "type": "string"
-        },
-        "p_value": {
-          "type": "string"
-        },
-        "restrictions": {
-          "type": "string"
-        },
-        "non_revoked": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "apiserverRequestPresentation": {
-      "type": "object",
-      "properties": {
-        "schema_id": {
-          "type": "string"
-        },
-        "comment": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "will_confirm": {
-          "type": "boolean"
-        },
-        "requested_attributes": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/apiserverAttrInfo"
-          }
-        },
-        "requested_predicates": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/apiserverPredicateInfo"
-          }
-        }
-      }
-    },
-    "apiserverRequestPresentationResponse": {
-      "type": "object",
-      "properties": {
-        "request_presentation_id": {
-          "type": "string"
         }
       }
     },
@@ -900,6 +786,126 @@
       "type": "object",
       "properties": {
         "url": {
+          "type": "string"
+        }
+      }
+    },
+    "commonAttrInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "restrictions": {
+          "type": "string"
+        },
+        "non_revoked": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "commonCredential": {
+      "type": "object",
+      "properties": {
+        "schema_id": {
+          "type": "string"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/commonCredentialAttribute"
+          }
+        }
+      }
+    },
+    "commonCredentialAttribute": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "commonInvitationResponse": {
+      "type": "object",
+      "properties": {
+        "Invitation": {
+          "type": "string"
+        }
+      }
+    },
+    "commonIssueCredentialResponse": {
+      "type": "object",
+      "properties": {
+        "credential_id": {
+          "type": "string"
+        }
+      }
+    },
+    "commonPredicateInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "p_type": {
+          "type": "string"
+        },
+        "p_value": {
+          "type": "string"
+        },
+        "restrictions": {
+          "type": "string"
+        },
+        "non_revoked": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "commonRequestPresentation": {
+      "type": "object",
+      "properties": {
+        "schema_id": {
+          "type": "string"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "will_confirm": {
+          "type": "boolean"
+        },
+        "requested_attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/commonAttrInfo"
+          }
+        },
+        "requested_predicates": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/commonPredicateInfo"
+          }
+        }
+      }
+    },
+    "commonRequestPresentationResponse": {
+      "type": "object",
+      "properties": {
+        "request_presentation_id": {
           "type": "string"
         }
       }

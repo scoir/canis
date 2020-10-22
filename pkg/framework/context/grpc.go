@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
-	api "github.com/scoir/canis/pkg/apiserver/api"
+	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	"github.com/scoir/canis/pkg/framework"
 )
 

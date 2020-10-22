@@ -17,15 +17,13 @@ import (
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 
-	"github.com/scoir/canis/pkg/apiserver/api"
+	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	apimocks "github.com/scoir/canis/pkg/apiserver/mocks"
 	emocks "github.com/scoir/canis/pkg/credential/engine/mocks"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/mocks"
-	doormanapi "github.com/scoir/canis/pkg/didcomm/doorman/api"
-	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api"
-	verifierapi "github.com/scoir/canis/pkg/didcomm/verifier/api"
 	dmocks "github.com/scoir/canis/pkg/didexchange/mocks"
+	"github.com/scoir/canis/pkg/protogen/common"
 )
 
 type AdminTestSuite struct {
@@ -674,9 +672,9 @@ func TestUpdateSchemaDataMissing(t *testing.T) {
 func TestGetAgentInvitation(t *testing.T) {
 	t.Run("happy", func(t *testing.T) {
 		target, suite := SetupTest()
-		req := &api.InvitationRequest{}
+		req := &common.InvitationRequest{}
 
-		resp := &doormanapi.InvitationResponse{}
+		resp := &common.InvitationResponse{}
 		suite.Doorman.InviteResponse = resp
 
 		result, err := target.GetAgentInvitation(context.Background(), req)
@@ -685,7 +683,7 @@ func TestGetAgentInvitation(t *testing.T) {
 	})
 	t.Run("doorman error", func(t *testing.T) {
 		target, suite := SetupTest()
-		req := &api.InvitationRequest{}
+		req := &common.InvitationRequest{}
 
 		suite.Doorman.InviteErr = errors.New("BOOM")
 
@@ -802,12 +800,12 @@ func TestSeedPublicDID(t *testing.T) {
 func TestIssueCredential(t *testing.T) {
 	t.Run("happy", func(t *testing.T) {
 		target, suite := SetupTest()
-		req := &api.IssueCredentialRequest{
-			Credential: &api.Credential{
+		req := &common.IssueCredentialRequest{
+			Credential: &common.Credential{
 				SchemaId: "test-schema-id",
 				Comment:  "test comment",
 				Type:     "lds/json-ld-proof",
-				Attributes: []*api.CredentialAttribute{
+				Attributes: []*common.CredentialAttribute{
 					{
 						Name:  "test-field",
 						Value: "test-value",
@@ -816,7 +814,7 @@ func TestIssueCredential(t *testing.T) {
 			},
 		}
 
-		suite.Issuer.IssueCredResponse = &issuerapi.IssueCredentialResponse{
+		suite.Issuer.IssueCredResponse = &common.IssueCredentialResponse{
 			CredentialId: "new-cred-id",
 		}
 
@@ -827,12 +825,12 @@ func TestIssueCredential(t *testing.T) {
 	})
 	t.Run("issuer error", func(t *testing.T) {
 		target, suite := SetupTest()
-		req := &api.IssueCredentialRequest{
-			Credential: &api.Credential{
+		req := &common.IssueCredentialRequest{
+			Credential: &common.Credential{
 				SchemaId: "test-schema-id",
 				Comment:  "test comment",
 				Type:     "lds/json-ld-proof",
-				Attributes: []*api.CredentialAttribute{
+				Attributes: []*common.CredentialAttribute{
 					{
 						Name:  "test-field",
 						Value: "test-value",
@@ -853,16 +851,16 @@ func TestRequestPresentation(t *testing.T) {
 	t.Run("happy", func(t *testing.T) {
 		target, suite := SetupTest()
 
-		req := &api.RequestPresentationRequest{
+		req := &common.RequestPresentationRequest{
 			AgentId:    "test-agent-id",
 			ExternalId: "test-external-id",
-			Presentation: &api.RequestPresentation{
-				RequestedAttributes: map[string]*api.AttrInfo{
+			Presentation: &common.RequestPresentation{
+				RequestedAttributes: map[string]*common.AttrInfo{
 					"test-attr": {
 						Name: "test-attr",
 					},
 				},
-				RequestedPredicates: map[string]*api.PredicateInfo{
+				RequestedPredicates: map[string]*common.PredicateInfo{
 					"test-predicate": {
 						Name: "test-predicate",
 					},
@@ -870,7 +868,7 @@ func TestRequestPresentation(t *testing.T) {
 			},
 		}
 
-		suite.Verifier.RequestPresResponse = &verifierapi.RequestPresentationResponse{
+		suite.Verifier.RequestPresResponse = &common.RequestPresentationResponse{
 			RequestPresentationId: "test-presentation-id",
 		}
 
@@ -882,16 +880,16 @@ func TestRequestPresentation(t *testing.T) {
 	t.Run("verifier fails", func(t *testing.T) {
 		target, suite := SetupTest()
 
-		req := &api.RequestPresentationRequest{
+		req := &common.RequestPresentationRequest{
 			AgentId:    "test-agent-id",
 			ExternalId: "test-external-id",
-			Presentation: &api.RequestPresentation{
-				RequestedAttributes: map[string]*api.AttrInfo{
+			Presentation: &common.RequestPresentation{
+				RequestedAttributes: map[string]*common.AttrInfo{
 					"test-attr": {
 						Name: "test-attr",
 					},
 				},
-				RequestedPredicates: map[string]*api.PredicateInfo{
+				RequestedPredicates: map[string]*common.PredicateInfo{
 					"test-predicate": {
 						Name: "test-predicate",
 					},

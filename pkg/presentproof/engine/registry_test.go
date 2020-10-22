@@ -9,7 +9,7 @@ import (
 
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/mocks"
-	"github.com/scoir/canis/pkg/didcomm/verifier/api"
+	api "github.com/scoir/canis/pkg/protogen/common"
 )
 
 type providerMock struct {

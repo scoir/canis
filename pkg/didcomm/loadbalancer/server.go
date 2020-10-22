@@ -18,7 +18,8 @@ import (
 
 	"github.com/scoir/canis/pkg/amqp"
 	"github.com/scoir/canis/pkg/amqp/rabbitmq"
-	"github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	api "github.com/scoir/canis/pkg/didcomm/loadbalancer/api/protogen"
+	"github.com/scoir/canis/pkg/protogen/common"
 )
 
 const (
@@ -91,8 +92,8 @@ func (r *Server) APISpec() (http.HandlerFunc, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (r *Server) GetEndpoint(_ context.Context, _ *api.EndpointRequest) (*api.EndpointResponse, error) {
-	return &api.EndpointResponse{Endpoint: r.external}, nil
+func (r *Server) GetEndpoint(_ context.Context, _ *common.EndpointRequest) (*common.EndpointResponse, error) {
+	return &common.EndpointResponse{Endpoint: r.external}, nil
 }
 
 func (r *Server) startWS() {

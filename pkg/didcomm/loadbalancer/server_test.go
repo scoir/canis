@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/scoir/canis/pkg/didcomm/loadbalancer/api"
+	"github.com/scoir/canis/pkg/protogen/common"
 )
 
 func TestServer_GetEndpoint(t *testing.T) {
@@ -14,13 +14,13 @@ func TestServer_GetEndpoint(t *testing.T) {
 	}
 	type args struct {
 		in0 context.Context
-		in1 *api.EndpointRequest
+		in1 *common.EndpointRequest
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    *api.EndpointResponse
+		want    *common.EndpointResponse
 		wantErr bool
 	}{
 		{
@@ -30,9 +30,9 @@ func TestServer_GetEndpoint(t *testing.T) {
 			},
 			args: args{
 				in0: nil,
-				in1: &api.EndpointRequest{},
+				in1: &common.EndpointRequest{},
 			},
-			want: &api.EndpointResponse{
+			want: &common.EndpointResponse{
 				Endpoint: "0.0.0.0:9999",
 			},
 			wantErr: false,

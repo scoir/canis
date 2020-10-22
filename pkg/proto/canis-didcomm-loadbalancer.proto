@@ -1,0 +1,10 @@
+syntax = "proto3";
+package didcomm;
+
+import "common/messages.proto";
+
+option go_package = "didcomm/loadbalancer/api";
+
+service Loadbalancer {
+  rpc GetEndpoint (common.EndpointRequest) returns (common.EndpointResponse) {}
+}

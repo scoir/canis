@@ -7,7 +7,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/mock/storage"
 	"github.com/stretchr/testify/require"
 
-	"github.com/scoir/canis/pkg/didcomm/verifier/api"
+	api "github.com/scoir/canis/pkg/protogen/common"
 )
 
 func TestNew(t *testing.T) {

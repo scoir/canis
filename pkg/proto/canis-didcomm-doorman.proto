@@ -1,0 +1,10 @@
+syntax = "proto3";
+package didcomm;
+
+import "common/messages.proto";
+
+option go_package = "didcomm/doorman/api";
+
+service Doorman {
+  rpc GetInvitation (common.InvitationRequest) returns (common.InvitationResponse) {}
+}

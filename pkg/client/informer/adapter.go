@@ -6,7 +6,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 
-	"github.com/scoir/canis/pkg/apiserver/api"
+	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	"github.com/scoir/canis/pkg/util"
 )
 

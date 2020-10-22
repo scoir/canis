@@ -25,8 +25,9 @@ import (
 	"github.com/scoir/canis/pkg/credential"
 	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/didcomm/issuer/api"
+	api "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
 	"github.com/scoir/canis/pkg/framework"
+	"github.com/scoir/canis/pkg/protogen/common"
 )
 
 type credentialIssuer interface {
@@ -102,14 +103,14 @@ func (r *Server) APISpec() (http.HandlerFunc, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (r *Server) IssueCredential(_ context.Context, req *api.IssueCredentialRequest) (*api.IssueCredentialResponse, error) {
+func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialRequest) (*common.IssueCredentialResponse, error) {
 
 	agent, err := r.store.GetAgent(req.AgentId)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unable to load agent: %v", err))
 	}
 
-	ac, err := r.store.GetAgentConnection(agent, req.SubjectId)
+	ac, err := r.store.GetAgentConnection(agent, req.ExternalId)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load connection: %v", err))
 	}
@@ -166,7 +167,7 @@ func (r *Server) IssueCredential(_ context.Context, req *api.IssueCredentialRequ
 		OfferID:           id,
 		RegistryOfferID:   registryOfferID,
 		SchemaID:          schema.ID,
-		ExternalSubjectID: req.SubjectId,
+		ExternalSubjectID: req.ExternalId,
 		Offer: datastore.Offer{
 			Comment:    req.Credential.Comment,
 			Type:       req.Credential.Type,
@@ -180,7 +181,7 @@ func (r *Server) IssueCredential(_ context.Context, req *api.IssueCredentialRequ
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error saving credential: %v", err))
 	}
 
-	return &api.IssueCredentialResponse{
+	return &common.IssueCredentialResponse{
 		CredentialId: credID,
 	}, nil
 }
