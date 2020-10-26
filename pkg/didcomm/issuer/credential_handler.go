@@ -28,16 +28,43 @@ type prop interface {
 	TheirDID() string
 }
 
-func (r *credHandler) ProposeCredentialMsg(_ service.DIDCommAction, _ *icprotocol.ProposeCredential) {
-	panic("implement me")
+func (r *credHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *icprotocol.ProposeCredential) {
+	thid, _ := e.Message.ThreadID()
+
+	offer, err := r.store.FindOffer(thid)
+	if err == nil {
+		_, err = r.store.GetAgent(offer.AgentID)
+		if err != nil {
+			log.Println("unable to find agent for credential request", err)
+			return
+		}
+
+		//TODO: implement negociation from previous offer
+		return
+	}
+
+	//proposal.CredentialProposal
+	////No existing offer, a proposal for a new credential offer
+	//proposal.Formats[0].Format
+	//proposal.Formats[0].AttachID
+	//
+	////FIND SCHEMA WITH THIS FORMAT AND DO SOMETHING WITH THE BASE64 BELOW...
+	//proposal.FilterAttach[0].ID
+	//proposal.FilterAttach[0].Data.Base64
+	//
+	//registryOfferID, attachment, err := r.registry.CreateCredentialOffer(agent.PublicDID, ac.TheirDID, schema, vals)
+	//if err != nil {
+	//	return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating credential offer: %v", err))
+	//}
+
 }
 
 func (r *credHandler) OfferCredentialMsg(_ service.DIDCommAction, _ *icprotocol.OfferCredential) {
-	panic("implement me")
+	//NO-OP - this is a Holder State
 }
 
 func (r *credHandler) IssueCredentialMsg(_ service.DIDCommAction, _ *icprotocol.IssueCredential) {
-	panic("implement me")
+	//NO-OP - this is a Holder State
 }
 
 func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icprotocol.RequestCredential) {
@@ -68,7 +95,7 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	}
 
 	values := map[string]interface{}{}
-	for _, attr := range offer.Offer.Attributes {
+	for _, attr := range offer.Offer.Preview {
 		//TODO:  do we have to consider mime-type here and convert?
 		values[attr.Name] = attr.Value
 	}
@@ -102,20 +129,19 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	//TODO:  Shouldn't this be built into the Supervisor??
 	log.Println("setting up monitoring for", thid)
 	mon := credential.NewMonitor(r.credsup)
-	mon.WatchThread(thid, r.TranscriptAccepted(offer.OfferID), r.CredentialError)
-
+	mon.WatchThread(thid, r.CredentialAccepted(offer.OfferID), r.CredentialError)
 	e.Continue(icprotocol.WithIssueCredential(msg))
 }
 
-func (r *credHandler) TranscriptAccepted(id string) func(threadID string, ack *model.Ack) {
+func (r *credHandler) CredentialAccepted(id string) func(threadID string, ack *model.Ack) {
 
 	return func(threadID string, ack *model.Ack) {
-		//TODO: find the offer and update the status!!
+		//TODO: find the offer and update the status and send notification!!
 		fmt.Printf("Transcript Accepted: %s", id)
 	}
 }
 
 func (r *credHandler) CredentialError(threadID string, err error) {
-	//TODO: find the offer and update the status!!
+	//TODO: find the offer and update the status and send notification!!
 	log.Println("step 1... failed!", threadID, err)
 }

@@ -37,7 +37,6 @@ var (
 type Agent struct {
 	ID                  string
 	Name                string
-	AssignedSchemaId    string
 	EndorsableSchemaIds []string
 	Status              StatusType
 	PID                 string
@@ -112,9 +111,10 @@ func (r *KeyPair) RawPublicKey() []byte {
 }
 
 type Offer struct {
-	Comment    string
-	Type       string
-	Attributes []icprotocol.Attribute
+	Comment string
+	Type    string
+	Preview []icprotocol.Attribute
+	Body    []byte
 }
 
 type Credential struct {

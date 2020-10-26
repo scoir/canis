@@ -79,9 +79,13 @@ func (r *CredentialEngine) RegisterSchema(_ *datastore.DID, _ *datastore.Schema)
 }
 
 func (r *CredentialEngine) CreateCredentialOffer(_ *datastore.DID, subjectDID string, s *datastore.Schema,
-	values map[string]interface{}) (string, *decorator.AttachmentData, error) {
+	values []byte) (string, *decorator.AttachmentData, error) {
 
-	out := values
+	out := map[string]interface{}{}
+	err := json.Unmarshal(values, &out)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "invalid format for attribute values for LDS cred engine")
+	}
 	out["@type"] = []string{s.Type}
 	out["@context"] = s.Context
 
@@ -101,7 +105,7 @@ func (r *CredentialEngine) CreateCredentialOffer(_ *datastore.DID, subjectDID st
 		return "", nil, errors.Wrap(err, "unexpected error saving offer")
 	}
 
-	d, _ = json.Marshal(values)
+	d, _ = json.Marshal(out)
 	return offerID, &decorator.AttachmentData{
 		Base64: base64.StdEncoding.EncodeToString(d),
 	}, nil

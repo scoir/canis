@@ -159,10 +159,10 @@ func TestIssueCredential(t *testing.T) {
 }
 
 func TestOfferCredential(t *testing.T) {
-	vals := map[string]interface{}{
+	vals := `{
 		"firstName": "Bilbo",
-		"lastName":  "Baggins",
-	}
+		"lastName":  "Baggins"
+	}`
 
 	t.Run("offer credential", func(t *testing.T) {
 		prov := newProv()
@@ -172,7 +172,7 @@ func TestOfferCredential(t *testing.T) {
 		subjectDID := "did:scr:S1uRyT6S3GyYCC4Q4ryirH"
 		s := &datastore.Schema{}
 
-		offerID, attach, err := engine.CreateCredentialOffer(nil, subjectDID, s, vals)
+		offerID, attach, err := engine.CreateCredentialOffer(nil, subjectDID, s, []byte(vals))
 		require.NoError(t, err)
 		require.NotEmpty(t, offerID)
 		require.Equal(t, "eyJAY29udGV4dCI6bnVsbCwiQHR5cGUiOlsiIl0sImZpcnN0TmFtZSI6IkJpbGJvIiwibGFzdE5hbWUiOiJCYWdnaW5zIn0=", attach.Base64)

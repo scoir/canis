@@ -18,14 +18,14 @@ type CredentialEngine struct {
 	RegisterError                   error
 }
 
+// CreateCredentialOffer provides a mock function with given fields: issuer, s
+func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, value []byte) (string, *decorator.AttachmentData, error) {
+	return r.CredentialOfferID, r.CreateCredentialOfferAttachment, r.CreateCredentialOfferError
+}
+
 // Accept provides a mock function with given fields: typ
 func (r *CredentialEngine) Accept(typ string) bool {
 	return r.Accep
-}
-
-// CreateCredentialOffer provides a mock function with given fields: issuer, s
-func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error) {
-	return r.CredentialOfferID, r.CreateCredentialOfferAttachment, r.CreateCredentialOfferError
 }
 
 // CreateSchema provides a mock function with given fields: issuer, s
