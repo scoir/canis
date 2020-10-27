@@ -200,7 +200,6 @@ func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) 
 	a := &datastore.Agent{
 		ID:                  req.Agent.Id,
 		Name:                req.Agent.Name,
-		AssignedSchemaId:    req.Agent.AssignedSchemaId,
 		EndorsableSchemaIds: []string{},
 		HasPublicDID:        req.Agent.PublicDid,
 	}
@@ -263,7 +262,6 @@ func (r *APIServer) ListAgent(_ context.Context, req *api.ListAgentRequest) (*ap
 		out.Agents[i] = &api.Agent{
 			Id:                  Agent.ID,
 			Name:                Agent.Name,
-			AssignedSchemaId:    Agent.AssignedSchemaId,
 			EndorsableSchemaIds: Agent.EndorsableSchemaIds,
 		}
 	}
@@ -282,7 +280,6 @@ func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.
 	out.Agent = &api.Agent{
 		Id:                  Agent.ID,
 		Name:                Agent.Name,
-		AssignedSchemaId:    Agent.AssignedSchemaId,
 		EndorsableSchemaIds: Agent.EndorsableSchemaIds,
 	}
 
@@ -432,14 +429,15 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 func (r *APIServer) IssueCredential(ctx context.Context, req *common.IssueCredentialRequest) (*common.IssueCredentialResponse, error) {
 
 	issuerCred := common.Credential{
-		SchemaId:   req.Credential.SchemaId,
-		Comment:    req.Credential.Comment,
-		Type:       req.Credential.Type,
-		Attributes: make([]*common.CredentialAttribute, len(req.Credential.Attributes)),
+		SchemaId: req.Credential.SchemaId,
+		Comment:  req.Credential.Comment,
+		Type:     req.Credential.Type,
+		Preview:  make([]*common.CredentialAttribute, len(req.Credential.Preview)),
+		Body:     req.Credential.Body,
 	}
 
-	for i, attr := range req.Credential.Attributes {
-		issuerCred.Attributes[i] = &common.CredentialAttribute{
+	for i, attr := range req.Credential.Preview {
+		issuerCred.Preview[i] = &common.CredentialAttribute{
 			Name:  attr.Name,
 			Value: attr.Value,
 		}

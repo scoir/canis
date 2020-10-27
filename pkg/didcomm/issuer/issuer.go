@@ -121,8 +121,8 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 	}
 
 	vals := map[string]interface{}{}
-	attrs := make([]icprotocol.Attribute, len(req.Credential.Attributes))
-	for i, a := range req.Credential.Attributes {
+	attrs := make([]icprotocol.Attribute, len(req.Credential.Preview))
+	for i, a := range req.Credential.Preview {
 		attrs[i] = icprotocol.Attribute{
 			Name:  a.Name,
 			Value: a.Value,
@@ -130,7 +130,12 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 		vals[a.Name] = a.Value
 	}
 
-	registryOfferID, attachment, err := r.registry.CreateCredentialOffer(agent.PublicDID, ac.TheirDID, schema, vals)
+	body, err := req.Credential.Body.MarshalJSON()
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("error unmarshaling credential body: %v", err))
+	}
+
+	registryOfferID, attachment, err := r.registry.CreateCredentialOffer(agent.PublicDID, ac.TheirDID, schema, body)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating credential offer: %v", err))
 	}
@@ -169,9 +174,10 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 		SchemaID:          schema.ID,
 		ExternalSubjectID: req.ExternalId,
 		Offer: datastore.Offer{
-			Comment:    req.Credential.Comment,
-			Type:       req.Credential.Type,
-			Attributes: attrs,
+			Comment: req.Credential.Comment,
+			Type:    req.Credential.Type,
+			Preview: attrs,
+			Body:    body,
 		},
 		SystemState: "offered",
 	}

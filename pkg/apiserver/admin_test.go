@@ -76,7 +76,6 @@ func TestCreateAgent(t *testing.T) {
 			Agent: &api.Agent{
 				Id:                  "123",
 				Name:                "Test Agent",
-				AssignedSchemaId:    "",
 				EndorsableSchemaIds: nil,
 			},
 		}
@@ -84,7 +83,6 @@ func TestCreateAgent(t *testing.T) {
 		a := &datastore.Agent{
 			ID:                  "123",
 			Name:                "Test Agent",
-			AssignedSchemaId:    "",
 			EndorsableSchemaIds: []string{},
 		}
 
@@ -102,7 +100,6 @@ func TestCreateAgent(t *testing.T) {
 			Agent: &api.Agent{
 				Id:                  "123",
 				Name:                "Test Agent",
-				AssignedSchemaId:    "",
 				EndorsableSchemaIds: []string{"test-schema-id"},
 				PublicDid:           true,
 			},
@@ -139,7 +136,6 @@ func TestCreateAgentFails(t *testing.T) {
 		Agent: &api.Agent{
 			Id:                  "123",
 			Name:                "Test Agent",
-			AssignedSchemaId:    "",
 			EndorsableSchemaIds: nil,
 		},
 	}
@@ -147,7 +143,6 @@ func TestCreateAgentFails(t *testing.T) {
 	a := &datastore.Agent{
 		ID:                  "123",
 		Name:                "Test Agent",
-		AssignedSchemaId:    "",
 		EndorsableSchemaIds: []string{},
 	}
 
@@ -166,7 +161,6 @@ func TestCreateAgentMissingRequiredField(t *testing.T) {
 		Agent: &api.Agent{
 			Id:                  "",
 			Name:                "Test Agent",
-			AssignedSchemaId:    "",
 			EndorsableSchemaIds: nil,
 		},
 	}
@@ -183,7 +177,6 @@ func TestCreateAgentAlreadyExists(t *testing.T) {
 		Agent: &api.Agent{
 			Id:                  "123",
 			Name:                "Test Agent",
-			AssignedSchemaId:    "",
 			EndorsableSchemaIds: nil,
 		},
 	}
@@ -302,7 +295,6 @@ func TestUpdateAgent(t *testing.T) {
 			Agent: &api.Agent{
 				Id:                  "123",
 				Name:                "Test Agent",
-				AssignedSchemaId:    "",
 				EndorsableSchemaIds: []string{"test-schema-id"},
 				PublicDid:           true,
 			},
@@ -311,7 +303,6 @@ func TestUpdateAgent(t *testing.T) {
 		a := &datastore.Agent{
 			ID:                  "123",
 			Name:                "Test Agent",
-			AssignedSchemaId:    "",
 			EndorsableSchemaIds: []string{"test-schema-id"},
 			HasPublicDID:        true,
 		}
@@ -343,7 +334,6 @@ func TestUpdateAgent(t *testing.T) {
 			Agent: &api.Agent{
 				Id:                  "123",
 				Name:                "Test Agent",
-				AssignedSchemaId:    "",
 				EndorsableSchemaIds: nil,
 			},
 		}
@@ -351,7 +341,6 @@ func TestUpdateAgent(t *testing.T) {
 		a := &datastore.Agent{
 			ID:                  "123",
 			Name:                "Test Agent",
-			AssignedSchemaId:    "",
 			EndorsableSchemaIds: nil,
 		}
 
@@ -368,7 +357,6 @@ func TestUpdateAgent(t *testing.T) {
 			Agent: &api.Agent{
 				Id:                  "123",
 				Name:                "Test Agent",
-				AssignedSchemaId:    "",
 				EndorsableSchemaIds: nil,
 			},
 		}
@@ -805,7 +793,7 @@ func TestIssueCredential(t *testing.T) {
 				SchemaId: "test-schema-id",
 				Comment:  "test comment",
 				Type:     "lds/json-ld-proof",
-				Attributes: []*common.CredentialAttribute{
+				Preview: []*common.CredentialAttribute{
 					{
 						Name:  "test-field",
 						Value: "test-value",
@@ -830,7 +818,7 @@ func TestIssueCredential(t *testing.T) {
 				SchemaId: "test-schema-id",
 				Comment:  "test comment",
 				Type:     "lds/json-ld-proof",
-				Attributes: []*common.CredentialAttribute{
+				Preview: []*common.CredentialAttribute{
 					{
 						Name:  "test-field",
 						Value: "test-value",

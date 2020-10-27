@@ -4,6 +4,7 @@ import "C"
 import (
 	"encoding/base64"
 	"encoding/json"
+
 	"github.com/google/tink/go/keyset"
 	"github.com/google/tink/go/signature/subtle"
 	"github.com/google/uuid"
@@ -18,7 +19,6 @@ import (
 	"github.com/scoir/canis/pkg/indy"
 	ursaWrapper "github.com/scoir/canis/pkg/ursa"
 )
-
 
 const Indy = "hlindy-zkp-v1.0"
 
@@ -168,7 +168,7 @@ const (
 	DefaultTag      = "default"
 )
 
-func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error) {
+func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, _ string, s *datastore.Schema, _ []byte) (string, *decorator.AttachmentData, error) {
 	schema, err := r.client.GetSchema(s.ExternalSchemaID)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "unable to find schema on ledger to create cred def")

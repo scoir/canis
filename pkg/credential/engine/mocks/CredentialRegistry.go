@@ -14,20 +14,20 @@ type CredentialRegistry struct {
 	mock.Mock
 }
 
-// CreateCredentialOffer provides a mock function with given fields: issuer, s
-func (_m *CredentialRegistry) CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, values map[string]interface{}) (string, *decorator.AttachmentData, error) {
-	ret := _m.Called(issuer, s)
+// CreateCredentialOffer provides a mock function with given fields: issuer, subjectDID, s, value
+func (_m *CredentialRegistry) CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, value []byte) (string, *decorator.AttachmentData, error) {
+	ret := _m.Called(issuer, subjectDID, s, value)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*datastore.DID, *datastore.Schema) string); ok {
-		r0 = rf(issuer, s)
+	if rf, ok := ret.Get(0).(func(*datastore.DID, string, *datastore.Schema, []byte) string); ok {
+		r0 = rf(issuer, subjectDID, s, value)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 *decorator.AttachmentData
-	if rf, ok := ret.Get(1).(func(*datastore.DID, *datastore.Schema) *decorator.AttachmentData); ok {
-		r1 = rf(issuer, s)
+	if rf, ok := ret.Get(1).(func(*datastore.DID, string, *datastore.Schema, []byte) *decorator.AttachmentData); ok {
+		r1 = rf(issuer, subjectDID, s, value)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*decorator.AttachmentData)
@@ -35,8 +35,8 @@ func (_m *CredentialRegistry) CreateCredentialOffer(issuer *datastore.DID, subje
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(*datastore.DID, *datastore.Schema) error); ok {
-		r2 = rf(issuer, s)
+	if rf, ok := ret.Get(2).(func(*datastore.DID, string, *datastore.Schema, []byte) error); ok {
+		r2 = rf(issuer, subjectDID, s, value)
 	} else {
 		r2 = ret.Error(2)
 	}

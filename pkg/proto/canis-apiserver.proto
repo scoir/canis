@@ -90,16 +90,15 @@ message UpdateSchemaResponse {
 message Agent {
     string id = 1;
     string name = 2;
-    string assigned_schema_id = 3;
-    repeated string endorsable_schema_ids = 4;
+    repeated string endorsable_schema_ids = 3;
     enum Status {
         STARTING = 0;
         RUNNING = 1;
         ERROR = 2;
         TERMINATED = 3;
     }
-    Status status = 5;
-    bool public_did = 6;
+    Status status = 4;
+    bool public_did = 5;
 }
 
 message CreateAgentRequest {
