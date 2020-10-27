@@ -1,9 +1,11 @@
 ![Canis Major](/static/CanisMajor.jpg?raw=true "Canis Major")
 
+[![Release](https://img.shields.io/github/release/scoir/canis.svg)](https://github.com/scoir/canis/releases/latest)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://raw.githubusercontent.com/scoir/canis/main/LICENSE)
 ![Build](https://github.com/scoir/canis/workflows/Build/badge.svg)
 [![codecov](https://codecov.io/gh/scoir/canis/branch/main/graph/badge.svg)](https://codecov.io/gh/scoir/canis)
 [![Go Report Card](https://goreportcard.com/badge/github.com/scoir/canis)](https://goreportcard.com/report/github.com/scoir/canis)
+![Go Version](https://img.shields.io/github/go-mod/go-version/scoir/canis)
 
 # CANIS
 
