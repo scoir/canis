@@ -89,6 +89,11 @@ canis-docker-publish: canis-docker
 	@docker tag canis/canis registry.hyades.svc.cluster.local:5000/canis
 	@docker push registry.hyades.svc.cluster.local:5000/canis
 
+canis-build-docker:
+	@echo "building canis build docker image..."
+	@docker build -f ./docker/build/Dockerfile -t scoir/canis-build:latest .
+
+
 all-pb: canis-common-pb canis-apiserver-pb canis-didcomm-doorman-pb canis-didcomm-issuer-pb canis-didcomm-verifier-pb canis-didcomm-lb-pb
 
 canis-common-pb: pkg/proto/canis-common.pb.go
