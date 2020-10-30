@@ -5,10 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: registry.hyades.svc.cluster.local:5000/canis
+  repository: canislabs/canis
   pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
