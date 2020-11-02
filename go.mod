@@ -4,7 +4,7 @@ go 1.14
 
 replace github.com/hyperledger/aries-framework-go => github.com/pfeairheller/aries-framework-go v0.1.4-0.20200918145734-b0d185a4e869
 
-replace github.com/hyperledger/indy-vdr/wrappers/golang => github.com/pfeairheller/indy-vdr/wrappers/golang v0.0.0
+replace github.com/hyperledger/indy-vdr/wrappers/golang => github.com/pfeairheller/indy-vdr/wrappers/golang v0.0.1
 
 require (
 	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
@@ -19,14 +19,13 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/golangci/golangci-lint v1.31.0 // indirect
-	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/tink/go v1.4.0-rc2.0.20200807212851-52ae9c6679b2
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.15.2
 	github.com/hyperledger/aries-framework-go v0.1.4
-	github.com/hyperledger/indy-vdr/wrappers/golang v0.0.0-20201016223731-7a6964e39780
+	github.com/hyperledger/indy-vdr/wrappers/golang v0.0.0-20201031155907-5f437d26ed71
 	github.com/hyperledger/ursa-wrapper-go v0.0.0-20201020141813-07eecfdbb801
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/jackc/pgx/v4 v4.8.0 // indirect
