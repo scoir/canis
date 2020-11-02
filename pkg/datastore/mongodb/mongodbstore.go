@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
@@ -22,7 +23,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/scoir/canis/pkg/datastore"
 )
 
@@ -403,7 +403,6 @@ func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string)
 	}
 
 	return ac, nil
-
 }
 
 func (r *mongoDBStore) InsertCredential(c *datastore.Credential) (string, error) {
@@ -418,7 +417,7 @@ func (r *mongoDBStore) InsertCredential(c *datastore.Credential) (string, error)
 func (r *mongoDBStore) FindOffer(offerID string) (*datastore.Credential, error) {
 	c := &datastore.Credential{}
 	err := r.db.Collection(CredentialC).FindOne(context.Background(),
-		bson.M{"offerid": offerID, "systemstate": "offered"}).Decode(c)
+		bson.M{"threadid": offerID, "systemstate": "offered"}).Decode(c)
 
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load offer").Error())
@@ -471,4 +470,25 @@ func (r *mongoDBStore) InsertPresentationRequest(pr *datastore.PresentationReque
 	}
 
 	return res.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+func (r *mongoDBStore) DeleteOffer(offerID string) error {
+	_, err := r.db.Collection(CredentialC).DeleteOne(context.Background(), bson.M{"threadid": offerID})
+	if err != nil {
+		return errors.Wrap(err, "unable to delete offer")
+	}
+
+	return nil
+}
+
+func (r *mongoDBStore) GetAgentConnectionForDID(a *datastore.Agent, theirDID string) (*datastore.AgentConnection, error) {
+	ac := &datastore.AgentConnection{}
+	err := r.db.Collection(AgentConnectionC).FindOne(context.Background(),
+		bson.M{"agentid": a.ID, "theirdid": theirDID}).Decode(ac)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
+	}
+
+	return ac, nil
 }

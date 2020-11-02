@@ -76,6 +76,29 @@ func TestIssueCredential(t *testing.T) {
 
 }
 
+func TestGetSchemaForProposal(t *testing.T) {
+	prov := NewProvider()
+	eng := &emocks.CredentialEngine{
+		Accep:                true,
+		SchemaIDForProposal:  "schema-id",
+		SchemaForProposalErr: nil,
+	}
+	reg := New(prov, WithEngine(eng))
+
+	proposal := []byte(`{"schema_id": "123"}`)
+	schemaID, err := reg.GetSchemaForProposal("hlindy-zkp-v1.0", proposal)
+	require.NoError(t, err)
+	require.Equal(t, schemaID, eng.SchemaIDForProposal)
+
+	eng.SchemaIDForProposal = ""
+	eng.SchemaForProposalErr = errors.New("BOOM")
+	schemaID, err = reg.GetSchemaForProposal("hlindy-zkp-v1.0", proposal)
+	require.Empty(t, schemaID)
+	require.Error(t, err)
+	require.Equal(t, err.Error(), "BOOM")
+
+}
+
 func TestRegisterSchema(t *testing.T) {
 	prov := NewProvider()
 	eng := &emocks.CredentialEngine{
@@ -153,5 +176,10 @@ func TestNoValidEngine(t *testing.T) {
 	require.Empty(t, id)
 	require.Error(t, err)
 	require.Equal(t, err.Error(), "credential format indy not supported by any engine")
+
+	id, err = reg.GetSchemaForProposal("bad", []byte{})
+	require.Empty(t, id)
+	require.Error(t, err)
+	require.Equal(t, err.Error(), "credential format bad not supported by any engine")
 
 }

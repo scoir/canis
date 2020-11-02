@@ -8,14 +8,8 @@ replace github.com/hyperledger/indy-vdr/wrappers/golang => github.com/pfeairhell
 
 require (
 	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
-	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v1.13.1
-	github.com/docker/go-connections v0.4.0
-	github.com/docker/go-units v0.4.0 // indirect
-	github.com/ghodss/yaml v1.0.0
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/golangci/golangci-lint v1.31.0 // indirect
@@ -27,15 +21,10 @@ require (
 	github.com/hyperledger/aries-framework-go v0.1.4
 	github.com/hyperledger/indy-vdr/wrappers/golang v0.0.0-20201031155907-5f437d26ed71
 	github.com/hyperledger/ursa-wrapper-go v0.0.0-20201020141813-07eecfdbb801
-	github.com/imdario/mergo v0.3.9 // indirect
-	github.com/jackc/pgx/v4 v4.8.0 // indirect
-	github.com/lib/pq v1.7.0 // indirect
 	github.com/makiuchi-d/gozxing v0.0.0-20200903113411-25f730ed83da
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/mr-tron/base58 v1.2.0
 	github.com/mwitkow/grpc-proxy v0.0.0-20181017164139-0f1106ef9c76
-	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/piprate/json-gold v0.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
@@ -45,6 +34,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/streadway/amqp v1.0.0
+	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/unidoc/unipdf/v3 v3.10.1
 	github.com/vektra/mockery v1.1.2 // indirect

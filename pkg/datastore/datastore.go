@@ -48,6 +48,8 @@ type Store interface {
 	InsertCredential(c *Credential) (string, error)
 	//FindOffer finds credential in offer state
 	FindOffer(offerID string) (*Credential, error)
+	//Delete offer deletes the offer identifed by the offerID (thid of message)
+	DeleteOffer(offerID string) error
 
 	// InsertAgent add agent to store
 	InsertAgent(a *Agent) (string, error)
@@ -65,6 +67,8 @@ type Store interface {
 	InsertAgentConnection(a *Agent, externalID string, conn *didexchange.Connection) error
 	// GetAgentConnection return single connection between an agent and an external subject
 	GetAgentConnection(a *Agent, externalID string) (*AgentConnection, error)
+	// GetAgentConnection return single connection between an agent and an external subject
+	GetAgentConnectionForDID(a *Agent, theirDID string) (*AgentConnection, error)
 
 	ListWebhooks(typ string) ([]*Webhook, error)
 

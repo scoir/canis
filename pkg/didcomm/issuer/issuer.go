@@ -169,7 +169,7 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 		AgentID:           agent.ID,
 		MyDID:             ac.MyDID,
 		TheirDID:          ac.TheirDID,
-		OfferID:           id,
+		ThreadID:          id,
 		RegistryOfferID:   registryOfferID,
 		SchemaID:          schema.ID,
 		ExternalSubjectID: req.ExternalId,

@@ -245,3 +245,28 @@ func TestCreateSchema(t *testing.T) {
 
 	})
 }
+
+func TestGetSchemaForProposal(t *testing.T) {
+	t.Run("get schema", func(t *testing.T) {
+		prov := NewProvider()
+
+		engine, err := New(prov)
+		require.NoError(t, err)
+
+		proposal := []byte(`{"schema_id": "123"}`)
+		schemaID, err := engine.GetSchemaForProposal(proposal)
+		require.NoError(t, err)
+		require.Equal(t, "123", schemaID)
+	})
+	t.Run("get schema - bad JSON", func(t *testing.T) {
+		prov := NewProvider()
+
+		engine, err := New(prov)
+		require.NoError(t, err)
+
+		proposal := []byte(`{"schema_id": "`)
+		schemaID, err := engine.GetSchemaForProposal(proposal)
+		require.Error(t, err)
+		require.Equal(t, "", schemaID)
+	})
+}

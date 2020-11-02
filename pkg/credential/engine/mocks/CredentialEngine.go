@@ -16,6 +16,12 @@ type CredentialEngine struct {
 	CreateCredentialOfferAttachment *decorator.AttachmentData
 	CreateCredentialOfferError      error
 	RegisterError                   error
+	SchemaIDForProposal             string
+	SchemaForProposalErr            error
+}
+
+func (r *CredentialEngine) GetSchemaForProposal(proposal []byte) (string, error) {
+	return r.SchemaIDForProposal, r.SchemaForProposalErr
 }
 
 // CreateCredentialOffer provides a mock function with given fields: issuer, s

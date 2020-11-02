@@ -11,10 +11,10 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
-	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/indy"
 	ursaWrapper "github.com/scoir/canis/pkg/ursa"
@@ -73,9 +73,6 @@ func New(prov provider) (*CredentialEngine, error) {
 	}
 
 	eng.kms = prov.KMS()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to load KMS in indy credential engine")
-	}
 	eng.issuer = prov.Issuer()
 
 	return eng, nil
@@ -273,4 +270,14 @@ func (r *CredentialEngine) IssueCredential(issuerDID *datastore.DID, s *datastor
 		values,
 	)
 
+}
+
+func (r *CredentialEngine) GetSchemaForProposal(proposal []byte) (string, error) {
+	cp := &CredentialProposal{}
+	err := json.Unmarshal(proposal, cp)
+	if err != nil {
+		return "", errors.Wrap(err, "invalid Indy credential proposal")
+	}
+
+	return cp.SchemaID, nil
 }
