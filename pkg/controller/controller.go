@@ -100,7 +100,7 @@ func (r *Runner) launchGRPC() error {
 
 	grpcServer := grpc.NewServer()
 	r.ac.RegisterGRPCHandler(grpcServer)
-	log.Println("GRPC Listening for on ", addr)
+	log.Println("GRPC Listening on ", addr)
 	return grpcServer.Serve(lis)
 }
 

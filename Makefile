@@ -166,3 +166,8 @@ prune:
 	@echo
 	@echo "Deletes any image not referenced by any container"
 	@echo -e "\t \U0001F92F  #docker image prune -a"
+
+copy-config-defaults:
+	@cp -f ./deploy/compose/genesis-file.yaml.default ./deploy/compose/genesis-file.yaml
+	@cp -f ./deploy/compose/indy-registry.yaml.default ./deploy/compose/indy-registry.yaml
+	@cp -f ./deploy/compose/aries-indy-vdri-config.yaml.default ./deploy/compose/aries-indy-vdri-config.yaml

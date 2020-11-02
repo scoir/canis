@@ -30,7 +30,7 @@ func runStart(_ *cobra.Command, _ []string) {
 		log.Fatalln("endpoint not configured correctly", err)
 	}
 
-	method := prov.vp.GetString("resolver.method")
+	method := prov.conf.GetString("resolver.method")
 
 	srv := resolver.NewHTTPIndyResolver(endpoint.Address(), method, prov)
 	err = srv.Start()

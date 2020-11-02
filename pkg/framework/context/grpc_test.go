@@ -3,8 +3,11 @@ package context
 import (
 	"testing"
 
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
+
+	"github.com/scoir/canis/pkg/framework"
+	config "github.com/scoir/canis/pkg/mock/config/viper"
 )
 
 var endpoint = map[string]interface{}{
@@ -14,27 +17,30 @@ var endpoint = map[string]interface{}{
 
 func TestProvider_GetStewardClient(t *testing.T) {
 	t.Run("test no key", func(t *testing.T) {
-		vp := viper.New()
-		p := NewProvider(vp)
+		mockConfig := &config.MockConfig{
+			EndpointErr: errors.New(""),
+		}
+		p := NewProvider(mockConfig)
 
 		ep, err := p.GetAPIAdminClient()
-		assert.NotNil(t, err)
-		assert.Nil(t, ep)
-		assert.Equal(t, "api client is not properly configured", err.Error())
+		require.Error(t, err)
+		require.Nil(t, ep)
 	})
+
 	t.Run("test with key", func(t *testing.T) {
-		vp := viper.New()
-		err := vp.MergeConfigMap(map[string]interface{}{
-			"api": map[string]interface{}{
-				"grpc": endpoint,
+		mockConfig := &config.MockConfig{
+			EndpointFunc: func(s string) (*framework.Endpoint, error) {
+				return &framework.Endpoint{
+					Host: "localhost",
+					Port: 8888,
+				}, nil
 			},
-		})
-		assert.Nil(t, err)
-		p := NewProvider(vp)
+		}
+		p := NewProvider(mockConfig)
 
 		client, err := p.GetAPIAdminClient()
-		assert.Nil(t, err)
-		assert.NotNil(t, client)
+		require.Nil(t, err)
+		require.NotNil(t, client)
 	})
 
 }

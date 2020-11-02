@@ -11,28 +11,19 @@ import (
 	"google.golang.org/grpc"
 
 	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
-	"github.com/scoir/canis/pkg/framework"
-)
-
-const (
-	apiEndpoint = "api.grpc"
 )
 
 func (r *Provider) GetAPIAdminClient() (api.AdminClient, error) {
-	if !r.vp.IsSet(apiEndpoint) {
-		return nil, errors.New("api client is not properly configured")
-	}
-
-	ep := &framework.Endpoint{}
-	err := r.vp.UnmarshalKey(apiEndpoint, ep)
+	ep, err := r.conf.Endpoint("api.grpc")
 	if err != nil {
-		return nil, errors.Wrap(err, "api client is not properly configured")
+		return nil, err
 	}
 
 	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial grpc for api client")
 	}
+
 	cl := api.NewAdminClient(cc)
 	return cl, nil
 }

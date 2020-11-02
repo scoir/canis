@@ -24,10 +24,10 @@ var startCmd = &cobra.Command{
 }
 
 func runStart(_ *cobra.Command, _ []string) {
-	host := prov.vp.GetString("inbound.host")
-	httpPort := prov.vp.GetInt("inbound.httpport")
-	wsPort := prov.vp.GetInt("inbound.wsport")
-	external := prov.vp.GetString("inbound.external")
+	host := prov.conf.GetString("inbound.host")
+	httpPort := prov.conf.GetInt("inbound.httpport")
+	wsPort := prov.conf.GetInt("inbound.wsport")
+	external := prov.conf.GetString("inbound.external")
 
 	log.Println("starting didcomm loadbalancer")
 
