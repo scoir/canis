@@ -15,6 +15,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
+	"github.com/hyperledger/aries-framework-go/pkg/store/connection"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
@@ -141,6 +143,10 @@ func TestInsertListDID(t *testing.T) {
 
 		did := didlist.DIDs[0].DID.DIDVal.MethodSpecificID
 		require.Equal(t, "a did", did)
+
+		d2, err := store.GetDID(didlist.DIDs[0].DID.String())
+		require.NoError(t, err)
+		require.Equal(t, "did:a did", d2.ID)
 
 		err = prov.Close()
 		require.NoError(t, err)
@@ -380,5 +386,103 @@ func TestPresentationRequest(t *testing.T) {
 		})
 		require.NoError(t, err)
 
+	})
+}
+
+func TestOffer(t *testing.T) {
+	t.Run("credential offer", func(t *testing.T) {
+		prov, err := NewProvider(testConfig())
+		require.NoError(t, err)
+
+		store, err := prov.Open()
+		require.NoError(t, err)
+
+		_, err = store.InsertCredential(&datastore.Credential{ThreadID: "1234", SystemState: "offered"})
+		require.NoError(t, err)
+
+		c, err := store.FindOffer("1234")
+		require.NoError(t, err)
+		require.NotNil(t, c)
+
+		err = store.DeleteOffer("1234")
+		require.NoError(t, err)
+
+		c, err = store.FindOffer("1234")
+		require.Error(t, err)
+		require.Nil(t, c)
+
+	})
+}
+
+func TestAgentConnection(t *testing.T) {
+	t.Run("agent connection", func(t *testing.T) {
+		prov, err := NewProvider(testConfig())
+		require.NoError(t, err)
+
+		store, err := prov.Open()
+		require.NoError(t, err)
+
+		agent := &datastore.Agent{ID: "agent id", Name: "an agent"}
+		conn := &didexchange.Connection{
+			Record: &connection.Record{
+				TheirDID:     "did:sov:abc",
+				MyDID:        "did:sov:xyz",
+				ConnectionID: "connection-id",
+			},
+		}
+
+		err = store.InsertAgentConnection(agent, "external-id", conn)
+		require.NoError(t, err)
+
+		ac, err := store.GetAgentConnection(agent, "external-id")
+		require.NoError(t, err)
+		require.Equal(t, ac.TheirDID, "did:sov:abc")
+
+		ac, err = store.GetAgentConnectionForDID(agent, "did:sov:abc")
+		require.NoError(t, err)
+		require.Equal(t, ac.ExternalID, "external-id")
+		require.Equal(t, ac.AgentID, "agent id")
+		require.Equal(t, ac.MyDID, "did:sov:xyz")
+		require.Equal(t, ac.ConnectionID, "connection-id")
+
+	})
+}
+
+func TestWebhooks(t *testing.T) {
+	t.Run("webhooks", func(t *testing.T) {
+		prov, err := NewProvider(testConfig())
+		require.NoError(t, err)
+
+		store, err := prov.Open()
+		require.NoError(t, err)
+
+		err = store.AddWebhook(&datastore.Webhook{
+			Type: "connections",
+			URL:  "http://example.com/connections",
+		})
+		require.NoError(t, err)
+
+		err = store.AddWebhook(&datastore.Webhook{
+			Type: "connections",
+			URL:  "http://sample.com/connections",
+		})
+		require.NoError(t, err)
+
+		err = store.AddWebhook(&datastore.Webhook{
+			Type: "credentials",
+			URL:  "http://sample.com/credentials",
+		})
+		require.NoError(t, err)
+
+		hooks, err := store.ListWebhooks("connections")
+		require.NoError(t, err)
+		require.Len(t, hooks, 2)
+
+		err = store.DeleteWebhook("connections")
+		require.NoError(t, err)
+
+		hooks, err = store.ListWebhooks("connections")
+		require.NoError(t, err)
+		require.Len(t, hooks, 0)
 	})
 }

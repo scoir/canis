@@ -16,6 +16,7 @@ type CredentialEngine interface {
 	CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, value []byte) (string, *decorator.AttachmentData, error)
 	IssueCredential(issuerDID *datastore.DID, s *datastore.Schema, offerID string,
 		requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error)
+	GetSchemaForProposal(proposal []byte) (string, error)
 }
 
 //go:generate mockery -name=CredentialRegistry
@@ -25,6 +26,7 @@ type CredentialRegistry interface {
 	CreateCredentialOffer(issuer *datastore.DID, subjectDID string, s *datastore.Schema, value []byte) (string, *decorator.AttachmentData, error)
 	IssueCredential(issuer *datastore.DID, s *datastore.Schema, offerID string,
 		requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error)
+	GetSchemaForProposal(format string, data []byte) (string, error)
 }
 
 type Option func(opts *Registry)
@@ -93,14 +95,23 @@ func (r *Registry) IssueCredential(issuer *datastore.DID, s *datastore.Schema, o
 	return e.IssueCredential(issuer, s, offerID, requestAttachment, values)
 }
 
-func (r *Registry) resolveEngine(method string) (CredentialEngine, error) {
+func (r *Registry) GetSchemaForProposal(format string, data []byte) (string, error) {
+	e, err := r.resolveEngine(format)
+	if err != nil {
+		return "", err
+	}
+
+	return e.GetSchemaForProposal(data)
+}
+
+func (r *Registry) resolveEngine(format string) (CredentialEngine, error) {
 	for _, e := range r.engines {
-		if e.Accept(method) {
+		if e.Accept(format) {
 			return e, nil
 		}
 	}
 
-	return nil, fmt.Errorf("credential format %s not supported by any engine", method)
+	return nil, fmt.Errorf("credential format %s not supported by any engine", format)
 }
 
 // WithEngine adds did method implementation for store.

@@ -214,3 +214,7 @@ func (r *CredentialEngine) newCryptoSigner(kid string) (*subtle.ED25519Signer, e
 	return prim.Primary.Primitive.(*subtle.ED25519Signer), nil
 
 }
+
+func (r *CredentialEngine) GetSchemaForProposal(proposal []byte) (string, error) {
+	panic("implement me")
+}

@@ -25,23 +25,22 @@ type AgentList struct {
 	Agents []*Agent
 }
 
-type StatusType string
-
-var (
-	NotStarted StatusType = "NOT STARTED"
-	Running    StatusType = "RUNNING"
-	Error      StatusType = "ERROR"
-	Completed  StatusType = "COMPLETED"
-)
-
 type Agent struct {
 	ID                  string
 	Name                string
 	EndorsableSchemaIds []string
-	Status              StatusType
 	PID                 string
 	HasPublicDID        bool
 	PublicDID           *DID
+}
+
+func (r *Agent) CanIssue(schemaID string) bool {
+	for _, id := range r.EndorsableSchemaIds {
+		if schemaID == id {
+			return true
+		}
+	}
+	return false
 }
 
 type AgentConnection struct {
@@ -121,7 +120,7 @@ type Credential struct {
 	AgentID           string
 	MyDID             string
 	TheirDID          string
-	OfferID           string
+	ThreadID          string
 	SchemaID          string
 	RegistryOfferID   string
 	ExternalSubjectID string

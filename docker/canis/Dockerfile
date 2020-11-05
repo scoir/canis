@@ -1,6 +1,7 @@
 FROM scoir/indy-libs:latest
 
 RUN apt-get update
+RUN apt-get install -y ca-certificates
 
 COPY ./bin/canis-apiserver /usr/local/bin/canis-apiserver
 COPY ./bin/canis-didcomm-issuer /usr/local/bin/canis-didcomm-issuer

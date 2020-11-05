@@ -41,6 +41,20 @@ func (_m *Store) DeleteAgent(id string) error {
 	return r0
 }
 
+// DeleteOffer provides a mock function with given fields: offerID
+func (_m *Store) DeleteOffer(offerID string) error {
+	ret := _m.Called(offerID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(offerID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteSchema provides a mock function with given fields: id
 func (_m *Store) DeleteSchema(id string) error {
 	ret := _m.Called(id)
@@ -154,6 +168,29 @@ func (_m *Store) GetAgentConnection(a *datastore.Agent, externalID string) (*dat
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*datastore.Agent, string) error); ok {
 		r1 = rf(a, externalID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAgentConnectionForDID provides a mock function with given fields: a, theirDID
+func (_m *Store) GetAgentConnectionForDID(a *datastore.Agent, theirDID string) (*datastore.AgentConnection, error) {
+	ret := _m.Called(a, theirDID)
+
+	var r0 *datastore.AgentConnection
+	if rf, ok := ret.Get(0).(func(*datastore.Agent, string) *datastore.AgentConnection); ok {
+		r0 = rf(a, theirDID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.AgentConnection)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.Agent, string) error); ok {
+		r1 = rf(a, theirDID)
 	} else {
 		r1 = ret.Error(1)
 	}

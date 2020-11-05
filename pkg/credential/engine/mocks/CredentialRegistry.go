@@ -65,6 +65,27 @@ func (_m *CredentialRegistry) CreateSchema(s *datastore.Schema) (string, error) 
 	return r0, r1
 }
 
+// GetSchemaForProposal provides a mock function with given fields: format, data
+func (_m *CredentialRegistry) GetSchemaForProposal(format string, data []byte) (string, error) {
+	ret := _m.Called(format, data)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, []byte) string); ok {
+		r0 = rf(format, data)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []byte) error); ok {
+		r1 = rf(format, data)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // IssueCredential provides a mock function with given fields: issuer, s, offerID, requestAttachment, values
 func (_m *CredentialRegistry) IssueCredential(issuer *datastore.DID, s *datastore.Schema, offerID string, requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error) {
 	ret := _m.Called(issuer, s, offerID, requestAttachment, values)
