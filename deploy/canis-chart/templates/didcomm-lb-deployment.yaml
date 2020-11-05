@@ -46,8 +46,13 @@ spec:
           volumeMounts:
             - mountPath: "/etc/canis"
               name: didcomm-lb-config
+            - mountPath: "/etc/canis/common"
+              name: common-config
       restartPolicy: Always
       volumes:
         - name: didcomm-lb-config
           configMap:
             name: {{ include "canis.fullname" . }}-didcomm-lb-config
+        - name: common-config
+          configMap:
+            name: {{ include "canis.fullname" . }}-common-config

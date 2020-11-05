@@ -29,6 +29,8 @@ users:
       client-key: /home/$USER/.minikube/client.key
 EOF
 chmod 600 ~/.kube/minikube-config.yaml
+cp ~/.kube/minikube-config.yaml config/kubeconfig.yaml
+chmod 600 config/kubeconfig.yaml
 
 echo -e "\U000270D   Setting Dev IP in minikube"
 export DEV_IP=172.16.1.1
@@ -91,11 +93,3 @@ UUID=$(cat /proc/sys/kernel/random/uuid)
 
 CTX=$(kubectl config current-context)
 kubectl config set-context "${CTX}" --namespace=hyades
-
-
-echo
-echo -e "\U0001F45F  Set the following in your scoir terminal and restart"
-echo
-echo "export SCOIR_NYMBLESTEWARDGRPCADDRESS='$(minikube service -n hyades steward-agent-loadbalancer --url | sed 's/http:\/\///g')'"
-echo
-echo -e "\U0001F6B2  Run make cycle to build and deploy updated Nymble code"

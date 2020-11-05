@@ -97,3 +97,6 @@ loadbalancer:
       httpPort: 30003
       host: 192.168.99.100
 
+verifier:
+  grpc:
+    port: 7777

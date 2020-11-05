@@ -43,8 +43,13 @@ spec:
           volumeMounts:
             - mountPath: "/etc/canis"
               name: apiserver-config
+            - mountPath: "/etc/canis/common"
+              name: common-config
       restartPolicy: Always
       volumes:
         - name: apiserver-config
           configMap:
             name: {{ include "canis.fullname" . }}-apiserver-config
+        - name: common-config
+          configMap:
+            name: {{ include "canis.fullname" . }}-common-config
