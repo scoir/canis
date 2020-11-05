@@ -5,19 +5,9 @@ metadata:
   labels:
     app: {{ include "canis.fullname" . }}-webhook-notifier
 data:
-  canis-webhook-notifier-config.yaml: |-
+  canis-webhook-notifier.yaml: |-
     ###############################################################
     #
-    #  Datastore configuration
+    #  Webhook Notifier
     #
     ###############################################################
-    datastore:
-      {{- toYaml .Values.datastore | nindent 6 }}
-
-    ###############################################################
-    #
-    #  AMQP Server (rabbitMQ)
-    #
-    ###############################################################
-    amqp:
-      {{- toYaml .Values.amqp | nindent 6 }}

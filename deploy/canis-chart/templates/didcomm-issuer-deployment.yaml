@@ -40,8 +40,13 @@ spec:
           volumeMounts:
             - mountPath: "/etc/canis"
               name: didcomm-issuer-config
+            - mountPath: "/etc/canis/common"
+              name: common-config
       restartPolicy: Always
       volumes:
         - name: didcomm-issuer-config
           configMap:
             name: {{ include "canis.fullname" . }}-didcomm-issuer-config
+        - name: common-config
+          configMap:
+            name: {{ include "canis.fullname" . }}-common-config

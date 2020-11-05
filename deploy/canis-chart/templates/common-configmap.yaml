@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "canis.fullname" . }}-common-config
+  labels:
+    app: {{ include "canis.fullname" . }}-common-config
+data:
+  canis-genesis-file.yaml: |-
+    genesis: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 4}}
+  canis-amqp-config.yaml: |-
+    ###############################################################
+    #
+    #  AMQP Server (rabbitMQ)
+    #
+    ###############################################################
+    amqp:
+      {{- toYaml .Values.amqp | nindent 6 }}
+  canis-aries-indy-vdri-config.yaml: |-
+    ###############################################################
+    #
+    #  Aries Indy VDRI Configuration
+    #
+    ###############################################################
+    aries:
+      vdri:
+        - type: indy
+          method: "scr"
+          genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 10}}
+  canis-data-store-config.yaml: |-
+    ###############################################################
+    #
+    #  Datastore configuration
+    #
+    ###############################################################
+    datastore:
+      {{- toYaml .Values.datastore | nindent 6 }}
+  http-indy-resolver.yaml: |-
+    ###############################################################
+    #
+    #  HTTP Indy resolver configuration
+    #
+    ###############################################################
+    resolver:
+      method: scr
+      http:
+        host: 0.0.0.0
+        port: 5544
+  canis-indy-registry.yaml: |-
+    ###############################################################
+    #
+    #  Indy Engine Registry Configuration
+    #
+    ###############################################################
+    registry:
+      engine: indy
+      indy:
+        genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 8}}
+  canis-ledger-store-config.yaml: |-
+    ###############################################################
+    #
+    #  Ledger-store configuration
+    #
+    ###############################################################
+    ledgerstore:
+      {{- toYaml .Values.ledgerstore | nindent 6 }}
+  canis-master-lock-key.yaml: |-
+    ###############################################################
+    #
+    #  Wallet configuration
+    #
+    ###############################################################
+    wallet:
+      masterLockKey: {{ .Values.wallet.masterLockKey }}

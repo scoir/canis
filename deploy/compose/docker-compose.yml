@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   canis-apiserver:
-    image: canis/canis
+    image: canislabs/canis
     command: "canis-apiserver start"
     ports:
       - "7778:7778"
@@ -29,7 +29,7 @@ services:
       restart_policy:
         condition: on-failure
   canis-didcomm-issuer:
-    image: canis/canis
+    image: canislabs/canis
     command: "canis-didcomm-issuer start"
     ports:
       - "7776:7776"
@@ -58,7 +58,7 @@ services:
       restart_policy:
         condition: on-failure
   canis-didcomm-verifier:
-    image: canis/canis
+    image: canislabs/canis
     command: "canis-didcomm-verifier start"
     ports:
       - "7777:7777"
@@ -87,7 +87,7 @@ services:
       restart_policy:
         condition: on-failure
   canis-didcomm-doorman:
-    image: canis/canis
+    image: canislabs/canis
     command: "canis-didcomm-doorman start"
     ports:
       - "8886:8886"
@@ -114,7 +114,7 @@ services:
       restart_policy:
         condition: on-failure
   canis-didcomm-lb:
-    image: canis/canis
+    image: canislabs/canis
     command: "canis-didcomm-lb start"
     ports:
       - "9001:9001"
@@ -139,7 +139,7 @@ services:
       restart_policy:
         condition: on-failure
   http-indy-resolver:
-    image: canis/canis
+    image: canislabs/canis
     command: "http-indy-resolver start"
     ports:
       - "5544:5544"
@@ -158,7 +158,7 @@ services:
       restart_policy:
         condition: on-failure
   canis-webhook-notifier:
-    image: canis/canis
+    image: canislabs/canis
     command: "canis-webhook-notifier start"
     networks:
       - backend

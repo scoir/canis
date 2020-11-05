@@ -8,30 +8,6 @@ data:
   canis-apiserver-config.yaml: |-
     ###############################################################
     #
-    #  Datastore configuration
-    #
-    ###############################################################
-    datastore:
-      {{- toYaml .Values.datastore | nindent 6 }}
-
-    ###############################################################
-    #
-    #  Ledger-store configuration
-    #
-    ###############################################################
-    ledgerstore:
-      {{- toYaml .Values.ledgerstore | nindent 6 }}
-
-    ###############################################################
-    #
-    #  Wallet configuration
-    #
-    ###############################################################
-    wallet:
-      masterLockKey: {{ .Values.wallet.masterLockKey }}
-    
-    ###############################################################
-    #
     #  API Server
     #
     ###############################################################
@@ -82,21 +58,3 @@ data:
       grpc:
         host: canis-didcomm-lb
         port: {{ .Values.loadbalancer.grpc.port }}
-    
-    ###############################################################
-    #
-    #  Indy VDR Configuration
-    #
-    ###############################################################
-    genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 4}}
-
-    ###############################################################
-    #
-    #  Aries Indy VDRI Configuration
-    #
-    ###############################################################
-    aries:
-      vdri:
-        - type: indy
-          method: "scr"
-          genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 10}}

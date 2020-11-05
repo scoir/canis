@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -51,11 +52,13 @@ func (r *ViperConfigProvider) Load(file string) Config {
 	} else {
 		config.SetConfigType("yaml")
 		config.AddConfigPath("/etc/canis/")
+		config.AddConfigPath("/etc/canis/common/")
 		config.AddConfigPath("./deploy/compose/")
 		config.SetConfigName(r.DefaultConfigName)
 	}
 
 	config.SetEnvPrefix("CANIS")
+	config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	config.AutomaticEnv()
 
 	err := config.BindPFlags(pflag.CommandLine)

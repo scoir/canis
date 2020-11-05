@@ -82,16 +82,17 @@ package: canis-docker
 
 canis-docker: build
 	@echo "building canis docker image..."
-	@docker build -f ./docker/canis/Dockerfile --no-cache -t canis/canis:latest .
+	@docker build -f ./docker/canis/Dockerfile --no-cache -t canislabs/canis:latest .
 
 canis-docker-publish: canis-docker
 	@echo "publishing canis to registry..."
-	@docker tag canis/canis registry.hyades.svc.cluster.local:5000/canis
-	@docker push registry.hyades.svc.cluster.local:5000/canis
+	@docker tag canislabs/canis:latest registry.hyades.svc.cluster.local:5000/canis:latest
+	@docker push registry.hyades.svc.cluster.local:5000/canis:latest
 
 canis-build-docker:
 	@echo "building canis build docker image..."
-	@docker build -f ./docker/build/Dockerfile -t scoir/canis-build:latest .
+	@docker build -f ./docker/build/Dockerfile -t canislabs/canis-build:latest .
+	@docker push canislabs/canis-build:latest
 
 
 all-pb: canis-common-pb canis-apiserver-pb canis-didcomm-doorman-pb canis-didcomm-issuer-pb canis-didcomm-verifier-pb canis-didcomm-lb-pb
@@ -142,11 +143,12 @@ cover:
 	go test -coverprofile cover.out ./pkg/...
 	go tool cover -html=cover.out
 
-install:
-	@helm install canis ./canis-chart --values ./k8s/config/local/values.yaml --kubeconfig ./k8s/config/local/kubeconfig.yaml
+install: canis-docker-publish
+	@helm install canis ./deploy/canis-chart --set image.repository=registry.hyades.svc.cluster.local:5000/canis --kubeconfig ./config/kubeconfig.yaml --namespace=hyades --create-namespace
+	@./scripts/endpoint.sh
 
 uninstall:
-	@helm uninstall canis && ([ $$? -eq 0 ] && echo "") || echo "nothing to uninstall!"
+	@helm uninstall canis --namespace hyades && ([ $$? -eq 0 ] && echo "") || echo "nothing to uninstall!"
 
 expose:
 	minikube service -n hyades canis-apiserver-loadbalancer --url

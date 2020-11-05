@@ -6,3 +6,5 @@ pkg/static/canis-apiserver_swagger.go
 deploy/compose/genesis-file.yaml
 deploy/compose/indy-registry.yaml
 deploy/compose/aries-indy-vdri-config.yaml
+config/kubeconfig.yaml
+config/sirius-minikube.yaml

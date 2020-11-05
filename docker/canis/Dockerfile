@@ -1,4 +1,4 @@
-FROM scoir/indy-libs:latest
+FROM canislabs/indy-libs:latest
 
 RUN apt-get update
 RUN apt-get install -y ca-certificates

@@ -40,8 +40,13 @@ spec:
           volumeMounts:
             - mountPath: "/etc/canis"
               name: didcomm-doorman-config
+            - mountPath: "/etc/canis/common"
+              name: common-config
       restartPolicy: Always
       volumes:
         - name: didcomm-doorman-config
           configMap:
             name: {{ include "canis.fullname" . }}-didcomm-doorman-config
+        - name: common-config
+          configMap:
+            name: {{ include "canis.fullname" . }}-common-config

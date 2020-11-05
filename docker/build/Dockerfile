@@ -1,4 +1,4 @@
-FROM scoir/indy-libs:latest
+FROM canislabs/indy-libs:latest
 
 RUN apt-get -y update --fix-missing
 RUN apt-get -y upgrade

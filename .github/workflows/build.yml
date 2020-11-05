@@ -10,7 +10,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-18.04
-    container: scoir/canis-build:latest
+    container: canislabs/canis-build:latest
     services:
       rabbitmq:
         image: rabbitmq
@@ -43,7 +43,7 @@ jobs:
   publish:
     name: Build Docker Image
     runs-on: ubuntu-18.04
-    container: scoir/canis-build:latest
+    container: canislabs/canis-build:latest
     steps:
 
     - name: Set up Go 1.14
