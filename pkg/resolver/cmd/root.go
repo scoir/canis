@@ -64,7 +64,7 @@ func initConfig() {
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
 	if err != nil {
-		log.Fatalln("unable to create VDR client")
+		log.Fatalln("unable to create VDR client", err)
 	}
 
 	prov = &Provider{

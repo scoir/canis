@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/makiuchi-d/gozxing"
@@ -140,9 +141,15 @@ func generateInvitation() {
 	}
 
 	inviteURL := m["url"].(string)
+	u, err := url.Parse(inviteURL)
+	if err != nil {
+		log.Fatalln("invalid invite URL", err)
+	}
+
+	invite := u.Query().Get("c_i")
 
 	fname := "./ibm-verify-cred-invite.png"
-	err = qrcode.WriteFile(inviteURL, qrcode.Medium, 256, fname)
+	err = qrcode.WriteFile(invite, qrcode.Medium, 256, fname)
 	if err != nil {
 		log.Fatalln("unexpected error generating QR code", err)
 	}
