@@ -437,6 +437,7 @@ github.com/pelletier/go-toml v1.4.0/go.mod h1:PN7xzY2wHTK0K9p34ErDQMlFxa51Fk0OUr
 github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR/tNboyR3/BZd58JJSHlUSCU=
 github.com/pfeairheller/aries-framework-go v0.1.4-0.20200918145734-b0d185a4e869 h1:2vDgJBXWNEFdIPk/Uy5eNQPhlrnwG0K/MkJfVZT91wk=
 github.com/pfeairheller/aries-framework-go v0.1.4-0.20200918145734-b0d185a4e869/go.mod h1:lZAo9af+3VCHzShhGhPizGcs+927moWea9u1QPp75tU=
+github.com/pfeairheller/indy-vdr/wrappers/golang v0.0.1 h1:8Ua8Cz8p05Srq14dLG4UAiImYAPo5ZyukdLH1LH3sg8=
 github.com/pfeairheller/indy-vdr/wrappers/golang v0.0.1/go.mod h1:htRxCX5yhKPWqOd8SsZeTcuElByzSfciuJSfpPMT09M=
 github.com/piprate/json-gold v0.3.0 h1:a1vHx7Q1jOO1pjCtKwTI/WCzwaQwRt9VM7apK2uy200=
 github.com/piprate/json-gold v0.3.0/go.mod h1:OK1z7UgtBZk06n2cDE2OSq1kffmjFFp5/2yhLLCz9UM=
