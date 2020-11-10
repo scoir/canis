@@ -36,12 +36,13 @@ import (
 	"goji.io/pat"
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
-	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
+
 	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
 	canisproof "github.com/scoir/canis/pkg/presentproof"
+	"github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/ursa"
 	"github.com/scoir/canis/pkg/util"
 )
@@ -104,7 +105,7 @@ func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
 
 	fmt.Println(string(b))
 
-	inviteResponse := &api.InvitationResponse{}
+	inviteResponse := &common.InvitationResponse{}
 	err = json.Unmarshal(b, inviteResponse)
 	if err != nil {
 		util.WriteErrorf(w, "Error decoding invitation response: %v, %s", err, string(b))

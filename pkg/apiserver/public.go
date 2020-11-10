@@ -44,7 +44,7 @@ func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 		return errors.Wrap(err, "unable to load signer primitives")
 	}
 
-	agentPublicDID, err := identifiers.CreateDID(&identifiers.MyDIDInfo{PublicKey: pubKey, MethodName: "scr", Cid: true})
+	agentPublicDID, err := identifiers.CreateDID(&identifiers.MyDIDInfo{PublicKey: pubKey, MethodName: "sov", Cid: true})
 	if err != nil {
 		return errors.Wrap(err, "unable to create agent DID")
 	}
