@@ -8,23 +8,6 @@ image:
   repository: canislabs/canis
   pullPolicy: Always
 
-ariesAgentRest:
-  repository: canislabs/aries-agent-rest
-  tag: latest
-  pullPolicy: Always
-  external:
-    type: "nodePort"
-    loadbalancer:
-      host: ""
-    nodePort:
-      apiPort: 30553
-      httpPort: 30552
-      host: 192.168.99.100
-  api:
-    port: 5533
-  http:
-    port: 5522
-
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -62,6 +45,7 @@ resources: {}
   #   memory: 128Mi
 
 adminIP: ""
+genesisFilePath: "indy/genesis.txn"
 
 wallet:
   masterLockKey: "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
@@ -120,3 +104,21 @@ loadbalancer:
 verifier:
   grpc:
     port: 7777
+
+ariesAgentRest:
+  repository: canislabs/aries-agent-rest
+  tag: latest
+  pullPolicy: Always
+  external:
+    type: "nodePort"
+    loadbalancer:
+      host: ""
+    nodePort:
+      apiPort: 30553
+      httpPort: 30552
+      host: 192.168.99.100
+  api:
+    port: 5533
+  http:
+    port: 5522
+

@@ -6,7 +6,7 @@ metadata:
     app: {{ include "canis.fullname" . }}-common-config
 data:
   canis-genesis-file.yaml: |-
-    genesis: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 4}}
+    genesis: {{- .Files.Get .Values.genesisFilePath | toYaml | nindent 4}}
   canis-amqp-config.yaml: |-
     ###############################################################
     #
@@ -25,7 +25,7 @@ data:
       vdri:
         - type: indy
           method: "scr"
-          genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 10}}
+          genesisFile: {{- .Files.Get .Values.genesisFilePath | toYaml | nindent 10}}
   canis-data-store-config.yaml: |-
     ###############################################################
     #
@@ -54,7 +54,7 @@ data:
     registry:
       engine: indy
       indy:
-        genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 8}}
+        genesisFile: {{- .Files.Get .Values.genesisFilePath | toYaml | nindent 8}}
   canis-ledger-store-config.yaml: |-
     ###############################################################
     #
