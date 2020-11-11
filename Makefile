@@ -148,7 +148,7 @@ cover:
 	go test -coverprofile cover.out ./pkg/...
 	go tool cover -html=cover.out
 
-install: canis-docker-publish
+install:
 	@helm install canis ./deploy/canis-chart --set image.repository=registry.hyades.svc.cluster.local:5000/canis --kubeconfig ./config/kubeconfig.yaml --namespace=hyades --create-namespace
 	@./scripts/endpoint.sh
 

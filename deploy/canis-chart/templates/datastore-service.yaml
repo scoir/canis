@@ -1,22 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  creationTimestamp: "2020-02-21T17:17:23Z"
   labels:
     component: mongo
-    role: client
   name: mongo
-  namespace: pleiades
-  resourceVersion: "1485"
-  selfLink: /api/v1/namespaces/pleiades/services/mongo
-  uid: 066a45e1-54ce-11ea-8351-42010a8000ea
 spec:
-  clusterIP: 10.106.12.38
   ports:
-  - port: 27017
+  - port: {{.Values.mongo.port}}
     protocol: TCP
-    targetPort: 27017
+    targetPort: {{.Values.mongo.port}}
   sessionAffinity: None
   type: ClusterIP
-status:
-  loadBalancer: {}
