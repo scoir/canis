@@ -1,7 +1,4 @@
-FROM canislabs/indy-libs:latest
-
-RUN apt-get update
-RUN apt-get install -y ca-certificates
+FROM canislabs/golang:1.15-canis
 
 COPY ./bin/canis-apiserver /usr/local/bin/canis-apiserver
 COPY ./bin/canis-didcomm-issuer /usr/local/bin/canis-didcomm-issuer
