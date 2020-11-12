@@ -24,5 +24,6 @@ COPY --from=canis /src/github.com/scoir/canis/bin/canis-didcomm-lb /usr/local/bi
 COPY --from=canis /src/github.com/scoir/canis/bin/http-indy-resolver /usr/local/bin/http-indy-resolver
 COPY --from=canis /src/github.com/scoir/canis/bin/canis-webhook-notifier /usr/local/bin/canis-webhook-notifier
 COPY --from=canis /src/github.com/scoir/canis/bin/sirius /usr/local/bin/sirius
+COPY --from=canis /src/github.com/scoir/canis/static /usr/local/canis/static
 
-COPY --from=golang /src/github.com/scoir/canis/static /usr/local/canis/static
+WORKDIR /usr/local/canis
