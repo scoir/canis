@@ -117,6 +117,7 @@ ariesAgentRest:
   repository: canislabs/aries-agent-rest
   tag: latest
   pullPolicy: Always
+  label: "Canis Agent"
   external:
     type: "nodePort"
     loadbalancer:
@@ -127,6 +128,7 @@ ariesAgentRest:
       host: 192.168.99.100
   api:
     port: 5533
+    token: "AnoGoR5RsrS9GTWeAv5f4rvcroUcgcNCkuVT9U3UP61q"
   http:
     port: 5522
 
