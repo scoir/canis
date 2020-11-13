@@ -123,11 +123,32 @@ func (r *Runner) launchWebBridge() error {
 	if err == nil {
 		mux.Handle("/spec/", http.StripPrefix("/spec/", specFunc))
 	}
-	mux.Handle("/swaggerui/", http.StripPrefix("/swaggerui/", fs))
+
+	mux.Handle("/swaggerui/", basicAuth(http.StripPrefix("/swaggerui/", fs)))
 	mux.Handle("/", rmux)
 
 	log.Printf("GRPC Web Gateway listening on %s\n", u)
 	return http.ListenAndServe(u, mux)
+}
+
+func basicAuth(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+
+		username, password, ok := r.BasicAuth()
+		if !ok {
+			http.Error(w, "Not authorized", 401)
+			return
+		}
+
+		if username != "basil" || password != "fawlty-password" {
+			http.Error(w, "Not authorized", 401)
+			return
+		}
+
+		h.ServeHTTP(w, r)
+	}
 }
 
 func CorsHandler() func(h http.Handler) http.Handler {
