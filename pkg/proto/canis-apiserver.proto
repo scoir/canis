@@ -11,8 +11,28 @@ option go_package = "apiserver/api";
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
 		title: "Canis Admin API";
-version:"0.0.2"
-}
+        version:"0.0.2";
+        license: {
+          name: "Apache 2.0";
+          url: "http://www.apache.org/licenses/LICENSE-2.0.html";
+        };
+    };
+    security_definitions {
+        security: {
+            key: "ApiKeyAuth";
+            value: {
+                type: TYPE_API_KEY;
+                in: IN_HEADER;
+                name: "X-API-Key";
+            }
+        }
+    }
+    security: {
+        security_requirement: {
+            key: "ApiKeyAuth";
+            value: {};
+        }
+    }
 };
 
 
