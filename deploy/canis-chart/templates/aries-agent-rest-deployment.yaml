@@ -41,7 +41,7 @@ spec:
             - "--webhook-url"
             - ""
             - "--http-resolver-url"
-            - "sov@http://http-indy-resolver:{{ .Values.httpIndyResolver.http.port }}/did"
+            - "sov@http://canis-http-indy-resolver:{{ .Values.httpIndyResolver.http.port }}/did"
             - "--outbound-transport"
             - "ws"
             - "--outbound-transport"
