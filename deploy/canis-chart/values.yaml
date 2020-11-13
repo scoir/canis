@@ -46,9 +46,14 @@ resources: {}
 
 adminIP: ""
 genesisFilePath: "indy/genesis.txn"
+
 mongo:
   host: 172.16.1.1
   port: 27017
+
+rabbitmq:
+  host: 172.16.1.1
+  port: 5672
 
 wallet:
   masterLockKey: "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
@@ -66,7 +71,7 @@ ledgerstore:
 amqp:
   user: canis
   password: canis
-  host: 172.16.1.1
+  host: rabbitmq
   port: 5672
   vhost: canis
 

@@ -78,16 +78,7 @@ func (r *HTTPIndyResolver) resolve(w http.ResponseWriter, req *http.Request) {
 
 func (r *HTTPIndyResolver) Read(did string) (*didResolution, error) {
 	start := time.Now()
-	parsedDID, err := diddoc.Parse(did)
-	if err != nil {
-		return nil, fmt.Errorf("parsing did failed in indy resolver: (%w)", err)
-	}
-
-	if parsedDID.Method != r.methodName {
-		return nil, fmt.Errorf("invalid indy method ID: %s", parsedDID.MethodSpecificID)
-	}
-
-	rply, err := r.client.GetNym(parsedDID.MethodSpecificID)
+	rply, err := r.client.GetNym(did)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +103,7 @@ func (r *HTTPIndyResolver) Read(did string) (*didResolution, error) {
 	verMethod := diddoc.NewReferencedVerificationMethod(pubKey, diddoc.Authentication, true)
 
 	var svc []diddoc.Service
-	serviceEndpoint, attrResp, err := r.getEndpoint(parsedDID.MethodSpecificID)
+	serviceEndpoint, attrResp, err := r.getEndpoint(did)
 	if err == nil {
 		s := diddoc.Service{
 			ID:              "#agent",
