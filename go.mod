@@ -11,8 +11,8 @@ require (
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/goji/httpauth v0.0.0-20160601135302-2da839ab0f4d
 	github.com/golang/protobuf v1.4.2
-	github.com/golangci/golangci-lint v1.31.0 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/tink/go v1.4.0-rc2.0.20200807212851-52ae9c6679b2
 	github.com/google/uuid v1.1.1

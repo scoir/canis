@@ -149,7 +149,7 @@ func (r *Runner) launchWebBridge() error {
 
 	basicAuth := httpauth.BasicAuth(basicOpts)
 
-	mux.Handle("/swaggerui/", http.StripPrefix("/swaggerui/", fs))
+	mux.Handle("/swaggerui/", basicAuth(http.StripPrefix("/swaggerui/", fs)))
 
 	var h http.Handler = rmux
 	if r.apiToken != "" {

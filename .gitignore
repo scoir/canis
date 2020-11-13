@@ -8,3 +8,5 @@ deploy/compose/indy-registry.yaml
 deploy/compose/aries-indy-vdri-config.yaml
 config/kubeconfig.yaml
 config/sirius-minikube.yaml
+config/cloud-values.yaml
+config/cloud-kubeconfig.yaml
