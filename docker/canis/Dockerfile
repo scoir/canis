@@ -1,4 +1,4 @@
-FROM canislabs/golang:1.15-canis
+FROM canislabs/canisbase:latest
 
 COPY ./bin/canis-apiserver /usr/local/bin/canis-apiserver
 COPY ./bin/canis-didcomm-issuer /usr/local/bin/canis-didcomm-issuer
