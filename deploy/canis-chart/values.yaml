@@ -84,6 +84,9 @@ apiserver:
     port: 7778
   grpcBridge:
     port: 7779
+    username: basil
+    password: haydens
+    token: D3YYdahdgC7VZeJwP4rhZcozCRHsqQT3VKxK9hTc2Yoh
 
 doorman:
   grpc:
