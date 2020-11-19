@@ -80,9 +80,9 @@ bin/sirius: $(SIRIUS_FILES)
 .PHONY: canis-docker
 package: canis-docker
 
-canis-docker: build
+canis-docker:
 	@echo "building canis docker image..."
-	@docker build -f ./docker/canis/Dockerfile --no-cache -t canislabs/canis:latest .
+	@docker build -f docker/local/Dockerfile.build -t canislabs/canis:latest .
 
 canis-docker-publish: canis-docker
 	@echo "publishing canis to registry..."
@@ -91,9 +91,13 @@ canis-docker-publish: canis-docker
 
 canis-build-docker:
 	@echo "building canis build docker image..."
-	@docker build -f ./docker/build/Dockerfile -t canislabs/canis-build:latest .
-	@docker push canislabs/canis-build:latest
+	@cd docker/local && docker build -f Dockerfile.golang -t canislabs/canisbuild:golang-1.15 .
+	@cd docker/local && docker build -f Dockerfile.bionic -t canislabs/canisbase:latest .
+	@docker push canislabs/canisbuild:golang-1.15
+	@docker push canislabs/canisbase:latest
 
+canis-docker-ubuntu: build
+	@docker build -f ./docker/canis/Dockerfile --no-cache -t canislabs/canis:latest .
 
 all-pb: canis-common-pb canis-apiserver-pb canis-didcomm-doorman-pb canis-didcomm-issuer-pb canis-didcomm-verifier-pb canis-didcomm-lb-pb
 
