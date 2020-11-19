@@ -18,6 +18,10 @@ data:
       grpcBridge:
         host: 0.0.0.0
         port: {{ .Values.apiserver.grpcBridge.port }}
+        username: {{ .Values.apiserver.grpcBridge.username }}
+        password: {{ .Values.apiserver.grpcBridge.password }}
+        token: {{ .Values.apiserver.grpcBridge.token }}
+
     
     ###############################################################
     #

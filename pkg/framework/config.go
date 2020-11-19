@@ -11,8 +11,11 @@ import (
 )
 
 type Endpoint struct {
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	Token    string `mapstructure:"token"`
 }
 
 func (r Endpoint) Address() string {

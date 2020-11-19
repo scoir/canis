@@ -72,6 +72,9 @@ apiserver:
     port: 7778
   grpcBridge:
     port: 7779
+    username: basil
+    password: haydens
+    token: D3YYdahdgC7VZeJwP4rhZcozCRHsqQT3VKxK9hTc2Yoh
 
 doorman:
   grpc:
@@ -100,3 +103,23 @@ loadbalancer:
 verifier:
   grpc:
     port: 7777
+
+ariesAgentRest:
+  repository: canislabs/aries-agent-rest
+  tag: latest
+  pullPolicy: Always
+  label: "Canis Agent"
+  external:
+    type: "nodePort"
+    loadbalancer:
+      host: ""
+    nodePort:
+      apiPort: 30553
+      httpPort: 30552
+      host: 192.168.99.100
+  api:
+    port: 5533
+    token: "AnoGoR5RsrS9GTWeAv5f4rvcroUcgcNCkuVT9U3UP61q"
+  http:
+    port: 5522
+
