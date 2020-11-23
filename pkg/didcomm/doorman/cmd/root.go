@@ -9,9 +9,11 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
+	arieshttp "github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/http"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
@@ -161,10 +163,15 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	}
 
 	amqpInbound, err := transportamqp.NewInbound(cfg.Endpoint(), external, "didexchange", "", "")
+	httsoutbound, err := arieshttp.NewOutbound(arieshttp.WithOutboundHTTPClient(&http.Client{}))
+	if err != nil {
+		return nil, err
+	}
+
 	vopts := []aries.Option{
 		aries.WithStoreProvider(r.ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),
-		aries.WithOutboundTransports(ws.NewOutbound()),
+		aries.WithOutboundTransports(ws.NewOutbound(), httsoutbound),
 		aries.WithSecretLock(lock),
 	}
 	for _, vdri := range vdris {

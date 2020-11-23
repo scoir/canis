@@ -26,6 +26,9 @@ const (
 	// TODO configure ping request frequency.
 	didcommPrefix = "https://didcomm.org/"
 	pingFrequency = 30 * time.Second
+
+	encEnvelopContentType = "application/didcomm-envelope-enc"
+	altCommContentType    = "application/ssi-agent-wire"
 )
 
 var (
@@ -283,8 +286,9 @@ func validateHTTPMethod(w http.ResponseWriter, r *http.Request) bool {
 	}
 
 	ct := r.Header.Get("Content-type")
-	if ct != "application/didcomm-envelope-enc" {
-		http.Error(w, fmt.Sprintf("Unsupported Content-type \"%s\"", ct), http.StatusUnsupportedMediaType)
+	log.Printf("received http message with content-type [%s]\n", ct)
+	if ct != encEnvelopContentType && ct != altCommContentType {
+		http.Error(w, fmt.Sprintf("Unsupported Content-type for loadbalancer \"%s\"", ct), http.StatusUnsupportedMediaType)
 		return false
 	}
 

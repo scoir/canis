@@ -118,6 +118,7 @@ func (r *Supervisor) startMessageListener() {
 					c <- msg
 				}
 				log.Println("DIDEX MSG:", msg.ProtocolName, msg.StateID)
+				log.Println("ERR:", msg)
 			}
 		}
 	}(didMsgCh)

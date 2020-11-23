@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package didexchange
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -96,6 +98,10 @@ func (r *bouncer) RequestMsg(e didservice.DIDCommAction, request *didexchange.Re
 		delete(r.validInviteIDs, iID)
 		return
 	}
+
+	d, _ := json.MarshalIndent(r.validInviteIDs, " ", " ")
+	fmt.Println(string(d))
+	fmt.Println("ParentThreadID", e.Message.ParentThreadID())
 
 	e.Stop(errors.New("invalid parent thread invite ID"))
 }

@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/btcsuite/btcutil/base58"
@@ -26,6 +27,9 @@ const (
 )
 
 func (r *VDRI) Read(did string, opts ...vdriapi.ResolveOpts) (*diddoc.Doc, error) {
+	if !strings.HasPrefix(did, fmt.Sprintf("did:%s", r.methodName)) {
+		did = fmt.Sprintf("did:%s:%s", r.methodName, did)
+	}
 	parsedDID, err := diddoc.Parse(did)
 	if err != nil {
 		return nil, fmt.Errorf("parsing did failed in indy resolver: (%w)", err)
@@ -43,6 +47,10 @@ func (r *VDRI) Read(did string, opts ...vdriapi.ResolveOpts) (*diddoc.Doc, error
 	rply, err := r.client.GetNym(parsedDID.MethodSpecificID)
 	if err != nil {
 		return nil, err
+	}
+
+	if rply.Data == nil {
+		return nil, errors.New("did not found")
 	}
 
 	m := map[string]interface{}{}

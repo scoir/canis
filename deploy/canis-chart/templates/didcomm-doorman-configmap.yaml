@@ -17,7 +17,7 @@ data:
         port: {{ .Values.doorman.grpc.port }}
     inbound:
       {{if eq .Values.loadbalancer.external.type "loadbalancer"}}
-      external: "ws://{{ .Values.loadbalancer.external.loadbalancer.host}}:{{ .Values.loadbalancer.inbound.wsPort }}"
+      external: "http://{{ .Values.loadbalancer.external.loadbalancer.host}}:{{ .Values.loadbalancer.inbound.httpPort }}"
       {{ else }}
       external: "ws://{{ .Values.loadbalancer.external.nodePort.host }}:{{ .Values.loadbalancer.external.nodePort.wsPort }}"
       {{ end }}
