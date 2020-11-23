@@ -75,6 +75,9 @@ amqp:
   port: 5672
   vhost: canis
 
+httpIndyResolver:
+  http:
+    port: 5544
 
 apiserver:
   grpc:
