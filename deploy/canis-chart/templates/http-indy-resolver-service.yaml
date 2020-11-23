@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "canis.fullname" . }}-http-indy-resolver
+  labels:
+    name: {{ include "canis.fullname" . }}-http-indy-resolver
+spec:
+  ports:
+    - name: http
+      port: {{ .Values.httpIndyResolver.http.port }}
+      protocol: TCP
+      targetPort: {{ .Values.httpIndyResolver.http.port }}
+  selector:
+    name: {{ include "canis.fullname" . }}-http-indy-resolver
+  sessionAffinity: None
+  type: ClusterIP

@@ -1,0 +1,46 @@
+{{if eq .Values.ariesAgentRest.external.type "loadbalancer"}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "canis.fullname" . }}-aries-agent-rest-external
+  labels:
+    name: {{ include "canis.fullname" . }}-aries-agent-rest-external
+spec:
+  ports:
+    - name: api
+      port: {{ .Values.ariesAgentRest.api.port }}
+      protocol: TCP
+      targetPort: {{ .Values.ariesAgentRest.api.port }}
+    - name: http
+      port: {{ .Values.ariesAgentRest.http.port }}
+      protocol: TCP
+      targetPort: {{ .Values.ariesAgentRest.http.port }}
+  selector:
+    name: {{ include "canis.fullname" . }}-aries-agent-rest
+  sessionAffinity: None
+  type: LoadBalancer
+  loadBalancerIP: {{ .Values.ariesAgentRest.external.loadbalancer.host }}
+{{ else }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: {{ include "canis.fullname" . }}-aries-agent-rest-external
+  name: {{ include "canis.fullname" . }}-aries-agent-rest-external
+spec:
+  ports:
+    - name: api
+      port: {{ .Values.ariesAgentRest.api.port }}
+      protocol: TCP
+      targetPort: {{ .Values.ariesAgentRest.api.port }}
+      nodePort: {{ .Values.ariesAgentRest.external.nodePort.apiPort }}
+    - name: http
+      port: {{ .Values.ariesAgentRest.http.port }}
+      protocol: TCP
+      targetPort: {{ .Values.ariesAgentRest.http.port }}
+      nodePort: {{ .Values.ariesAgentRest.external.nodePort.httpPort }}
+  selector:
+    name: {{ include "canis.fullname" . }}-aries-agent-rest
+  sessionAffinity: None
+  type: NodePort
+{{ end }}
