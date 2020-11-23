@@ -5,6 +5,7 @@ go 1.14
 replace github.com/hyperledger/aries-framework-go => github.com/pfeairheller/aries-framework-go v0.1.4-0.20200918145734-b0d185a4e869
 
 replace github.com/hyperledger/indy-vdr/wrappers/golang => github.com/pfeairheller/indy-vdr/wrappers/golang v0.0.1
+replace github.com/hyperledger/ursa-wrapper-go => ../my-ursa-wrapper-go
 
 require (
 	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect

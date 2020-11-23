@@ -1,15 +1,9 @@
 package ursa
 
-/*
-#cgo LDFLAGS: -L/usr/local/lib -lursa
-#include "ursa_crypto.h"
-#include <stdlib.h>
-*/
-import "C"
 import (
 	"encoding/base64"
 	"encoding/json"
-	"unsafe"
+	"fmt"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
@@ -40,81 +34,53 @@ func NewIssuer() *IssuerServer {
 func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, offerNonce string, blindedMasterSecret, blindedMSCorrectnessProof, requestNonce string,
 	credDef *vdr.ClaimDefData, credDefPrivateKey string, values map[string]interface{}) (*decorator.AttachmentData, error) {
 
-	var blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof, credentialNonce,
-		credentialIssuanceNonce, credentialValues, credentialPubKey, credentialPrivKey unsafe.Pointer
-	var credSignature, credSignatureCorrectnessProof unsafe.Pointer
-
-	did := C.CString(issuerDID)
-
-	blindedCredentialSecrets, err := BlindedCredentialSecretsFromJSON(blindedMasterSecret)
-	if err != nil {
-		return nil, err
+	signatureParams := &ursa.SignatureParams{
+		ProverID: issuerDID,
+		BlindedCredentialSecrets: blindedMasterSecret,
+		BlindedCredentialSecretsCorrectnessProof: blindedMSCorrectnessProof,
+		CredentialIssuanceNonce: offerNonce,
+		CredentialNonce: requestNonce,
 	}
 
-	blindedCredentialSecretsCorrectnessProof, err = BlindedCredentialSecretsCorrectnessProofFromJSON(blindedMSCorrectnessProof)
+	valueBuilder := NewValuesBuilder()
+	builder, err  := ursa.NewValueBuilder()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "ursa error occurred creating builder")
 	}
 
-	credentialIssuanceNonce, err = ursa.NonceFromJson(offerNonce)
-	if err != nil {
-		return nil, err
-	}
-
-	credentialNonce, err = ursa.NonceFromJson(requestNonce)
-	if err != nil {
-		return nil, err
-	}
-
-	builder := NewValuesBuilder()
 	for k, v := range values {
-		builder.AddKnown(k, v)
+		err = ursa.AddDecKnown(builder, k, EncodeValue(v))
+		if err != nil {
+			return nil, errors.Wrap(err, "ursa error occurred adding known values to builder")
+		}
+
+		valueBuilder.AddKnown(k, v)
 	}
-	err = builder.Finalize()
+
+	builderValues, err := ursa.FinalizeBuilder(builder)
+	defer ursa.FreeCredentialValues(builderValues)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to create values")
+		return nil, errors.Wrap(err, "ursa error occurred finalizing builder")
 	}
-	credentialValues = builder.Values()
-	defer builder.Free()
 
-	credentialPubKey, err = CredDefHandle(credDef)
+	signatureParams.CredentialValues = builderValues
+	valueBuilder.values = builderValues
+
+
+	signatureParams.CredentialPubKey = fmt.Sprintf(`{"p_key": %s, "r_key": %s}`, credDef.PKey(), credDef.RKey())
+	signatureParams.CredentialPrivKey = credDefPrivateKey
+
+	signature, proof, err := signatureParams.SignCredential()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "ursa error occurred signing credential")
 	}
-
-	credentialPrivKey, err = CredentialPrivateKeyFromJSON(credDefPrivateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	result := C.ursa_cl_issuer_sign_credential(did, blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof, credentialIssuanceNonce,
-		credentialNonce, credentialValues, credentialPubKey, credentialPrivKey, &credSignature, &credSignatureCorrectnessProof)
-	if result != 0 {
-		return nil, ursaError("signing credentials")
-	}
-
-	defer func() {
-		C.free(unsafe.Pointer(did))
-		C.free(blindedCredentialSecrets)
-		C.free(blindedCredentialSecretsCorrectnessProof)
-		C.free(credentialNonce)
-		C.free(credentialIssuanceNonce)
-		C.free(credentialPubKey)
-		C.free(credentialPrivKey)
-	}()
-
-	var sigOut, proofOut *C.char
-	result = C.ursa_cl_credential_signature_to_json(credSignature, &sigOut)
-	defer C.free(unsafe.Pointer(sigOut))
-	result = C.ursa_cl_signature_correctness_proof_to_json(credSignatureCorrectnessProof, &proofOut)
-	defer C.free(unsafe.Pointer(proofOut))
 
 	cred := &Credential{
 		SchemaID:                  schemaID,
 		CredDefID:                 credDefID,
-		Values:                    builder,
-		Signature:                 []byte(C.GoString(sigOut)),
-		SignatureCorrectnessProof: []byte(C.GoString(proofOut)),
+		Values:                    valueBuilder,
+		Signature:                 signature,
+		SignatureCorrectnessProof: proof,
 	}
 
 	d, _ := json.Marshal(cred)

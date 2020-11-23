@@ -11,9 +11,8 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/pkg/errors"
-
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
+	"github.com/pkg/errors"
 )
 
 func CredentialKeyCorrectnessProofFromJSON(jsn string) (unsafe.Pointer, error) {
@@ -24,58 +23,6 @@ func CredentialKeyCorrectnessProofFromJSON(jsn string) (unsafe.Pointer, error) {
 	result := C.ursa_cl_credential_key_correctness_proof_from_json(cjson, &handle)
 	if result != 0 {
 		return nil, ursaError("credential key correctness proof")
-	}
-
-	return handle, nil
-}
-
-func BlindedCredentialSecretsFromJSON(jsn string) (unsafe.Pointer, error) {
-	var handle unsafe.Pointer
-	cjson := C.CString(jsn)
-	defer C.free(unsafe.Pointer(cjson))
-
-	result := C.ursa_cl_blinded_credential_secrets_from_json(cjson, &handle)
-	if result != 0 {
-		return nil, ursaError("blinded credential secrets")
-	}
-
-	return handle, nil
-}
-
-func BlindedCredentialSecretsCorrectnessProofFromJSON(jsn string) (unsafe.Pointer, error) {
-	var handle unsafe.Pointer
-	cjson := C.CString(jsn)
-	defer C.free(unsafe.Pointer(cjson))
-
-	result := C.ursa_cl_blinded_credential_secrets_correctness_proof_from_json(cjson, &handle)
-	if result != 0 {
-		return nil, ursaError("blinded credential secrets correctness proof")
-	}
-
-	return handle, nil
-}
-
-func CredentialPrivateKeyFromJSON(jsn string) (unsafe.Pointer, error) {
-	var handle unsafe.Pointer
-	cjson := C.CString(jsn)
-	defer C.free(unsafe.Pointer(cjson))
-
-	result := C.ursa_cl_credential_private_key_from_json(cjson, &handle)
-	if result != 0 {
-		return nil, ursaError("credential private key")
-	}
-
-	return handle, nil
-}
-
-func CredentialPublicKeyFromJSON(jsn string) (unsafe.Pointer, error) {
-	var handle unsafe.Pointer
-	cjson := C.CString(jsn)
-	defer C.free(unsafe.Pointer(cjson))
-
-	result := C.ursa_cl_credential_public_key_from_json(cjson, &handle)
-	if result != 0 {
-		return nil, ursaError("credential public key")
 	}
 
 	return handle, nil

@@ -137,19 +137,6 @@ ErrorCode ursa_cl_credential_key_correctness_proof_to_json(const void *credentia
 ErrorCode ursa_cl_credential_private_key_free(const void *credential_priv_key);
 
 /**
- * Creates and returns credential private key from json.
- *
- * Note: Credential private key instance deallocation must be performed
- * by calling ursa_cl_credential_private_key_free
- *
- * # Arguments
- * * `credential_priv_key_json` - Reference that contains credential private key json.
- * * `credential_priv_key_p` - Reference that will contain credential private key instance pointer.
- */
-ErrorCode ursa_cl_credential_private_key_from_json(const char *credential_priv_key_json,
-                                                   const void **credential_priv_key_p);
-
-/**
  * Returns json representation of credential private key.
  *
  * # Arguments
@@ -381,32 +368,6 @@ ErrorCode ursa_cl_blinded_credential_secrets_free(const void *blinded_credential
 ErrorCode ursa_cl_blinded_credential_secrets_to_json(const void *blinded_credential_secrets,
                                                      const char **blinded_credential_secrets_json_p);
 
-/**
- * Creates and returns blinded credential secrets from json.
- *
- * Note: Blinded credential secrets instance deallocation must be performed
- * by calling ursa_cl_blinded_credential_secrets_free
- *
- * # Arguments
- * * `blinded_credential_secrets_json` - Reference that contains blinded credential secret json.
- * * `blinded_credential_secrets_p` - Reference that will contain blinded credential secret instance pointer.
- */
-ErrorCode ursa_cl_blinded_credential_secrets_from_json(const char *blinded_credential_secrets_json,
-                                                       const void **blinded_credential_secrets_p);
-
-
-/**
- * Creates and returns blinded credential secrets correctness proof json.
- *
- * Note: Blinded credential secrets correctness proof instance deallocation must be performed
- * by calling ursa_cl_blinded_credential_secrets_correctness_proof_free.
- *
- * # Arguments
- * * `blinded_credential_secrets_correctness_proof_json` - Reference that contains blinded credential secrets correctness proof json.
- * * `blinded_credential_secrets_correctness_proof_p` - Reference that will contain blinded credential secret correctness proof instance pointer.
- */
-ErrorCode ursa_cl_blinded_credential_secrets_correctness_proof_from_json(const char *blinded_credential_secrets_correctness_proof_json,
-                                                                         const void **blinded_credential_secrets_correctness_proof_p);
 
 /**
  * Deallocates credential secrets blinding factors instance.

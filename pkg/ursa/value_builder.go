@@ -173,6 +173,66 @@ func (r *ValuesBuilder) encodeValue(raw interface{}) string {
 	return enc
 }
 
+//unique to canis
+func EncodeValue(raw interface{}) string {
+	var enc string
+
+	switch v := raw.(type) {
+	case nil:
+		enc = ToEncodedNumber("None")
+	case string:
+		i, err := strconv.Atoi(v)
+		if err == nil && (i <= math.MaxInt32 && i >= math.MinInt32) {
+			enc = v
+		} else {
+			enc = ToEncodedNumber(v)
+		}
+	case bool:
+		if v {
+			enc = "1"
+		} else {
+			enc = "0"
+		}
+	case int32:
+		enc = strconv.Itoa(int(v))
+	case int64:
+		if v <= math.MaxInt32 && v >= math.MinInt32 {
+			enc = strconv.Itoa(int(v))
+		} else {
+			enc = ToEncodedNumber(strconv.Itoa(int(v)))
+		}
+	case int:
+		if v <= math.MaxInt32 && v >= math.MinInt32 {
+			enc = strconv.Itoa(v)
+		} else {
+			enc = ToEncodedNumber(strconv.Itoa(v))
+		}
+	case float64:
+		if v == 0 {
+			enc = ToEncodedNumber("0.0")
+		} else {
+			enc = ToEncodedNumber(fmt.Sprintf("%f", v))
+		}
+	default:
+		//Not sure what to do with Go and unknown types...  this works for now
+		enc = ToEncodedNumber(fmt.Sprintf("%v", v))
+	}
+
+	return enc
+}
+
+func ToEncodedNumber(raw string) string {
+	b := []byte(raw)
+	hasher := sha256.New()
+	hasher.Write(b)
+
+	sh := hasher.Sum(nil)
+	i := new(big.Int)
+	i.SetBytes(sh)
+
+	return i.String()
+}
+
 func (r *ValuesBuilder) toEncodedNumber(raw string) string {
 	b := []byte(raw)
 	hasher := sha256.New()
