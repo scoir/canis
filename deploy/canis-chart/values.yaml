@@ -45,6 +45,10 @@ resources: {}
   #   memory: 128Mi
 
 adminIP: ""
+genesisFilePath: "indy/genesis.txn"
+mongo:
+  host: 172.16.1.1
+  port: 27017
 
 wallet:
   masterLockKey: "OTsonzgWMNAqR24bgGcZVHVBB_oqLoXntW4s_vCs6uQ="
@@ -52,12 +56,12 @@ wallet:
 datastore:
   database: mongo
   mongo:
-    url: "mongodb://172.16.1.1:27017"
+    url: "mongodb://mongo:27017"
     database: "canis"
 
 ledgerstore:
   database: mongodb
-  url: "mongodb://172.16.1.1:27017"
+  url: "mongodb://mongo:27017"
 
 amqp:
   user: canis

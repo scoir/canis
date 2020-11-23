@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    component: mongo
+  name: mongo
+spec:
+  ports:
+  - port: {{.Values.mongo.port}}
+    protocol: TCP
+    targetPort: {{.Values.mongo.port}}
+  sessionAffinity: None
+  type: ClusterIP
