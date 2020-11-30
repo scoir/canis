@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/makiuchi-d/gozxing"
 	qr "github.com/makiuchi-d/gozxing/qrcode"
@@ -30,6 +31,13 @@ func encode() {
 		log.Fatalln("unexpected error creating request", err)
 	}
 	req.Header.Set("X-API-Key", "D3YYdahdgC7VZeJwP4rhZcozCRHsqQT3VKxK9hTc2Yoh")
+	//body := `{"type": "oob"}`
+	//req, err := http.NewRequest("POST", "https://agency.keith.ti.verify-creds.com/api/v1/invitations", strings.NewReader(body))
+	//if err != nil {
+	//	log.Fatalln("unexpected error creating request", err)
+	//}
+	//req.Header.Set("Content-Type", "application/json")
+	//req.SetBasicAuth("ibm-test-agent-for-canis", "canispw")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -45,15 +53,24 @@ func encode() {
 	m := map[string]interface{}{}
 	err = json.NewDecoder(resp.Body).Decode(&m)
 	if err != nil {
-		log.Fatalln("fuck off", err)
+		log.Fatalln("unable to decode body", err)
 	}
 
 	b := m["Invitation"].(string)
 
-	ci := base64.URLEncoding.EncodeToString([]byte(b))
-	str := fmt.Sprintf("https://app.scoir.com/invitation?c_i=%s", ci)
+	out, err := os.Create("invite-for-ibm.json")
+	if err != nil {
+		log.Fatalln("can't create ibm invite json", err)
+	}
 
-	fmt.Println(b)
+	_, _ = out.WriteString(b)
+	out.Close()
+
+	ci := base64.URLEncoding.EncodeToString([]byte(b))
+	str := fmt.Sprintf("http://34.72.71.135:7779/invitation?c_i=%s", ci)
+
+	fmt.Println(str)
+
 	fname := "./invite.png"
 	err = qrcode.WriteFile(str, qrcode.Medium, 256, fname)
 	if err != nil {

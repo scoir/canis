@@ -6,8 +6,8 @@ import (
 	kmsMock "github.com/hyperledger/aries-framework-go/pkg/mock/kms"
 	storagemock "github.com/hyperledger/aries-framework-go/pkg/mock/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
-
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
+
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/mocks"
 	"github.com/scoir/canis/pkg/ursa"

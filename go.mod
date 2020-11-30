@@ -2,7 +2,7 @@ module github.com/scoir/canis
 
 go 1.14
 
-replace github.com/hyperledger/aries-framework-go => github.com/pfeairheller/aries-framework-go v0.1.4-0.20200918145734-b0d185a4e869
+replace github.com/hyperledger/aries-framework-go => ../aries-framework-go
 
 replace github.com/hyperledger/indy-vdr/wrappers/golang => github.com/pfeairheller/indy-vdr/wrappers/golang v0.0.1
 
