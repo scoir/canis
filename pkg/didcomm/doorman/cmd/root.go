@@ -20,9 +20,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	transportamqp "github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp"
 	"github.com/scoir/canis/pkg/amqp"
 	"github.com/scoir/canis/pkg/amqp/rabbitmq"
-	transportamqp "github.com/scoir/canis/pkg/aries/transport/amqp"
 	"github.com/scoir/canis/pkg/config"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/framework"

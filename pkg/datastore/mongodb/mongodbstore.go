@@ -408,7 +408,7 @@ func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string)
 		bson.M{"agentid": a.ID, "externalid": externalID}).Decode(ac)
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
+		return nil, errors.Wrap(err, "unable to load agent connection")
 	}
 
 	return ac, nil

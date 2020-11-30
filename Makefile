@@ -1,7 +1,11 @@
+# Copyright Scoir, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 .PHONY := all clean test cover install uninstall expose tools build
 
 CANIS_ROOT=$(abspath .)
-APISERVER_FILES = $(wildcard pkg/apiserver/*.go pkg/apiserver/**/*.go cmd/canis-apiserver/*.go) pkg/protogen/common/messages.pb.go pkg/apiserver/api/protogen/canis-apiserver.pb.go
+APISERVER_FILES = $(wildcard pkg/apiserver/*.go pkg/apiserver/**/*.go cmd/canis-apiserver/*.go) pkg/protogen/common/messages.pb.go pkg/apiserver/api/protogen/canis-apiserver.pb.go pkg/static/canis-apiserver_swagger.go
 SIRIUS_FILES = $(wildcard pkg/sirius/**/*.go cmd/sirius/*.go)
 DIDCOMM_LB_FILES = $(wildcard pkg/didcomm/loadbalancer/*.go pkg/didcomm/loadbalancer/**/*.go cmd/canis-didcomm-lb/*.go)
 DIDCOMM_ISSUER_FILES = $(wildcard pkg/didcomm/issuer/*.go pkg/didcomm/issuer/**/*.go cmd/canis-didcomm-issuer/*.go)
@@ -10,7 +14,7 @@ DIDCOMM_DOORMAN_FILES = $(wildcard pkg/didcomm/doorman/*.go pkg/didcomm/doorman/
 HTTP_INDY_RESOLVER_FILES = $(wildcard pkg/resolver/*.go pkg/resolver/**/*.go cmd/http-indy-resolver/*.go)
 WEBHOOK_NOTIFIER_FILES = $(wildcard pkg/notifier/*.go pkg/notifier/**/*.go cmd/canis-webhook-notifier/*.go)
 
-all: clean tools build
+all: checks clean tools build
 
 commit: cover build
 
@@ -26,6 +30,13 @@ tools:
 	@go get "github.com/golang/protobuf/protoc-gen-go@v1.4.2"
 	@go get "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2"
 	@go get "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2"
+
+.PHONY: checks
+checks: license
+
+.PHONY: license
+license:
+	@scripts/check_license.sh
 
 build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-verifier bin/canis-didcomm-lb bin/canis-didcomm-doorman bin/http-indy-resolver bin/canis-webhook-notifier
 

@@ -7,7 +7,6 @@ replace github.com/hyperledger/aries-framework-go => github.com/pfeairheller/ari
 replace github.com/hyperledger/indy-vdr/wrappers/golang => github.com/pfeairheller/indy-vdr/wrappers/golang v0.0.1
 
 require (
-	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/gogo/protobuf v1.3.1 // indirect
@@ -18,7 +17,8 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.15.2
-	github.com/hyperledger/aries-framework-go v0.1.4
+	github.com/hyperledger/aries-framework-go v0.1.5-0.20201017112511-5734c20820a9
+	github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp v0.0.0-20201119153638-fc5d5e680587
 	github.com/hyperledger/indy-vdr/wrappers/golang v0.0.0-20201031155907-5f437d26ed71
 	github.com/hyperledger/ursa-wrapper-go v0.0.0-20201020141813-07eecfdbb801
 	github.com/makiuchi-d/gozxing v0.0.0-20200903113411-25f730ed83da
@@ -37,13 +37,10 @@ require (
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/unidoc/unipdf/v3 v3.10.1
-	github.com/vektra/mockery v1.1.2 // indirect
 	go.mongodb.org/mongo-driver v1.4.1
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43 // indirect
-	golang.org/x/sys v0.0.0-20200812155832-6a926be9bd1d // indirect
-	golang.org/x/tools v0.0.0-20200904140424-93eecc3576be // indirect
 	google.golang.org/genproto v0.0.0-20201007142714-5c0e72c5e71e
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0

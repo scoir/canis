@@ -256,6 +256,21 @@ func TestAgent(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, list.Count)
 
+		did := &datastore.DID{
+			DID: &identifiers.DID{
+				DIDVal: identifiers.DIDValue{
+					MethodSpecificID: "123",
+				},
+			},
+		}
+		agent := &datastore.Agent{ID: "agent id 2", Name: "another agent", PublicDID: did}
+		_, err = store.InsertAgent(agent)
+		require.NoError(t, err)
+
+		agent, err = store.GetAgentByPublicDID("did:sov:123")
+		require.NoError(t, err)
+		require.NotNil(t, agent)
+
 		err = prov.Close()
 		require.NoError(t, err)
 	})
@@ -290,9 +305,21 @@ func TestDIDFailures(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "did is required")
 
+		err = store.InsertDID(&datastore.DID{DID: &identifiers.DID{
+			DIDVal: identifiers.DIDValue{
+				MethodSpecificID: "did to be public",
+			},
+		}, Public: false})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to insert DID")
+
 		_, err = store.ListDIDs(nil)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "error trying to count did docs")
+
+		_, err = store.GetDID("did:sov:123")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to load did")
 
 		_, err = store.GetPublicDID()
 		require.Error(t, err)
@@ -367,6 +394,16 @@ func TestAgentFailures(t *testing.T) {
 		_, err = store.ListAgent(&datastore.AgentCriteria{})
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "error trying to count agents")
+
+		err = store.InsertAgentConnection(&datastore.Agent{}, "subject", &didexchange.Connection{
+			Record: &connection.Record{},
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to insert agent")
+
+		_, err = store.GetAgentConnection(&datastore.Agent{}, "subject")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to load agent connection")
 	})
 }
 
