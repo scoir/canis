@@ -30,18 +30,18 @@ import (
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	vstore "github.com/hyperledger/aries-framework-go/pkg/store/verifiable"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/pkg/errors"
 	mongodbstore "github.com/scoir/aries-storage-mongo/pkg"
 	goji "goji.io"
 	"goji.io/pat"
 
-	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
-	api "github.com/scoir/canis/pkg/apiserver/api/protogen"
 	"github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
 	canisproof "github.com/scoir/canis/pkg/presentproof"
+	"github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/ursa"
 	"github.com/scoir/canis/pkg/util"
 )
@@ -104,7 +104,7 @@ func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
 
 	fmt.Println(string(b))
 
-	inviteResponse := &api.InvitationResponse{}
+	inviteResponse := &common.InvitationResponse{}
 	err = json.Unmarshal(b, inviteResponse)
 	if err != nil {
 		util.WriteErrorf(w, "Error decoding invitation response: %v, %s", err, string(b))
@@ -167,10 +167,17 @@ func createAriesContext() {
 		log.Fatalln("unable to open genesis file", err)
 	}
 	vdrclient, err = vdr.New(genesis)
+	if err != nil {
+		log.Fatalln("unable to connect to indy vdr", err)
+	}
 
 	storeProv := mongodbstore.NewProvider("mongodb://172.17.0.1:27017", mongodbstore.WithDBPrefix("subject"))
 	subjectStore, _ = storeProv.OpenStore("connections")
 	indyVDRI, err := indy.New("scr", indy.WithIndyClient(vdrclient))
+	if err != nil {
+		log.Fatalln("unable to create aries indy vdr", err)
+	}
+
 	ar, err := aries.New(
 		aries.WithStoreProvider(storeProv),
 		defaults.WithInboundWSAddr(wsinbound, fmt.Sprintf("ws://%s", wsinbound), "", ""),
@@ -188,6 +195,9 @@ func createAriesContext() {
 
 	prov := framework.NewSimpleProvider(ctx)
 	bouncer, err = didex.NewBouncer(prov)
+	if err != nil {
+		log.Fatalln("could not create bouncer", err)
+	}
 
 	credHandler, err = NewCredHandler(ctx)
 	if err != nil {
@@ -478,6 +488,9 @@ func (r *proofHandler) RequestPresentationMsg(e service.DIDCommAction, req *pres
 	}
 
 	err = vp.AddLinkedDataProof(ldpContext)
+	if err != nil {
+		log.Fatalln("error adding linked data proof", err)
+	}
 
 	pres := &ppclient.Presentation{
 		PresentationsAttach: []decorator.Attachment{

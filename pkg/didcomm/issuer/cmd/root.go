@@ -173,6 +173,10 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	}
 
 	amqpInbound, err := amqp.NewInbound(cfg.Endpoint(), external, "issue-credential", "", "")
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create amqp aries inbound")
+	}
+
 	vopts := []aries.Option{
 		aries.WithStoreProvider(r.ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),

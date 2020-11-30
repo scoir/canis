@@ -105,8 +105,15 @@ func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, of
 
 	var sigOut, proofOut *C.char
 	result = C.ursa_cl_credential_signature_to_json(credSignature, &sigOut)
+	if result != 0 {
+		return nil, ursaError("getting credential signature JSON")
+	}
 	defer C.free(unsafe.Pointer(sigOut))
+
 	result = C.ursa_cl_signature_correctness_proof_to_json(credSignatureCorrectnessProof, &proofOut)
+	if result != 0 {
+		return nil, ursaError("getting correctness proof json")
+	}
 	defer C.free(unsafe.Pointer(proofOut))
 
 	cred := &Credential{

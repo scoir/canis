@@ -66,15 +66,20 @@ func (i *Inbound) Start(prov transport.Provider) error {
 	if i.certFile != "" && i.keyFile != "" {
 		config := &tls.Config{}
 		config.Certificates = make([]tls.Certificate, 1)
+
 		config.Certificates[0], err = tls.LoadX509KeyPair(i.certFile, i.keyFile)
+		if err != nil {
+			return errors.Wrap(err, "invalid cert")
+		}
+
 		conn, err = amqp.DialTLS(i.internalAddr, config)
 		if err != nil {
-			return errors.Wrap(err, "unable to connect to RabbitMQ")
+			return errors.Wrap(err, "unable to connect to AMQP server")
 		}
 	} else {
 		conn, err = amqp.Dial(i.internalAddr)
 		if err != nil {
-			return errors.Wrapf(err, "unable to connect to RabbitMQ at %s", i.internalAddr)
+			return errors.Wrapf(err, "unable to connect to AMQP server at %s", i.internalAddr)
 		}
 	}
 
@@ -91,6 +96,9 @@ func (i *Inbound) Start(prov transport.Provider) error {
 		false,       // no-wait
 		nil,         // arguments
 	)
+	if err != nil {
+		return errors.Wrap(err, "unable to declare queue")
+	}
 
 	i.conn = conn
 	i.ch = ch

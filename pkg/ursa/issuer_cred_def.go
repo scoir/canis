@@ -105,6 +105,9 @@ func (r *CredentialDefinition) Finalize() error {
 	}
 	cfield := C.CString("master_secret")
 	result = C.ursa_cl_credential_schema_builder_add_attr(builder, cfield)
+	if result != 0 {
+		return errors.Errorf("error from URSA adding attribute: %d", result)
+	}
 	C.free(unsafe.Pointer(cfield))
 
 	result = C.ursa_cl_credential_schema_builder_finalize(builder, &schema)

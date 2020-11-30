@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/store/connection"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,7 +25,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/scoir/canis/pkg/datastore"
 )
 
@@ -292,7 +292,7 @@ func TestDIDFailures(t *testing.T) {
 
 		_, err = store.ListDIDs(nil)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "error trying to find DIDs")
+		require.Contains(t, err.Error(), "error trying to count did docs")
 
 		_, err = store.GetPublicDID()
 		require.Error(t, err)
@@ -329,7 +329,7 @@ func TestSchemaFailures(t *testing.T) {
 
 		_, err = store.ListSchema(&datastore.SchemaCriteria{})
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "error trying to find schema")
+		require.Contains(t, err.Error(), "error trying to count schema")
 	})
 }
 
@@ -366,7 +366,7 @@ func TestAgentFailures(t *testing.T) {
 
 		_, err = store.ListAgent(&datastore.AgentCriteria{})
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "error trying to find agents")
+		require.Contains(t, err.Error(), "error trying to count agents")
 	})
 }
 

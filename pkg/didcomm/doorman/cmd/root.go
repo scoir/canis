@@ -161,6 +161,9 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	}
 
 	amqpInbound, err := transportamqp.NewInbound(cfg.Endpoint(), external, "didexchange", "", "")
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create amqp inbound")
+	}
 	vopts := []aries.Option{
 		aries.WithStoreProvider(r.ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),

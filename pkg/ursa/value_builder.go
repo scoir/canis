@@ -110,11 +110,15 @@ func (r *ValuesBuilder) Finalize() error {
 		C.free(unsafe.Pointer(cval))
 		C.free(unsafe.Pointer(cfac))
 		if result != 0 {
-			return errors.Errorf("error from URSA adding commitment %d", result)
+			return errors.Errorf("error from URSA building schema: %d", result)
 		}
 	}
 
 	result = C.ursa_cl_credential_values_builder_finalize(builder, &r.values)
+	if result != 0 {
+		return errors.Errorf("error from URSA finalizing builder: %d", result)
+	}
+
 	return nil
 }
 
