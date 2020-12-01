@@ -192,17 +192,3 @@ func CorsHandler() func(h http.Handler) http.Handler {
 	})
 	return c.Handler
 }
-
-func Logger(h http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-
-		for key, val := range r.Header {
-			log.Println(key, ":", val)
-		}
-
-		h.ServeHTTP(w, r)
-
-	}
-
-	return http.HandlerFunc(fn)
-}

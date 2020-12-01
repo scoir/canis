@@ -13,6 +13,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
@@ -25,7 +26,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/scoir/canis/pkg/aries/transport/amqp"
 	"github.com/scoir/canis/pkg/config"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/framework"

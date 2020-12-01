@@ -8,9 +8,7 @@ package issuer
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -18,6 +16,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -52,20 +51,24 @@ type provider interface {
 func New(ctx provider) (*Server, error) {
 
 	actx, err := ctx.GetAriesContext()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get aries context")
+	}
+
 	prov := framework.NewSimpleProvider(actx)
 	credcl, err := prov.GetCredentialClient()
 	if err != nil {
-		log.Fatalln("unable to get credential client")
+		return nil, errors.Wrap(err, "unable to get credential client")
 	}
 
 	reg, err := ctx.GetCredentialEngineRegistry()
 	if err != nil {
-		log.Fatalln("unable to initialize credential engine registry", err)
+		return nil, errors.Wrap(err, "unable to get credential engine registry")
 	}
 
 	credsup, err := credential.New(prov)
 	if err != nil {
-		log.Fatalln("unable to create new credential supervisor", err)
+		return nil, errors.Wrap(err, "unable to get credential supervisor")
 	}
 
 	store := ctx.Store()
@@ -77,7 +80,7 @@ func New(ctx provider) (*Server, error) {
 	}
 	err = credsup.Start(handler)
 	if err != nil {
-		log.Fatalln("unable to start credential supervisor", err)
+		return nil, errors.Wrap(err, "unable to start supervisor")
 	}
 
 	r := &Server{

@@ -20,9 +20,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	transportamqp "github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp"
 	"github.com/scoir/canis/pkg/amqp"
 	"github.com/scoir/canis/pkg/amqp/rabbitmq"
-	transportamqp "github.com/scoir/canis/pkg/aries/transport/amqp"
 	"github.com/scoir/canis/pkg/config"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/framework"
@@ -161,6 +161,9 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	}
 
 	amqpInbound, err := transportamqp.NewInbound(cfg.Endpoint(), external, "didexchange", "", "")
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create amqp inbound")
+	}
 	vopts := []aries.Option{
 		aries.WithStoreProvider(r.ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),

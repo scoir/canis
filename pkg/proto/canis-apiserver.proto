@@ -2,7 +2,6 @@ syntax = "proto3";
 package apiserver;
 
 import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 import "common/messages.proto";
 

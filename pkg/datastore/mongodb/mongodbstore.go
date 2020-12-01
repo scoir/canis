@@ -156,8 +156,11 @@ func (r *mongoDBStore) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, e
 
 	ctx := context.Background()
 	count, err := r.db.Collection(DIDC).CountDocuments(ctx, bc)
-	results, err := r.db.Collection(DIDC).Find(ctx, bc, opts)
+	if err != nil {
+		return nil, errors.Wrap(err, "error trying to count did docs")
+	}
 
+	results, err := r.db.Collection(DIDC).Find(ctx, bc, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "error trying to find DIDs")
 	}
@@ -228,8 +231,11 @@ func (r *mongoDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 	ctx := context.Background()
 
 	count, err := r.db.Collection(SchemaC).CountDocuments(ctx, bc)
-	results, err := r.db.Collection(SchemaC).Find(ctx, bc, opts)
+	if err != nil {
+		return nil, errors.Wrap(err, "error trying to count schema")
+	}
 
+	results, err := r.db.Collection(SchemaC).Find(ctx, bc, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "error trying to find schema")
 	}
@@ -326,8 +332,11 @@ func (r *mongoDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentLi
 
 	ctx := context.Background()
 	count, err := r.db.Collection(AgentC).CountDocuments(ctx, bc)
-	results, err := r.db.Collection(AgentC).Find(ctx, bc, opts)
+	if err != nil {
+		return nil, errors.Wrap(err, "error trying to count agents")
+	}
 
+	results, err := r.db.Collection(AgentC).Find(ctx, bc, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "error trying to find agents")
 	}
@@ -399,7 +408,7 @@ func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string)
 		bson.M{"agentid": a.ID, "externalid": externalID}).Decode(ac)
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
+		return nil, errors.Wrap(err, "unable to load agent connection")
 	}
 
 	return ac, nil

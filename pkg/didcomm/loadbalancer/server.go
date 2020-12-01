@@ -1,9 +1,16 @@
+/*
+Copyright Scoir Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package loadbalancer
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -145,6 +152,9 @@ func (r *Server) listener(conn *websocket.Conn, outbound bool) {
 		}
 
 		err = pub.Publish(message, "application/json")
+		if err != nil {
+			log.Printf("error publishing message: %v", err)
+		}
 	}
 }
 
@@ -185,8 +195,7 @@ func keepConnAlive(conn *websocket.Conn, outbound bool, frequency time.Duration)
 				return
 			case <-ticker.C:
 				if err := conn.Ping(context.Background()); err != nil {
-					log.Fatalf("websocket ping error : %v", err)
-
+					log.Printf("websocket ping error : %v", err)
 					ticker.Stop()
 					done <- struct{}{}
 				}
@@ -284,7 +293,7 @@ func validateHTTPMethod(w http.ResponseWriter, r *http.Request) bool {
 
 	ct := r.Header.Get("Content-type")
 	if ct != "application/didcomm-envelope-enc" {
-		http.Error(w, fmt.Sprintf("Unsupported Content-type \"%s\"", ct), http.StatusUnsupportedMediaType)
+		http.Error(w, fmt.Sprintf("Unsupported Content-type \"%s\"", html.EscapeString(ct)), http.StatusUnsupportedMediaType)
 		return false
 	}
 
