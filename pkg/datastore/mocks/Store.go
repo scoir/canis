@@ -27,13 +27,27 @@ func (_m *Store) AddWebhook(hook *datastore.Webhook) error {
 	return r0
 }
 
-// DeleteAgent provides a mock function with given fields: id
-func (_m *Store) DeleteAgent(id string) error {
-	ret := _m.Called(id)
+// DeleteAgent provides a mock function with given fields: name
+func (_m *Store) DeleteAgent(name string) error {
+	ret := _m.Called(name)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(id)
+		r0 = rf(name)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteAgentConnection provides a mock function with given fields: a, externalID
+func (_m *Store) DeleteAgentConnection(a *datastore.Agent, externalID string) error {
+	ret := _m.Called(a, externalID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.Agent, string) error); ok {
+		r0 = rf(a, externalID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -55,13 +69,13 @@ func (_m *Store) DeleteOffer(offerID string) error {
 	return r0
 }
 
-// DeleteSchema provides a mock function with given fields: id
-func (_m *Store) DeleteSchema(id string) error {
-	ret := _m.Called(id)
+// DeleteSchema provides a mock function with given fields: name
+func (_m *Store) DeleteSchema(name string) error {
+	ret := _m.Called(name)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(id)
+		r0 = rf(name)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -244,13 +258,13 @@ func (_m *Store) GetPublicDID() (*datastore.DID, error) {
 	return r0, r1
 }
 
-// GetSchema provides a mock function with given fields: id
-func (_m *Store) GetSchema(id string) (*datastore.Schema, error) {
-	ret := _m.Called(id)
+// GetSchema provides a mock function with given fields: name
+func (_m *Store) GetSchema(name string) (*datastore.Schema, error) {
+	ret := _m.Called(name)
 
 	var r0 *datastore.Schema
 	if rf, ok := ret.Get(0).(func(string) *datastore.Schema); ok {
-		r0 = rf(id)
+		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*datastore.Schema)
@@ -259,7 +273,7 @@ func (_m *Store) GetSchema(id string) (*datastore.Schema, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+		r1 = rf(name)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -395,6 +409,29 @@ func (_m *Store) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentList, er
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*datastore.AgentCriteria) error); ok {
 		r1 = rf(c)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListAgentConnections provides a mock function with given fields: a
+func (_m *Store) ListAgentConnections(a *datastore.Agent) ([]*datastore.AgentConnection, error) {
+	ret := _m.Called(a)
+
+	var r0 []*datastore.AgentConnection
+	if rf, ok := ret.Get(0).(func(*datastore.Agent) []*datastore.AgentConnection); ok {
+		r0 = rf(a)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*datastore.AgentConnection)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.Agent) error); ok {
+		r1 = rf(a)
 	} else {
 		r1 = ret.Error(1)
 	}

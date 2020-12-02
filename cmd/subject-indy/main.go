@@ -10,7 +10,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -47,7 +46,6 @@ import (
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
 	canisproof "github.com/scoir/canis/pkg/presentproof"
-	"github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/ursa"
 	"github.com/scoir/canis/pkg/util"
 )
@@ -95,34 +93,13 @@ func getCredentials(w http.ResponseWriter, _ *http.Request) {
 	util.WriteSuccess(w, d)
 }
 
-func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
-	//UNCOMMENT FOR MINIKUBE ENV
-	//resp, err := http.Get("http://192.168.99.100:30779/agents/hogwarts/invitation/subject")
-
-	//UNCOMMENT FOR DOCKER COMPOSE ENV
-	resp, err := http.Get("http://local.scoir.com:7779/agents/hogwarts/invitation/subject")
-	if err != nil {
-		util.WriteErrorf(w, "Error requesting invitation from issuer: %v", err)
-		return
-	}
-	b, _ := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-
-	fmt.Println(string(b))
-
-	inviteResponse := &common.InvitationResponse{}
-	err = json.Unmarshal(b, inviteResponse)
-	if err != nil {
-		util.WriteErrorf(w, "Error decoding invitation response: %v, %s", err, string(b))
-		return
-	}
-
-	fmt.Println(inviteResponse.Invitation)
+func connectToIssuer(w http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
 
 	invite := &didexchange.Invitation{}
-	err = json.NewDecoder(strings.NewReader(inviteResponse.Invitation)).Decode(invite)
+	err := json.NewDecoder(req.Body).Decode(invite)
 	if err != nil {
-		util.WriteErrorf(w, "Error decoding invitation: %v, %s", err, string(b))
+		util.WriteErrorf(w, "Error decoding invitation: %v", err)
 		return
 	}
 
@@ -137,17 +114,12 @@ func connectToIssuer(w http.ResponseWriter, _ *http.Request) {
 	util.WriteSuccess(w, d)
 }
 
-func connectToVerifier(w http.ResponseWriter, _ *http.Request) {
-	resp, err := http.Get("http://0.0.0.0:4002/invitation/subject")
-	if err != nil {
-		util.WriteErrorf(w, "Error requesting invitation from verifier: %v", err)
-		return
-	}
-	b := resp.Body
+func connectToVerifier(w http.ResponseWriter, req *http.Request) {
+	b := req.Body
 	defer b.Close()
 
 	invite := &didexchange.Invitation{}
-	err = json.NewDecoder(b).Decode(invite)
+	err := json.NewDecoder(b).Decode(invite)
 	if err != nil {
 		util.WriteErrorf(w, "Error decoding invitation: %v", err)
 		return
@@ -179,7 +151,7 @@ func createAriesContext() {
 
 	storeProv := mongodbstore.NewProvider("mongodb://172.17.0.1:27017", mongodbstore.WithDBPrefix("subject"))
 	subjectStore, _ = storeProv.OpenStore("connections")
-	indyVDRI, err := indy.New("scr", indy.WithIndyClient(vdrclient))
+	indyVDRI, err := indy.New("sov", indy.WithIndyClient(vdrclient))
 	if err != nil {
 		log.Fatalln("unable to create aries indy vdr", err)
 	}

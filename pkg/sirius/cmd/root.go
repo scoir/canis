@@ -45,7 +45,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "no default config file")
 }
 
-// initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	ctx = context.NewProvider(configProvider.Load(cfgFile))
 }

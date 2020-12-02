@@ -76,8 +76,8 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
 		schemaID := "schema-id"
 		agent := &datastore.Agent{
-			ID:                  "agent-id",
-			EndorsableSchemaIds: []string{schemaID},
+			ID:                    "agent-id",
+			EndorsableSchemaNames: []string{schemaID},
 		}
 		ac := &datastore.AgentConnection{}
 		schema := &datastore.Schema{}
@@ -124,8 +124,8 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
 		schemaID := "schema-id"
 		agent := &datastore.Agent{
-			ID:                  "agent-id",
-			EndorsableSchemaIds: []string{schemaID},
+			ID:                    "agent-id",
+			EndorsableSchemaNames: []string{schemaID},
 		}
 		ac := &datastore.AgentConnection{}
 		schema := &datastore.Schema{}
@@ -170,8 +170,8 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
 		schemaID := "schema-id"
 		agent := &datastore.Agent{
-			ID:                  "agent-id",
-			EndorsableSchemaIds: []string{schemaID},
+			ID:                    "agent-id",
+			EndorsableSchemaNames: []string{schemaID},
 		}
 		ac := &datastore.AgentConnection{}
 		action := service.DIDCommAction{

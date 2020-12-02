@@ -22,7 +22,7 @@ message PredicateInfo {
 }
 
 message RequestPresentationRequest {
-  string agent_id = 1;
+  string agent_name = 1;
   string external_id = 2;
   RequestPresentation presentation = 3;
 }
@@ -41,13 +41,24 @@ message RequestPresentationResponse {
 }
 
 message InvitationRequest {
-  string agent_id = 1;
+  string agent_name = 1;
   string external_id = 2;
-  string name = 3;
+  string connection_name = 3;
 }
 
 message InvitationResponse {
   string Invitation = 1;
+}
+
+message AcceptInvitationRequest {
+    string agent_name = 1;
+    string external_id = 2;
+    string name = 3;
+    string invitation = 4;
+}
+
+message AcceptInvitationResponse {
+
 }
 
 message CredentialAttribute {
@@ -65,7 +76,7 @@ message Credential {
 }
 
 message IssueCredentialRequest {
-    string agent_id = 1;
+    string agent_name = 1;
     string external_id = 2;
     Credential credential = 3;
 }

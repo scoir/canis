@@ -20,8 +20,8 @@ var seed string
 // serverInitCmd represents the init command
 var serverInitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initialize the steward's public key in a canis credential hub",
-	Long:  `Initialize the steward's public key in a canis credential hub`,
+	Short: "Initialize the canis instance public key",
+	Long:  `Initialize the canis instance public key`,
 	Run:   initCluster,
 }
 

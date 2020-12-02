@@ -7,4 +7,5 @@ option go_package = "didcomm/doorman/api";
 
 service Doorman {
   rpc GetInvitation (common.InvitationRequest) returns (common.InvitationResponse) {}
+  rpc AcceptInvitation (common.AcceptInvitationRequest) returns (common.AcceptInvitationResponse) {}
 }

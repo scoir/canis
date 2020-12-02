@@ -38,9 +38,9 @@ type Store interface {
 	// ListSchema query schemas
 	ListSchema(c *SchemaCriteria) (*SchemaList, error)
 	// GetSchema return single Schema
-	GetSchema(id string) (*Schema, error)
+	GetSchema(name string) (*Schema, error)
 	// DeleteSchema delete single schema
-	DeleteSchema(id string) error
+	DeleteSchema(name string) error
 	// UpdateSchema update single schema
 	UpdateSchema(s *Schema) error
 
@@ -60,14 +60,19 @@ type Store interface {
 	// GetAgentByIPublicDID return single agent
 	GetAgentByPublicDID(DID string) (*Agent, error)
 	// DeleteAgent delete single agent
-	DeleteAgent(id string) error
+	DeleteAgent(name string) error
 	// UpdateAgent delete single agent
 	UpdateAgent(a *Agent) error
 	// InsertAgentConnection associates an agent with a connection
 	InsertAgentConnection(a *Agent, externalID string, conn *didexchange.Connection) error
+	// ListAgentConnections returns all the connections for an agent
+	ListAgentConnections(a *Agent) ([]*AgentConnection, error)
 	// GetAgentConnection return single connection between an agent and an external subject
 	GetAgentConnection(a *Agent, externalID string) (*AgentConnection, error)
-	// GetAgentConnection return single connection between an agent and an external subject
+	// DeleteAgentConnection deletes a connection for an agent
+	DeleteAgentConnection(a *Agent, externalID string) error
+
+	// GetAgentConnectionForDID return single connection between an agent and an external subject
 	GetAgentConnectionForDID(a *Agent, theirDID string) (*AgentConnection, error)
 
 	ListWebhooks(typ string) ([]*Webhook, error)

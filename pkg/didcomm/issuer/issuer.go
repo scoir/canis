@@ -108,7 +108,7 @@ func (r *Server) APISpec() (http.HandlerFunc, error) {
 
 func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialRequest) (*common.IssueCredentialResponse, error) {
 
-	agent, err := r.store.GetAgent(req.AgentId)
+	agent, err := r.store.GetAgent(req.AgentName)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unable to load agent: %v", err))
 	}

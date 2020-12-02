@@ -36,12 +36,21 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 
 
 message PublicDIDRequest {
-    string agent_id = 1;
+    string agent_name = 1;
     string did = 2;
     string verkey = 3;
 }
 
 message PublicDIDResponse {
+}
+
+message NewSchema {
+    string name = 2;
+    string version = 3;
+    string type = 4;
+    string format = 5;
+    repeated string context = 6;
+    repeated Attribute attributes = 7;
 }
 
 message Schema {
@@ -68,7 +77,7 @@ message Attribute {
 }
 
 message CreateSchemaRequest {
-    Schema schema = 1;
+    NewSchema schema = 1;
 }
 message CreateSchemaResponse {
     string id = 1;
@@ -106,10 +115,16 @@ message UpdateSchemaRequest {
 message UpdateSchemaResponse {
 }
 
+message NewAgent {
+    string name = 1;
+    repeated string endorsable_schema_names = 2;
+    bool public_did = 3;
+}
+
 message Agent {
     string id = 1;
     string name = 2;
-    repeated string endorsable_schema_ids = 3;
+    repeated string endorsable_schema_names = 3;
     enum Status {
         STARTING = 0;
         RUNNING = 1;
@@ -121,7 +136,7 @@ message Agent {
 }
 
 message CreateAgentRequest {
-    Agent agent = 1;
+    NewAgent agent = 1;
 }
 message CreateAgentResponse {
     string id = 1;
@@ -203,6 +218,29 @@ message ListWebhookResponse {
     repeated Webhook hooks = 1;
 }
 
+message Connection {
+    string their_label = 1;
+    string my_label = 2;
+    string their_did = 3;
+    string my_did = 4;
+    string connection_id = 5;
+    string external_id = 6;
+}
+
+message DeleteConnectionRequest {
+    string agent_name = 1;
+    string external_id = 2;
+}
+message DeleteConnectionResponse {}
+
+message ListConnectionRequest {
+    string agent_name = 1;
+}
+message ListConnectionResponse {
+    repeated Connection connections = 1;
+}
+
+
 
 service Admin {
     rpc CreateSchema (CreateSchemaRequest) returns (CreateSchemaResponse) {
@@ -235,7 +273,7 @@ service Admin {
 
     rpc IssueCredential (common.IssueCredentialRequest) returns (common.IssueCredentialResponse) {
         option (google.api.http) = {
-            post: "/agents/{agent_id}/credential/{external_id}/issue"
+            post: "/agents/{agent_name}/credential/{external_id}/issue"
             body: "credential"
         };
     }
@@ -256,12 +294,6 @@ service Admin {
             get: "/agents/{id}"
         };
     }
-    rpc GetAgentInvitation (common.InvitationRequest) returns (common.InvitationResponse) {
-        option (google.api.http) = {
-            get: "/agents/{agent_id}/invitation/{external_id}"
-        };
-
-    }
     rpc DeleteAgent (DeleteAgentRequest) returns (DeleteAgentResponse) {
         option (google.api.http) = {
             delete: "/agents/{id}"
@@ -273,9 +305,32 @@ service Admin {
             body: "agent"
         };
     }
+    rpc GetAgentInvitation (common.InvitationRequest) returns (common.InvitationResponse) {
+        option (google.api.http) = {
+            get: "/agents/{agent_name}/invitation/{external_id}"
+        };
+
+    }
+    rpc AcceptInvitation (common.AcceptInvitationRequest) returns (common.AcceptInvitationResponse) {
+        option (google.api.http) = {
+            post: "/agents/{agent_name}/invitation/{external_id}"
+            body: "invitation"
+        };
+
+    }
+    rpc ListConnections (ListConnectionRequest) returns (ListConnectionResponse) {
+        option (google.api.http) = {
+            get: "/agents/{agent_name}/connections"
+        };
+    }
+    rpc DeleteConnection (DeleteConnectionRequest) returns (DeleteConnectionResponse) {
+        option (google.api.http) = {
+            delete: "/agents/{agent_name}/connections/{external_id}"
+        };
+    }
     rpc RequestPresentation(common.RequestPresentationRequest) returns (common.RequestPresentationResponse) {
       option (google.api.http) = {
-        post: "/agents/{agent_id}/presentation/{external_id}/request"
+        post: "/agents/{agent_name}/presentation/{external_id}/request"
         body: "presentation"
       };
     }

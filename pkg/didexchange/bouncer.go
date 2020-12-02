@@ -22,6 +22,7 @@ type Bouncer interface {
 	InvitationMsg(e service.DIDCommAction, invite *didexchange.Invitation)
 	RequestMsg(e service.DIDCommAction, request *didexchange.Request)
 	EstablishConnection(invitation *didclient.Invitation, timeout time.Duration) (*didclient.Connection, error)
+	EstablishConnectionNotify(invitation *didclient.Invitation, success NotifySuccess, nerr NotifyError) error
 	CreateInvitation(name string) (*didclient.Invitation, error)
 	CreateInvitationNotify(name string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error)
 	CreateInvitationWithDIDNotify(name, did string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error)
@@ -116,6 +117,30 @@ func (r *bouncer) EstablishConnection(invitation *didclient.Invitation, timeout 
 	}
 
 	return conn, nil
+}
+
+func (r *bouncer) EstablishConnectionNotify(invitation *didclient.Invitation, success NotifySuccess, nerr NotifyError) error {
+	r.validInviteIDs[invitation.ID] = &msg{}
+	connectionID, err := r.didcl.HandleInvitation(invitation)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		conn, err := r.waitFor(connectionID, "completed", 5*time.Minute)
+		if err != nil {
+			nerr(invitation.ID, err)
+			return
+		}
+		conn, _ = r.didcl.GetConnection(connectionID)
+		if conn.State != "completed" {
+			nerr(invitation.ID, errors.Errorf("connection timed out in bad state: %s", conn.State))
+			return
+		}
+		success(invitation.ID, conn)
+	}()
+
+	return nil
 }
 
 func (r *bouncer) CreateInvitation(name string) (*didclient.Invitation, error) {

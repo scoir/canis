@@ -80,7 +80,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiserverAgent"
+              "$ref": "#/definitions/apiserverNewAgent"
             }
           }
         ],
@@ -127,7 +127,73 @@
         ]
       }
     },
-    "/agents/{agent_id}/credential/{external_id}/issue": {
+    "/agents/{agent_name}/connections": {
+      "get": {
+        "operationId": "Admin_ListConnections",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiserverListConnectionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/agents/{agent_name}/connections/{external_id}": {
+      "delete": {
+        "operationId": "Admin_DeleteConnection",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiserverDeleteConnectionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "external_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/agents/{agent_name}/credential/{external_id}/issue": {
       "post": {
         "operationId": "Admin_IssueCredential",
         "responses": {
@@ -146,7 +212,7 @@
         },
         "parameters": [
           {
-            "name": "agent_id",
+            "name": "agent_name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -171,7 +237,7 @@
         ]
       }
     },
-    "/agents/{agent_id}/invitation/{external_id}": {
+    "/agents/{agent_name}/invitation/{external_id}": {
       "get": {
         "operationId": "Admin_GetAgentInvitation",
         "responses": {
@@ -190,7 +256,7 @@
         },
         "parameters": [
           {
-            "name": "agent_id",
+            "name": "agent_name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -200,6 +266,54 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "connection_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      },
+      "post": {
+        "operationId": "Admin_AcceptInvitation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/commonAcceptInvitationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "external_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "name",
@@ -213,7 +327,7 @@
         ]
       }
     },
-    "/agents/{agent_id}/presentation/{external_id}/request": {
+    "/agents/{agent_name}/presentation/{external_id}/request": {
       "post": {
         "operationId": "Admin_RequestPresentation",
         "responses": {
@@ -232,7 +346,7 @@
         },
         "parameters": [
           {
-            "name": "agent_id",
+            "name": "agent_name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -386,7 +500,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiserverSchema"
+              "$ref": "#/definitions/apiserverNewSchema"
             }
           }
         ],
@@ -606,7 +720,7 @@
         "name": {
           "type": "string"
         },
-        "endorsable_schema_ids": {
+        "endorsable_schema_names": {
           "type": "array",
           "items": {
             "type": "string"
@@ -643,6 +757,29 @@
       ],
       "default": "STRING"
     },
+    "apiserverConnection": {
+      "type": "object",
+      "properties": {
+        "their_label": {
+          "type": "string"
+        },
+        "my_label": {
+          "type": "string"
+        },
+        "their_did": {
+          "type": "string"
+        },
+        "my_did": {
+          "type": "string"
+        },
+        "connection_id": {
+          "type": "string"
+        },
+        "external_id": {
+          "type": "string"
+        }
+      }
+    },
     "apiserverCreateAgentResponse": {
       "type": "object",
       "properties": {
@@ -677,6 +814,9 @@
       "type": "object"
     },
     "apiserverDeleteAgentResponse": {
+      "type": "object"
+    },
+    "apiserverDeleteConnectionResponse": {
       "type": "object"
     },
     "apiserverDeleteSchemaResponse": {
@@ -716,6 +856,17 @@
         }
       }
     },
+    "apiserverListConnectionResponse": {
+      "type": "object",
+      "properties": {
+        "connections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiserverConnection"
+          }
+        }
+      }
+    },
     "apiserverListSchemaResponse": {
       "type": "object",
       "properties": {
@@ -738,6 +889,52 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/apiserverWebhook"
+          }
+        }
+      }
+    },
+    "apiserverNewAgent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "endorsable_schema_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "public_did": {
+          "type": "boolean"
+        }
+      }
+    },
+    "apiserverNewSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string"
+        },
+        "context": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiserverAttribute"
           }
         }
       }
@@ -790,6 +987,9 @@
           "type": "string"
         }
       }
+    },
+    "commonAcceptInvitationResponse": {
+      "type": "object"
     },
     "commonAttrInfo": {
       "type": "object",

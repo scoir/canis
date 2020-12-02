@@ -4,6 +4,7 @@ import "C"
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	"github.com/google/tink/go/keyset"
 	"github.com/google/tink/go/signature/subtle"
@@ -83,6 +84,12 @@ func (r *CredentialEngine) Accept(format string) bool {
 }
 
 func (r *CredentialEngine) CreateSchema(issuer *datastore.DID, s *datastore.Schema) (string, error) {
+	extId := fmt.Sprintf("%s:2:%s:%s", issuer.DID.MethodID(), s.Name, s.Version)
+	_, err := r.client.GetSchema(extId)
+	if err == nil {
+		return extId, nil
+	}
+
 	attr := make([]string, len(s.Attributes))
 	for i, a := range s.Attributes {
 		attr[i] = a.Name

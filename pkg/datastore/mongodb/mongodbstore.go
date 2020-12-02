@@ -254,10 +254,10 @@ func (r *mongoDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 }
 
 // GetSchema return single Schema
-func (r *mongoDBStore) GetSchema(id string) (*datastore.Schema, error) {
+func (r *mongoDBStore) GetSchema(name string) (*datastore.Schema, error) {
 	schema := &datastore.Schema{}
 
-	err := r.db.Collection(SchemaC).FindOne(context.Background(), bson.M{"id": id}).Decode(schema)
+	err := r.db.Collection(SchemaC).FindOne(context.Background(), bson.M{"name": name}).Decode(schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load schema")
 	}
@@ -266,8 +266,8 @@ func (r *mongoDBStore) GetSchema(id string) (*datastore.Schema, error) {
 }
 
 // DeleteSchema delete single schema
-func (r *mongoDBStore) DeleteSchema(id string) error {
-	_, err := r.db.Collection(SchemaC).DeleteOne(context.Background(), bson.M{"id": id})
+func (r *mongoDBStore) DeleteSchema(name string) error {
+	_, err := r.db.Collection(SchemaC).DeleteOne(context.Background(), bson.M{"name": name})
 	if err != nil {
 		return errors.Wrap(err, "unable to delete schema")
 	}
@@ -277,7 +277,7 @@ func (r *mongoDBStore) DeleteSchema(id string) error {
 
 // UpdateSchema update single schema
 func (r *mongoDBStore) UpdateSchema(s *datastore.Schema) error {
-	_, err := r.db.Collection(SchemaC).UpdateOne(context.Background(), bson.M{"id": s.ID}, bson.M{"$set": s})
+	_, err := r.db.Collection(SchemaC).UpdateOne(context.Background(), bson.M{"name": s.Name}, bson.M{"$set": s})
 	if err != nil {
 		return errors.Wrap(err, "unable to update schema")
 	}
@@ -297,6 +297,7 @@ func (r *mongoDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 func (r *mongoDBStore) InsertAgentConnection(a *datastore.Agent, externalID string, conn *didexchange.Connection) error {
 	ac := &datastore.AgentConnection{
 		AgentID:      a.ID,
+		TheirLabel:   conn.TheirLabel,
 		TheirDID:     conn.TheirDID,
 		MyDID:        conn.MyDID,
 		ConnectionID: conn.ConnectionID,
@@ -355,10 +356,10 @@ func (r *mongoDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentLi
 }
 
 // GetAgent return single agent
-func (r *mongoDBStore) GetAgent(id string) (*datastore.Agent, error) {
+func (r *mongoDBStore) GetAgent(name string) (*datastore.Agent, error) {
 	agent := &datastore.Agent{}
 
-	err := r.db.Collection(AgentC).FindOne(context.Background(), bson.M{"id": id}).Decode(agent)
+	err := r.db.Collection(AgentC).FindOne(context.Background(), bson.M{"name": name}).Decode(agent)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load agent")
 	}
@@ -383,8 +384,8 @@ func (r *mongoDBStore) GetAgentByPublicDID(DID string) (*datastore.Agent, error)
 }
 
 // DeleteAgent delete single agent
-func (r *mongoDBStore) DeleteAgent(id string) error {
-	_, err := r.db.Collection(AgentC).DeleteOne(context.Background(), bson.M{"id": id})
+func (r *mongoDBStore) DeleteAgent(name string) error {
+	_, err := r.db.Collection(AgentC).DeleteOne(context.Background(), bson.M{"name": name})
 	if err != nil {
 		return errors.Wrap(err, "unable to delete agent")
 	}
@@ -394,9 +395,32 @@ func (r *mongoDBStore) DeleteAgent(id string) error {
 
 // UpdateAgent delete single agent
 func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
-	_, err := r.db.Collection(AgentC).UpdateOne(context.Background(), bson.M{"id": a.ID}, bson.M{"$set": a})
+	_, err := r.db.Collection(AgentC).UpdateOne(context.Background(), bson.M{"name": a.Name}, bson.M{"$set": a})
 	if err != nil {
 		return errors.Wrap(err, "unable to update agent")
+	}
+
+	return nil
+}
+
+func (r *mongoDBStore) ListAgentConnections(a *datastore.Agent) ([]*datastore.AgentConnection, error) {
+	var ac []*datastore.AgentConnection
+	err := r.db.Collection(AgentConnectionC).FindOne(context.Background(),
+		bson.M{"agentid": a.ID}).Decode(&ac)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to list agent connections")
+	}
+
+	return ac, nil
+}
+
+func (r *mongoDBStore) DeleteAgentConnection(a *datastore.Agent, externalID string) error {
+	_, err := r.db.Collection(AgentConnectionC).DeleteMany(context.Background(),
+		bson.M{"agentid": a.ID, "externalid": externalID})
+
+	if err != nil {
+		return errors.Wrap(err, "unable to delete agent connection")
 	}
 
 	return nil

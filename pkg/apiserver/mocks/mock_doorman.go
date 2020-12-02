@@ -20,3 +20,7 @@ func (r *MockDoorman) GetInvitation(ctx context.Context, in *common.InvitationRe
 
 	return r.InviteResponse, nil
 }
+
+func (r *MockDoorman) AcceptInvitation(ctx context.Context, in *common.AcceptInvitationRequest, opts ...grpc.CallOption) (*common.AcceptInvitationResponse, error) {
+	panic("implement me")
+}

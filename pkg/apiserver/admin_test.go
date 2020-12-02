@@ -73,17 +73,16 @@ func TestCreateAgent(t *testing.T) {
 	t.Run("no public did", func(t *testing.T) {
 		target, suite := SetupTest()
 		request := &api.CreateAgentRequest{
-			Agent: &api.Agent{
-				Id:                  "123",
-				Name:                "Test Agent",
-				EndorsableSchemaIds: nil,
+			Agent: &api.NewAgent{
+				Name:                  "Test Agent",
+				EndorsableSchemaNames: nil,
 			},
 		}
 
 		a := &datastore.Agent{
-			ID:                  "123",
-			Name:                "Test Agent",
-			EndorsableSchemaIds: []string{},
+			ID:                    "123",
+			Name:                  "Test Agent",
+			EndorsableSchemaNames: []string{},
 		}
 
 		suite.Store.On("GetAgent", "123").Return(nil, errors.New("not found"))
@@ -97,11 +96,10 @@ func TestCreateAgent(t *testing.T) {
 		target, suite := SetupTest()
 
 		request := &api.CreateAgentRequest{
-			Agent: &api.Agent{
-				Id:                  "123",
-				Name:                "Test Agent",
-				EndorsableSchemaIds: []string{"test-schema-id"},
-				PublicDid:           true,
+			Agent: &api.NewAgent{
+				Name:                  "Test Agent",
+				EndorsableSchemaNames: []string{"test-schema-id"},
+				PublicDid:             true,
 			},
 		}
 
@@ -133,17 +131,16 @@ func TestCreateAgent(t *testing.T) {
 func TestCreateAgentFails(t *testing.T) {
 	target, suite := SetupTest()
 	request := &api.CreateAgentRequest{
-		Agent: &api.Agent{
-			Id:                  "123",
-			Name:                "Test Agent",
-			EndorsableSchemaIds: nil,
+		Agent: &api.NewAgent{
+			Name:                  "Test Agent",
+			EndorsableSchemaNames: nil,
 		},
 	}
 
 	a := &datastore.Agent{
-		ID:                  "123",
-		Name:                "Test Agent",
-		EndorsableSchemaIds: []string{},
+		ID:                    "123",
+		Name:                  "Test Agent",
+		EndorsableSchemaNames: []string{},
 	}
 
 	suite.Store.On("GetAgent", "123").Return(nil, errors.New("not found"))
@@ -158,10 +155,9 @@ func TestCreateAgentFails(t *testing.T) {
 func TestCreateAgentMissingRequiredField(t *testing.T) {
 	target, _ := SetupTest()
 	request := &api.CreateAgentRequest{
-		Agent: &api.Agent{
-			Id:                  "",
-			Name:                "Test Agent",
-			EndorsableSchemaIds: nil,
+		Agent: &api.NewAgent{
+			Name:                  "Test Agent",
+			EndorsableSchemaNames: nil,
 		},
 	}
 
@@ -174,10 +170,9 @@ func TestCreateAgentMissingRequiredField(t *testing.T) {
 func TestCreateAgentAlreadyExists(t *testing.T) {
 	target, suite := SetupTest()
 	request := &api.CreateAgentRequest{
-		Agent: &api.Agent{
-			Id:                  "123",
-			Name:                "Test Agent",
-			EndorsableSchemaIds: nil,
+		Agent: &api.NewAgent{
+			Name:                  "Test Agent",
+			EndorsableSchemaNames: nil,
 		},
 	}
 
@@ -293,18 +288,18 @@ func TestUpdateAgent(t *testing.T) {
 		target, suite := SetupTest()
 		request := &api.UpdateAgentRequest{
 			Agent: &api.Agent{
-				Id:                  "123",
-				Name:                "Test Agent",
-				EndorsableSchemaIds: []string{"test-schema-id"},
-				PublicDid:           true,
+				Id:                    "123",
+				Name:                  "Test Agent",
+				EndorsableSchemaNames: []string{"test-schema-id"},
+				PublicDid:             true,
 			},
 		}
 
 		a := &datastore.Agent{
-			ID:                  "123",
-			Name:                "Test Agent",
-			EndorsableSchemaIds: []string{"test-schema-id"},
-			HasPublicDID:        true,
+			ID:                    "123",
+			Name:                  "Test Agent",
+			EndorsableSchemaNames: []string{"test-schema-id"},
+			HasPublicDID:          true,
 		}
 		d, err := identifiers.CreateDID(&identifiers.MyDIDInfo{
 			PublicKey:  []byte("abcdefghijklmnopqrs"),
@@ -332,16 +327,16 @@ func TestUpdateAgent(t *testing.T) {
 		target, suite := SetupTest()
 		request := &api.UpdateAgentRequest{
 			Agent: &api.Agent{
-				Id:                  "123",
-				Name:                "Test Agent",
-				EndorsableSchemaIds: nil,
+				Id:                    "123",
+				Name:                  "Test Agent",
+				EndorsableSchemaNames: nil,
 			},
 		}
 
 		a := &datastore.Agent{
-			ID:                  "123",
-			Name:                "Test Agent",
-			EndorsableSchemaIds: nil,
+			ID:                    "123",
+			Name:                  "Test Agent",
+			EndorsableSchemaNames: nil,
 		}
 
 		suite.Store.On("GetAgent", "123").Return(a, nil)
@@ -355,9 +350,9 @@ func TestUpdateAgent(t *testing.T) {
 		target, suite := SetupTest()
 		request := &api.UpdateAgentRequest{
 			Agent: &api.Agent{
-				Id:                  "123",
-				Name:                "Test Agent",
-				EndorsableSchemaIds: nil,
+				Id:                    "123",
+				Name:                  "Test Agent",
+				EndorsableSchemaNames: nil,
 			},
 		}
 
@@ -384,8 +379,7 @@ func TestUpdateAgent(t *testing.T) {
 func TestCreateSchema(t *testing.T) {
 	target, suite := SetupTest()
 	request := &api.CreateSchemaRequest{
-		Schema: &api.Schema{
-			Id:      "123",
+		Schema: &api.NewSchema{
 			Name:    "Test Schema",
 			Version: "0.0.1",
 			Attributes: []*api.Attribute{{
@@ -427,8 +421,7 @@ func TestCreateSchema(t *testing.T) {
 func TestCreateSchemaFails(t *testing.T) {
 	target, suite := SetupTest()
 	request := &api.CreateSchemaRequest{
-		Schema: &api.Schema{
-			Id:   "123",
+		Schema: &api.NewSchema{
 			Name: "Test Schema",
 		},
 	}
@@ -458,8 +451,7 @@ func TestCreateSchemaFails(t *testing.T) {
 func TestCreateSchemaMissingRequiredField(t *testing.T) {
 	target, _ := SetupTest()
 	request := &api.CreateSchemaRequest{
-		Schema: &api.Schema{
-			Id:   "",
+		Schema: &api.NewSchema{
 			Name: "Test Schema",
 		},
 	}
@@ -473,8 +465,7 @@ func TestCreateSchemaMissingRequiredField(t *testing.T) {
 func TestCreateSchemaAlreadyExists(t *testing.T) {
 	target, suite := SetupTest()
 	request := &api.CreateSchemaRequest{
-		Schema: &api.Schema{
-			Id:   "123",
+		Schema: &api.NewSchema{
 			Name: "Test Schema",
 		},
 	}
@@ -840,7 +831,7 @@ func TestRequestPresentation(t *testing.T) {
 		target, suite := SetupTest()
 
 		req := &common.RequestPresentationRequest{
-			AgentId:    "test-agent-id",
+			AgentName:  "test-agent-id",
 			ExternalId: "test-external-id",
 			Presentation: &common.RequestPresentation{
 				RequestedAttributes: map[string]*common.AttrInfo{
@@ -869,7 +860,7 @@ func TestRequestPresentation(t *testing.T) {
 		target, suite := SetupTest()
 
 		req := &common.RequestPresentationRequest{
-			AgentId:    "test-agent-id",
+			AgentName:  "test-agent-id",
 			ExternalId: "test-external-id",
 			Presentation: &common.RequestPresentation{
 				RequestedAttributes: map[string]*common.AttrInfo{

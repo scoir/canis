@@ -57,12 +57,11 @@ func TestMain(m *testing.M) {
 	}
 
 	res := m.Run()
-	dropTestDatabase()
 
 	os.Exit(res)
 }
 
-func dropTestDatabase() {
+func dropTestDatabase(dbName string) {
 	var err error
 	tM := reflect.TypeOf(bson.M{})
 	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, tM).Build()
@@ -78,7 +77,7 @@ func dropTestDatabase() {
 	if err != nil {
 		log.Fatalln("error dropping database", err)
 	}
-	db := mongoClient.Database("test")
+	db := mongoClient.Database(dbName)
 	err = db.Drop(ctx)
 	if err != nil {
 		log.Fatalln("error dropping database", err)
@@ -96,7 +95,8 @@ func waitForMongoDBToStart() error {
 		return err
 	}
 
-	err = mongoClient.Connect(context.Background())
+	ctx := context.Background()
+	err = mongoClient.Connect(ctx)
 	if err != nil {
 		return errors.Wrap(err, "error connecting to mongo")
 	}
@@ -112,6 +112,10 @@ func waitForMongoDBToStart() error {
 			if err != nil {
 				return err
 			}
+			err = db.Drop(ctx)
+			if err != nil {
+				log.Fatalln("error dropping database", err)
+			}
 
 			return nil
 		}
@@ -120,7 +124,9 @@ func waitForMongoDBToStart() error {
 
 func TestInsertListDID(t *testing.T) {
 	t.Run("Test insert / list public did", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -156,7 +162,9 @@ func TestInsertListDID(t *testing.T) {
 
 func TestSetGetPublicDID(t *testing.T) {
 	t.Run("Test get / set public did", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -189,7 +197,9 @@ func TestSetGetPublicDID(t *testing.T) {
 
 func TestSchema(t *testing.T) {
 	t.Run("Test schema CRUD", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -226,7 +236,9 @@ func TestSchema(t *testing.T) {
 
 func TestAgent(t *testing.T) {
 	t.Run("Test Agent CRUD", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -292,7 +304,9 @@ func TestProviderFailures(t *testing.T) {
 
 func TestDIDFailures(t *testing.T) {
 	t.Run("connectivity failures", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -329,7 +343,9 @@ func TestDIDFailures(t *testing.T) {
 
 func TestSchemaFailures(t *testing.T) {
 	t.Run("connectivity failures", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -362,7 +378,9 @@ func TestSchemaFailures(t *testing.T) {
 
 func TestAgentFailures(t *testing.T) {
 	t.Run("connectivity failures", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -409,7 +427,9 @@ func TestAgentFailures(t *testing.T) {
 
 func TestPresentationRequest(t *testing.T) {
 	t.Run("insert presentation request", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -428,7 +448,9 @@ func TestPresentationRequest(t *testing.T) {
 
 func TestOffer(t *testing.T) {
 	t.Run("credential offer", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -453,7 +475,9 @@ func TestOffer(t *testing.T) {
 
 func TestAgentConnection(t *testing.T) {
 	t.Run("agent connection", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()
@@ -487,7 +511,9 @@ func TestAgentConnection(t *testing.T) {
 
 func TestWebhooks(t *testing.T) {
 	t.Run("webhooks", func(t *testing.T) {
-		prov, err := NewProvider(testConfig())
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
 		require.NoError(t, err)
 
 		store, err := prov.Open()

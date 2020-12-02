@@ -26,16 +26,16 @@ type AgentList struct {
 }
 
 type Agent struct {
-	ID                  string
-	Name                string
-	EndorsableSchemaIds []string
-	PID                 string
-	HasPublicDID        bool
-	PublicDID           *DID
+	ID                    string
+	Name                  string
+	EndorsableSchemaNames []string
+	PID                   string
+	HasPublicDID          bool
+	PublicDID             *DID
 }
 
 func (r *Agent) CanIssue(schemaID string) bool {
-	for _, id := range r.EndorsableSchemaIds {
+	for _, id := range r.EndorsableSchemaNames {
 		if schemaID == id {
 			return true
 		}
@@ -44,6 +44,8 @@ func (r *Agent) CanIssue(schemaID string) bool {
 }
 
 type AgentConnection struct {
+	TheirLabel   string
+	MyLabel      string
 	AgentID      string
 	TheirDID     string
 	MyDID        string
