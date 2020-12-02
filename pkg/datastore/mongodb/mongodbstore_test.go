@@ -502,7 +502,7 @@ func TestAgentConnection(t *testing.T) {
 		ac, err = store.GetAgentConnectionForDID(agent, "did:sov:abc")
 		require.NoError(t, err)
 		require.Equal(t, ac.ExternalID, "external-id")
-		require.Equal(t, ac.AgentID, "agent id")
+		require.Equal(t, ac.AgentName, "agent id")
 		require.Equal(t, ac.MyDID, "did:sov:xyz")
 		require.Equal(t, ac.ConnectionID, "connection-id")
 

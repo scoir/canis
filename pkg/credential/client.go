@@ -58,7 +58,7 @@ func NewClient() (*Client, error) {
 //	pk, _ := indycd.PrivateKey()
 //	kcp, _ := indycd.KeyCorrectnessProof()
 //	ck := credKeys{
-//		SchemaID:            schema.ID,
+//		SchemaName:            schema.ID,
 //		PrivKey:             []byte(pk),
 //		KeyCorrectnessProof: []byte(kcp),
 //	}
@@ -103,7 +103,7 @@ func NewClient() (*Client, error) {
 //	}
 //
 //	out.KeyCorrectnessProof = string(ck.KeyCorrectnessProof)
-//	out.SchemaID = ck.SchemaID
+//	out.SchemaName = ck.SchemaName
 //	out.Nonce, err = anoncreds.NewNonce()
 //	if err != nil {
 //		return nil, errors.Wrap(err, "error creating nonce")

@@ -296,7 +296,7 @@ func (r *mongoDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 
 func (r *mongoDBStore) InsertAgentConnection(a *datastore.Agent, externalID string, conn *didexchange.Connection) error {
 	ac := &datastore.AgentConnection{
-		AgentID:      a.ID,
+		AgentName:    a.Name,
 		TheirLabel:   conn.TheirLabel,
 		TheirDID:     conn.TheirDID,
 		MyDID:        conn.MyDID,
@@ -406,7 +406,7 @@ func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
 func (r *mongoDBStore) ListAgentConnections(a *datastore.Agent) ([]*datastore.AgentConnection, error) {
 	var ac []*datastore.AgentConnection
 	err := r.db.Collection(AgentConnectionC).FindOne(context.Background(),
-		bson.M{"agentid": a.ID}).Decode(&ac)
+		bson.M{"agentname": a.Name}).Decode(&ac)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to list agent connections")
@@ -417,7 +417,7 @@ func (r *mongoDBStore) ListAgentConnections(a *datastore.Agent) ([]*datastore.Ag
 
 func (r *mongoDBStore) DeleteAgentConnection(a *datastore.Agent, externalID string) error {
 	_, err := r.db.Collection(AgentConnectionC).DeleteMany(context.Background(),
-		bson.M{"agentid": a.ID, "externalid": externalID})
+		bson.M{"agentname": a.Name, "externalid": externalID})
 
 	if err != nil {
 		return errors.Wrap(err, "unable to delete agent connection")
@@ -429,7 +429,7 @@ func (r *mongoDBStore) DeleteAgentConnection(a *datastore.Agent, externalID stri
 func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string) (*datastore.AgentConnection, error) {
 	ac := &datastore.AgentConnection{}
 	err := r.db.Collection(AgentConnectionC).FindOne(context.Background(),
-		bson.M{"agentid": a.ID, "externalid": externalID}).Decode(ac)
+		bson.M{"agentname": a.Name, "externalid": externalID}).Decode(ac)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load agent connection")
@@ -517,7 +517,7 @@ func (r *mongoDBStore) DeleteOffer(offerID string) error {
 func (r *mongoDBStore) GetAgentConnectionForDID(a *datastore.Agent, theirDID string) (*datastore.AgentConnection, error) {
 	ac := &datastore.AgentConnection{}
 	err := r.db.Collection(AgentConnectionC).FindOne(context.Background(),
-		bson.M{"agentid": a.ID, "theirdid": theirDID}).Decode(ac)
+		bson.M{"agentname": a.Name, "theirdid": theirDID}).Decode(ac)
 
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())

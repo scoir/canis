@@ -169,12 +169,12 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 	}
 
 	cred := &datastore.Credential{
-		AgentID:           agent.ID,
+		AgentName:         agent.Name,
 		MyDID:             ac.MyDID,
 		TheirDID:          ac.TheirDID,
 		ThreadID:          id,
 		RegistryOfferID:   registryOfferID,
-		SchemaID:          schema.ID,
+		SchemaName:        schema.Name,
 		ExternalSubjectID: req.ExternalId,
 		Offer: datastore.Offer{
 			Comment: req.Credential.Comment,

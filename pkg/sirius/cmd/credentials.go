@@ -10,11 +10,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var agentsCmd = &cobra.Command{
-	Use:   "agents",
-	Short: "Create and manage agents for Canis instance",
+var credentialsCmd = &cobra.Command{
+	Use:   "credentials",
+	Short: "Manage credentials for running agents",
 }
 
 func init() {
-	rootCmd.AddCommand(agentsCmd)
+	rootCmd.AddCommand(credentialsCmd)
 }

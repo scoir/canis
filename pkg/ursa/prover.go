@@ -10,6 +10,7 @@ import "C"
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"unsafe"
 
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
@@ -168,10 +169,11 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 
 	cr.BlindedMS = C.GoString(blindedSecretsJson)
 	cr.BlindedMSCorrectnessProof = C.GoString(proofJson)
-	cr.Nonce, err = ursa.NewNonce()
+	reqNonce, err := ursa.NewNonce()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to create nonce for cred request")
 	}
+	cr.Nonce = strings.Trim(reqNonce, "\"")
 
 	md := &CredentialRequestMetadata{}
 	md.MasterSecretBlindingData = C.GoString(blindingFactorsJson)

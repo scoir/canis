@@ -98,10 +98,10 @@ func (r *credHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *ic
 	}
 
 	cred := &datastore.Credential{
-		AgentID:           agent.ID,
+		AgentName:         agent.Name,
 		MyDID:             myDID,
 		TheirDID:          theirDID,
-		SchemaID:          schema.ID,
+		SchemaName:        schema.Name,
 		ExternalSubjectID: ac.ExternalID,
 		ThreadID:          thid,
 		SystemState:       "propsed",
@@ -137,15 +137,15 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 		return
 	}
 
-	_, err = r.store.GetAgent(offer.AgentID)
+	_, err = r.store.GetAgent(offer.AgentName)
 	if err != nil {
 		log.Println("unable to find agent for credential request", err)
 		return
 	}
 
-	schema, err := r.store.GetSchema(offer.SchemaID)
+	schema, err := r.store.GetSchema(offer.SchemaName)
 	if err != nil {
-		log.Printf("unable to find schema with ID %s: (%v)\n", offer.SchemaID, err)
+		log.Printf("unable to find schema with ID %s: (%v)\n", offer.SchemaName, err)
 		return
 	}
 
@@ -183,7 +183,13 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	//TODO:  Somehow verify the request against the original offer
 	fmt.Printf("offerID: %s, threadID: %s\n", offer.ThreadID, thid)
 	msg := &icprotocol.IssueCredential{
-		Comment:           offer.Offer.Comment,
+		Comment: offer.Offer.Comment,
+		Formats: []icprotocol.Format{
+			{
+				AttachID: credentialAttachments[0].ID,
+				Format:   "hlindy-zkp-v1.0",
+			},
+		},
 		CredentialsAttach: credentialAttachments,
 	}
 

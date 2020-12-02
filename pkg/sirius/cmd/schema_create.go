@@ -33,8 +33,8 @@ var schemaCreateCmd = &cobra.Command{
 
 func init() {
 	schemaCmd.AddCommand(schemaCreateCmd)
-	schemaCreateCmd.Flags().StringArrayVar(&schemaCtx, "context", []string{}, "list of context this schema uses")
-	schemaCreateCmd.Flags().StringArrayVar(&attrValues, "attr", []string{}, "list of attributes for this schema")
+	schemaCreateCmd.Flags().StringArrayVar(&schemaCtx, "context", []string{}, "list of context URLs this schema uses")
+	schemaCreateCmd.Flags().StringArrayVar(&attrValues, "attr", []string{}, "list of attributes for this schema [NAME:TYPE] (can be repeated)")
 
 	schemaCreateCmd.Flags().StringVar(&version, "version", "", "the schema version")
 	_ = schemaCreateCmd.MarkFlagRequired("version")

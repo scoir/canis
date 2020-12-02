@@ -46,7 +46,7 @@ func (r *Agent) CanIssue(schemaID string) bool {
 type AgentConnection struct {
 	TheirLabel   string
 	MyLabel      string
-	AgentID      string
+	AgentName    string
 	TheirDID     string
 	MyDID        string
 	ConnectionID string
@@ -119,11 +119,11 @@ type Offer struct {
 }
 
 type Credential struct {
-	AgentID           string
+	AgentName         string
 	MyDID             string
 	TheirDID          string
 	ThreadID          string
-	SchemaID          string
+	SchemaName        string
 	RegistryOfferID   string
 	ExternalSubjectID string
 	Offer             Offer

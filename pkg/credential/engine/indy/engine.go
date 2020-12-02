@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/google/tink/go/keyset"
 	"github.com/google/tink/go/signature/subtle"
@@ -194,7 +195,7 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, _ string
 		SchemaID:            s.ExternalSchemaID,
 		CredDefID:           credDefID,
 		KeyCorrectnessProof: rec.KeyCorrectnessProof,
-		Nonce:               nonce,
+		Nonce:               strings.Trim(nonce, "\""),
 	}
 
 	offerID := uuid.New().URN()

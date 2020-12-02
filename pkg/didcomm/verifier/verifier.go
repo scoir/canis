@@ -106,7 +106,7 @@ func (r *Server) APISpec() (http.HandlerFunc, error) {
 }
 
 func (r *Server) RequestPresentation(_ context.Context, req *common.RequestPresentationRequest) (*common.RequestPresentationResponse, error) {
-	agent, err := r.store.GetAgent(req.AgentId)
+	agent, err := r.store.GetAgent(req.AgentName)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unable to load agent: %v", err))
 	}

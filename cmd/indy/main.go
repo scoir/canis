@@ -1,38 +1,51 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
+	"strings"
 
-	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 )
 
 func main() {
-	genesis, err := os.Open(os.Args[1])
+
+	nonce, err := ursa.NewNonce()
 	if err != nil {
-		log.Fatalln("unable to open genesis file", err)
+		log.Fatalln("error", err)
 	}
 
-	client, err := vdr.New(genesis)
+	fmt.Println(strings.Trim(nonce, "\""))
+
+	handle, err := ursa.NonceFromJson(strings.Trim(nonce, "\""))
 	if err != nil {
-		log.Fatalln(err)
+		log.Println("handle error", err)
 	}
 
-	err = client.RefreshPool()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	fmt.Println(handle)
 
-	status, err := client.GetPoolStatus()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	d, _ := json.MarshalIndent(status, " ", " ")
-	fmt.Println(string(d))
+	//genesis, err := os.Open(os.Args[1])
+	//if err != nil {
+	//	log.Fatalln("unable to open genesis file", err)
+	//}
+	//
+	//client, err := vdr.New(genesis)
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//
+	//err = client.RefreshPool()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//
+	//status, err := client.GetPoolStatus()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//
+	//d, _ := json.MarshalIndent(status, " ", " ")
+	//fmt.Println(string(d))
 
 	//rply, err := client.GetNym("Xy9dvEi8dkkPif5j342w9q")
 	//if err != nil {
@@ -48,22 +61,22 @@ func main() {
 	//fmt.Println(m["dest"])
 	//fmt.Println(m["verkey"])
 
-	rply, err := client.GetTxnAuthorAgreement()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	d, _ = json.MarshalIndent(rply, " ", " ")
-	fmt.Println(string(d))
-
-	rply, err = client.GetAcceptanceMethodList()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	d, _ = json.MarshalIndent(rply, " ", " ")
-	fmt.Println(string(d))
-
+	//rply, err := client.GetTxnAuthorAgreement()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//
+	//d, _ = json.MarshalIndent(rply, " ", " ")
+	//fmt.Println(string(d))
+	//
+	//rply, err = client.GetAcceptanceMethodList()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//
+	//d, _ = json.MarshalIndent(rply, " ", " ")
+	//fmt.Println(string(d))
+	//
 	//rply, err = client.GetCredDef("Xy9dvEi8dkkPif5j342w9q:3:CL:23:default")
 	//if err != nil {
 	//	log.Fatalln(err)
@@ -88,6 +101,4 @@ func main() {
 	//d, _ = json.MarshalIndent(rply, " ", " ")
 	//fmt.Println(string(d))
 	//
-	n, err := ursa.NewNonce()
-	fmt.Println(n, err)
 }

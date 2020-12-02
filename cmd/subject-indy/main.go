@@ -274,7 +274,7 @@ func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icpro
 
 	answer := "Y"
 	if strings.HasPrefix(strings.ToUpper(answer), "Y") {
-		msID, err := prover.CreateMasterSecret("master_secret_id")
+		msID, err := prover.CreateMasterSecret(e.Message.ID())
 		if err != nil {
 			log.Println("error creating master secret", err)
 			return
@@ -287,6 +287,9 @@ func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icpro
 			log.Println("extract offer from protocol message", err)
 			return
 		}
+
+		dd, _ := json.MarshalIndent(offer, " ", " ")
+		fmt.Println(string(dd))
 
 		rply, err := vdrclient.GetCredDef(offer.CredDefID)
 		if err != nil {
