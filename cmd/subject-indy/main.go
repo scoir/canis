@@ -23,6 +23,7 @@ import (
 	ppclient "github.com/hyperledger/aries-framework-go/pkg/client/presentproof"
 	arieslog "github.com/hyperledger/aries-framework-go/pkg/common/log"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/service"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/dispatcher"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
@@ -31,6 +32,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/suite/ed25519signature2018"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
+	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/defaults"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
@@ -161,6 +163,7 @@ func createAriesContext() {
 		defaults.WithInboundWSAddr(wsinbound, fmt.Sprintf("ws://%s", wsinbound), "", ""),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 		aries.WithVDRI(indyVDRI),
+		aries.WithProtocols(newIssueCredentialSvc()),
 	)
 	if err != nil {
 		log.Fatalln("Unable to create", err)
@@ -229,6 +232,20 @@ func createAriesContext() {
 		}
 	}
 
+}
+
+func newIssueCredentialSvc() api.ProtocolSvcCreator {
+	return func(prv api.Provider) (dispatcher.ProtocolService, error) {
+		service, err := icprotocol.New(prv)
+		if err != nil {
+			return nil, err
+		}
+
+		// sets default middleware to the service
+		// service.Use(mdissuecredential.SaveCredentials(prv))
+
+		return service, nil
+	}
 }
 
 type credentialHandler struct {
