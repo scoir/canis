@@ -121,7 +121,7 @@ func (r *Server) RequestPresentation(_ context.Context, req *common.RequestPrese
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load schema: %v", err))
 	}
 
-	presentation, err := r.registry.RequestPresentation(schema.Type, req.Presentation.RequestedAttributes, req.Presentation.RequestedPredicates)
+	presentation, err := r.registry.RequestPresentation(schema.Format, req.Presentation.RequestedAttributes, req.Presentation.RequestedPredicates)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating presentation request: %v", err))
 	}

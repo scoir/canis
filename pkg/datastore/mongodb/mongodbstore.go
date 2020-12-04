@@ -438,27 +438,6 @@ func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string)
 	return ac, nil
 }
 
-func (r *mongoDBStore) InsertCredential(c *datastore.Credential) (string, error) {
-	res, err := r.db.Collection(CredentialC).InsertOne(context.Background(), c)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to insert credential")
-	}
-	id := res.InsertedID.(primitive.ObjectID)
-	return id.Hex(), nil
-}
-
-func (r *mongoDBStore) FindOffer(offerID string) (*datastore.Credential, error) {
-	c := &datastore.Credential{}
-	err := r.db.Collection(CredentialC).FindOne(context.Background(),
-		bson.M{"threadid": offerID, "systemstate": "offered"}).Decode(c)
-
-	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load offer").Error())
-	}
-
-	return c, nil
-}
-
 func (r *mongoDBStore) ListWebhooks(typ string) ([]*datastore.Webhook, error) {
 	ctx := context.Background()
 
@@ -503,15 +482,6 @@ func (r *mongoDBStore) InsertPresentationRequest(pr *datastore.PresentationReque
 	}
 
 	return res.InsertedID.(primitive.ObjectID).Hex(), nil
-}
-
-func (r *mongoDBStore) DeleteOffer(offerID string) error {
-	_, err := r.db.Collection(CredentialC).DeleteOne(context.Background(), bson.M{"threadid": offerID})
-	if err != nil {
-		return errors.Wrap(err, "unable to delete offer")
-	}
-
-	return nil
 }
 
 func (r *mongoDBStore) GetAgentConnectionForDID(a *datastore.Agent, theirDID string) (*datastore.AgentConnection, error) {

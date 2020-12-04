@@ -8,9 +8,8 @@ package datastore
 
 import (
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
-	"github.com/mr-tron/base58"
-
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
+	"github.com/mr-tron/base58"
 )
 
 type Criteria map[string]interface{}
@@ -119,6 +118,7 @@ type Offer struct {
 }
 
 type Credential struct {
+	ID                string
 	AgentName         string
 	MyDID             string
 	TheirDID          string

@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   aries-agent-rest:
-    image: aries-framework-go/agent-rest:latest
+    image: canislabs/aries-agent-rest:latest
     command:
       - start
       - "--api-host"
@@ -21,7 +21,7 @@ services:
       - "--inbound-host-external"
       - "ws@ws://172.17.0.1:5522"
       - "--log-level"
-      - "INFO"
+      - "DEBUG"
     ports:
       - "5533:5533"
       - "5522:5522"

@@ -25,7 +25,7 @@ done
 echo "Do you wish to request proof verfication? (wait for credential issuance to complete)"
 select yn in "Y" "N"; do
     case $yn in
-        Y ) sirius --config config/sirius-compose.yaml credentials request-proof agent-0 --subject indy-wallet --schema-name TEST1 --comment "this is a test" --attr Name=Phil --attr City=Durham;;
+        Y ) sirius --config config/sirius-compose.yaml credentials request-proof agent-1 --subject indy-wallet --schema-name TEST1 --attr Name= --attr City=;;
         N ) exit;;
     esac
 done

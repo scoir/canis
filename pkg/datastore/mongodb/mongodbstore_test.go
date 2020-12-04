@@ -459,14 +459,14 @@ func TestOffer(t *testing.T) {
 		_, err = store.InsertCredential(&datastore.Credential{ThreadID: "1234", SystemState: "offered"})
 		require.NoError(t, err)
 
-		c, err := store.FindOffer("1234")
+		c, err := store.FindCredentialByOffer("1234")
 		require.NoError(t, err)
 		require.NotNil(t, c)
 
-		err = store.DeleteOffer("1234")
+		err = store.DeleteCredentialByOffer("1234")
 		require.NoError(t, err)
 
-		c, err = store.FindOffer("1234")
+		c, err = store.FindCredentialByOffer("1234")
 		require.Error(t, err)
 		require.Nil(t, c)
 

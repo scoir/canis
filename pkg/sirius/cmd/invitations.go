@@ -10,8 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var subject string
-
 var invitationsCmd = &cobra.Command{
 	Use:   "invitations",
 	Short: "Manage connection invitations for running agents",

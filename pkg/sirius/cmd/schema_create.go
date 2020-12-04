@@ -22,7 +22,6 @@ var version string
 var schemaType string
 var format string
 var schemaCtx []string
-var attrValues []string
 
 var schemaCreateCmd = &cobra.Command{
 	Use:   "create SCHEMA_NAME",

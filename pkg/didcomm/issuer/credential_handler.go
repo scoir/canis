@@ -34,10 +34,10 @@ type prop interface {
 
 func (r *credHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *icprotocol.ProposeCredential) {
 	thid, _ := e.Message.ThreadID()
-	offer, err := r.store.FindOffer(thid)
+	offer, err := r.store.FindCredentialByOffer(thid)
 	if err == nil {
 		e.Stop(errors.New("negociating not currently supported"))
-		err = r.store.DeleteOffer(offer.ThreadID)
+		err = r.store.DeleteCredentialByOffer(offer.ThreadID)
 		if err != nil {
 			log.Println("unable to delete offer in negociation", err)
 			return
@@ -104,7 +104,7 @@ func (r *credHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *ic
 		SchemaName:        schema.Name,
 		ExternalSubjectID: ac.ExternalID,
 		ThreadID:          thid,
-		SystemState:       "propsed",
+		SystemState:       "proposed",
 	}
 
 	_, err = r.store.InsertCredential(cred)
@@ -131,7 +131,7 @@ func (r *credHandler) IssueCredentialMsg(_ service.DIDCommAction, _ *icprotocol.
 func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icprotocol.RequestCredential) {
 	thid, _ := e.Message.ThreadID()
 
-	offer, err := r.store.FindOffer(thid)
+	offer, err := r.store.FindCredentialByOffer(thid)
 	if err != nil {
 		log.Printf("unable to find offer with ID %s: (%v)\n", thid, err)
 		return
@@ -204,7 +204,7 @@ func (r *credHandler) CredentialAccepted(id string) func(threadID string, ack *m
 
 	return func(threadID string, ack *model.Ack) {
 		//TODO: find the offer and update the status and send notification!!
-		fmt.Printf("Transcript Accepted: %s", id)
+		fmt.Printf("Credential Accepted: %s", id)
 	}
 }
 

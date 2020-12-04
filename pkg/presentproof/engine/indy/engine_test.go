@@ -124,7 +124,7 @@ func TestEngine_Accept(t *testing.T) {
 
 		engine, err := New(prov)
 		require.NoError(t, err)
-		require.True(t, engine.Accept(Indy))
+		require.True(t, engine.Accept(Format))
 		require.False(t, engine.Accept("unknown"))
 	})
 }

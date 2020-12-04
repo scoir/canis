@@ -1086,9 +1086,6 @@
         "comment": {
           "type": "string"
         },
-        "type": {
-          "type": "string"
-        },
         "will_confirm": {
           "type": "boolean"
         },

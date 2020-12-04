@@ -46,10 +46,12 @@ type Store interface {
 
 	// InsertCredential add Crednetial to store
 	InsertCredential(c *Credential) (string, error)
-	//FindOffer finds credential in offer state
-	FindOffer(offerID string) (*Credential, error)
+	//FindCredentialByOffer finds credential in offer state
+	FindCredentialByOffer(offerID string) (*Credential, error)
+	// Update Credentia updates the credential
+	UpdateCredential(c *Credential) error
 	//Delete offer deletes the offer identifed by the offerID (thid of message)
-	DeleteOffer(offerID string) error
+	DeleteCredentialByOffer(offerID string) error
 
 	// InsertAgent add agent to store
 	InsertAgent(a *Agent) (string, error)

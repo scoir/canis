@@ -98,7 +98,7 @@ func (_m *Store) DeleteWebhook(typ string) error {
 }
 
 // FindOffer provides a mock function with given fields: offerID
-func (_m *Store) FindOffer(offerID string) (*datastore.Credential, error) {
+func (_m *Store) FindCredentialByOffer(offerID string) (*datastore.Credential, error) {
 	ret := _m.Called(offerID)
 
 	var r0 *datastore.Credential

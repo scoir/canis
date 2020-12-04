@@ -30,10 +30,9 @@ message RequestPresentationRequest {
 message RequestPresentation {
   string schema_id = 1;
   string comment = 2;
-  string type = 3;
-  bool will_confirm = 4;
-  map<string, AttrInfo> requested_attributes = 5;
-  map<string, PredicateInfo> requested_predicates = 6;
+  bool will_confirm = 3;
+  map<string, AttrInfo> requested_attributes = 4;
+  map<string, PredicateInfo> requested_predicates = 5;
 }
 
 message RequestPresentationResponse {

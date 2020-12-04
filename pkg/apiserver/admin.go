@@ -483,12 +483,11 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *common.Request
 
 	rpr := &common.RequestPresentationRequest{
 		AgentName:  req.AgentName,
-		ExternalId: "",
+		ExternalId: req.ExternalId,
 		Presentation: &common.RequestPresentation{
-			SchemaId:            "",
-			Comment:             "",
-			Type:                "",
-			WillConfirm:         false,
+			SchemaId:            req.Presentation.SchemaId,
+			Comment:             req.Presentation.Comment,
+			WillConfirm:         req.Presentation.WillConfirm,
 			RequestedAttributes: pp,
 			RequestedPredicates: pq,
 		},

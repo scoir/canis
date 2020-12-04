@@ -25,9 +25,6 @@ var credentialsIssueCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 }
 
-var schemaName string
-var comment string
-
 func init() {
 	credentialsCmd.AddCommand(credentialsIssueCmd)
 	credentialsIssueCmd.Flags().StringArrayVar(&attrValues, "attr", []string{}, "list of attributes for this schema [KEY=VALUE] (can be repeated)")
@@ -36,7 +33,7 @@ func init() {
 	_ = credentialsIssueCmd.MarkFlagRequired("subject")
 
 	credentialsIssueCmd.Flags().StringVar(&schemaName, "schema-name", "", "name of schema to issue")
-	_ = credentialsIssueCmd.MarkFlagRequired("schema-id")
+	_ = credentialsIssueCmd.MarkFlagRequired("schema-name")
 
 	credentialsIssueCmd.Flags().StringVar(&comment, "comment", "", "optional comment for the credential offer")
 }

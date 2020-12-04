@@ -16,7 +16,6 @@ import (
 )
 
 const (
-	Indy   = "indy"
 	Format = "hlindy-zkp-v1.0"
 )
 
@@ -63,8 +62,8 @@ func New(prov provider) (*Engine, error) {
 	return eng, nil
 }
 
-func (r *Engine) Accept(typ string) bool {
-	return typ == Indy
+func (r *Engine) Accept(format string) bool {
+	return format == Format
 }
 
 // PresentationRequest to be encoded and sent as data in the RequestPresentation response
