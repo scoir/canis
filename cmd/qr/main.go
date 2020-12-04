@@ -21,7 +21,13 @@ func main() {
 }
 
 func encode() {
-	resp, err := http.Get("http://local.scoir.com:7779/agents/hogwarts/invitation/subject")
+	req, err := http.NewRequest("GET", "http://local.scoir.com:7779/agents/agent-1/invitation/subject", nil)
+	if err != nil {
+		log.Fatalln("unexpected error creating request", err)
+	}
+	req.Header.Set("X-API-Key", "D3YYdahdgC7VZeJwP4rhZcozCRHsqQT3VKxK9hTc2Yoh")
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatalf("Error requesting invitation from issuer: %v\n", err)
 	}
@@ -30,18 +36,18 @@ func encode() {
 	m := map[string]interface{}{}
 	err = json.NewDecoder(resp.Body).Decode(&m)
 	if err != nil {
-		log.Fatalln("fuck off", err)
+		log.Fatalln("struggled to decode response body, sigh", err)
 	}
 
-	b := m["invitation"].(string)
+	b := m["Invitation"].(string)
 
 	ci := base64.URLEncoding.EncodeToString([]byte(b))
-	str := fmt.Sprintf("http://192.168.86.30/?c_i=%s", ci)
+	//str := fmt.Sprintf("http://192.168.86.30/?c_i=%s", ci)
 
 	fmt.Println(b)
 
 	fname := "./invite.png"
-	err = qrcode.WriteFile(str, qrcode.Medium, 256, fname)
+	err = qrcode.WriteFile(ci, qrcode.Medium, 256, fname)
 	if err != nil {
 		log.Fatal(err)
 	}
