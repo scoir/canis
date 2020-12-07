@@ -98,15 +98,15 @@ func (_m *Store) DeleteWebhook(typ string) error {
 }
 
 // FindOffer provides a mock function with given fields: offerID
-func (_m *Store) FindCredentialByOffer(offerID string) (*datastore.Credential, error) {
+func (_m *Store) FindCredentialByOffer(offerID string) (*datastore.IssuedCredential, error) {
 	ret := _m.Called(offerID)
 
-	var r0 *datastore.Credential
-	if rf, ok := ret.Get(0).(func(string) *datastore.Credential); ok {
+	var r0 *datastore.IssuedCredential
+	if rf, ok := ret.Get(0).(func(string) *datastore.IssuedCredential); ok {
 		r0 = rf(offerID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*datastore.Credential)
+			r0 = ret.Get(0).(*datastore.IssuedCredential)
 		}
 	}
 
@@ -317,18 +317,18 @@ func (_m *Store) InsertAgentConnection(a *datastore.Agent, externalID string, co
 }
 
 // InsertCredential provides a mock function with given fields: c
-func (_m *Store) InsertCredential(c *datastore.Credential) (string, error) {
+func (_m *Store) InsertCredential(c *datastore.IssuedCredential) (string, error) {
 	ret := _m.Called(c)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*datastore.Credential) string); ok {
+	if rf, ok := ret.Get(0).(func(*datastore.IssuedCredential) string); ok {
 		r0 = rf(c)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*datastore.Credential) error); ok {
+	if rf, ok := ret.Get(1).(func(*datastore.IssuedCredential) error); ok {
 		r1 = rf(c)
 	} else {
 		r1 = ret.Error(1)

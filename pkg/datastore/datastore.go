@@ -45,11 +45,11 @@ type Store interface {
 	UpdateSchema(s *Schema) error
 
 	// InsertCredential add Crednetial to store
-	InsertCredential(c *Credential) (string, error)
+	InsertCredential(c *IssuedCredential) (string, error)
 	//FindCredentialByOffer finds credential in offer state
-	FindCredentialByOffer(offerID string) (*Credential, error)
+	FindCredentialByOffer(offerID string) (*IssuedCredential, error)
 	// Update Credentia updates the credential
-	UpdateCredential(c *Credential) error
+	UpdateCredential(c *IssuedCredential) error
 	//Delete offer deletes the offer identifed by the offerID (thid of message)
 	DeleteCredentialByOffer(offerID string) error
 

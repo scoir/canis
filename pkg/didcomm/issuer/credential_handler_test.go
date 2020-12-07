@@ -111,7 +111,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 		suite.store.On("GetAgentConnectionForDID", agent, "did:their").Return(ac, nil)
 		suite.registry.On("GetSchemaForProposal", "hlindy-zkp-v1.0", []byte(`{}`)).Return(schemaID, nil)
 		suite.store.On("GetSchema", schemaID).Return(schema, nil)
-		suite.store.On("InsertCredential", mock.AnythingOfType("*datastore.Credential")).Return("cred-id", nil)
+		suite.store.On("InsertCredential", mock.AnythingOfType("*datastore.IssuedCredential")).Return("cred-id", nil)
 		suite.notificationPublisher.On("Publish", []byte(publishedMsg), "application/json").Return(nil)
 
 		suite.target.ProposeCredentialMsg(action, proposal)
@@ -158,7 +158,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 		suite.store.On("GetAgentConnectionForDID", agent, "did:their").Return(ac, nil)
 		suite.registry.On("GetSchemaForProposal", "hlindy-zkp-v1.0", []byte(`{}`)).Return(schemaID, nil)
 		suite.store.On("GetSchema", schemaID).Return(schema, nil)
-		suite.store.On("InsertCredential", mock.AnythingOfType("*datastore.Credential")).Return("", errors.New("bad error"))
+		suite.store.On("InsertCredential", mock.AnythingOfType("*datastore.IssuedCredential")).Return("", errors.New("bad error"))
 
 		suite.target.ProposeCredentialMsg(action, proposal)
 
@@ -318,7 +318,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 		defer cleanup()
 
 		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
-		offer := &datastore.Credential{ThreadID: thid}
+		offer := &datastore.IssuedCredential{ThreadID: thid}
 		action := service.DIDCommAction{
 			ProtocolName: "propose-credential",
 			Message:      testMsg(t, thid),

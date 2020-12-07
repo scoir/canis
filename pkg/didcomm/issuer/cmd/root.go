@@ -14,8 +14,11 @@ import (
 	"strings"
 
 	"github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/dispatcher"
+	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
+	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api"
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
@@ -27,6 +30,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/scoir/canis/pkg/aries/didcomm/protocol/middleware/issuecredential"
 	"github.com/scoir/canis/pkg/config"
 	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/credential/engine/indy"
@@ -182,6 +186,7 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 		aries.WithInboundTransport(amqpInbound),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 		aries.WithSecretLock(r.lock),
+		aries.WithProtocols(newIssueCredentialSvc()),
 	}
 	for _, vdri := range vdris {
 		vopts = append(vopts, aries.WithVDRI(vdri))
@@ -199,6 +204,20 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	}
 
 	return r.actx, err
+}
+
+func newIssueCredentialSvc() api.ProtocolSvcCreator {
+	return func(prv api.Provider) (dispatcher.ProtocolService, error) {
+		service, err := icprotocol.New(prv)
+		if err != nil {
+			return nil, err
+		}
+
+		// sets default middleware to the service
+		service.Use(issuecredential.SaveCredentials(prv))
+
+		return service, nil
+	}
 }
 
 func (r *Provider) Issuer() ursa.Issuer {

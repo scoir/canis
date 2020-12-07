@@ -32,7 +32,7 @@ const (
 	AgentC               = "Agent"
 	AgentConnectionC     = "AgentConnection"
 	SchemaC              = "Schema"
-	CredentialC          = "Credential"
+	CredentialC          = "IssuedCredential"
 	PresentationRequestC = "PresentationRequest"
 	WebhookC             = "Webhook"
 )

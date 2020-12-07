@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package datastore
 
 import (
+	"time"
+
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/mr-tron/base58"
@@ -118,6 +120,17 @@ type Offer struct {
 }
 
 type Credential struct {
+	ID string `json:"@id,omitempty"`
+	// Description is an optional human-readable description of the content.
+	Description string `json:"description,omitempty"`
+	// MimeType describes the MIME type of the attached content. Optional but recommended.
+	MimeType string `json:"mime-type,omitempty"`
+	// LastModTime is a hint about when the content in this attachment was last modified.
+	LastModTime time.Time `json:"lastmod_time,omitempty"`
+	Data        []byte    `json:"data"`
+}
+
+type IssuedCredential struct {
 	ID                string
 	AgentName         string
 	MyDID             string
@@ -126,7 +139,8 @@ type Credential struct {
 	SchemaName        string
 	RegistryOfferID   string
 	ExternalSubjectID string
-	Offer             Offer
+	Offer             *Offer
+	Credential        *Credential
 	SystemState       string
 }
 

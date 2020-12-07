@@ -168,7 +168,7 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 		return nil, status.Error(codes.Internal, fmt.Sprintf("send offer failed: %v", err))
 	}
 
-	cred := &datastore.Credential{
+	cred := &datastore.IssuedCredential{
 		AgentName:         agent.Name,
 		MyDID:             ac.MyDID,
 		TheirDID:          ac.TheirDID,
@@ -176,7 +176,7 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 		RegistryOfferID:   registryOfferID,
 		SchemaName:        schema.Name,
 		ExternalSubjectID: req.ExternalId,
-		Offer: datastore.Offer{
+		Offer: &datastore.Offer{
 			Comment: req.Credential.Comment,
 			Type:    req.Credential.Type,
 			Preview: attrs,

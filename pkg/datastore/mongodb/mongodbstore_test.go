@@ -456,7 +456,7 @@ func TestOffer(t *testing.T) {
 		store, err := prov.Open()
 		require.NoError(t, err)
 
-		_, err = store.InsertCredential(&datastore.Credential{ThreadID: "1234", SystemState: "offered"})
+		_, err = store.InsertCredential(&datastore.IssuedCredential{ThreadID: "1234", SystemState: "offered"})
 		require.NoError(t, err)
 
 		c, err := store.FindCredentialByOffer("1234")

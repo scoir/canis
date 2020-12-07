@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package issuecredential
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -37,55 +36,57 @@ type Provider interface {
 
 // SaveCredentials the helper function for the issue credential protocol which saves credentials.
 func SaveCredentials(p Provider) issuecredential.Middleware {
-	registryVDRI := p.VDRIRegistry()
-	store := p.VerifiableStore()
+	//registryVDRI := p.VDRIRegistry()
+	//store := p.VerifiableStore()
 
 	return func(next issuecredential.Handler) issuecredential.Handler {
 		return issuecredential.HandlerFunc(func(metadata issuecredential.Metadata) error {
+			fmt.Println(metadata.StateName(), " :", metadata.Message().ID())
+
 			if metadata.StateName() != stateNameCredentialReceived {
 				return next.Handle(metadata)
 			}
 
-			var credential = issuecredential.IssueCredential{}
-
-			err := metadata.Message().Decode(&credential)
-			if err != nil {
-				return fmt.Errorf("decode: %w", err)
-			}
-
-			credentials, err := toVerifiableCredentials(registryVDRI, credential.CredentialsAttach)
-			if err != nil {
-				return fmt.Errorf("to verifiable credentials: %w", err)
-			}
-
-			if len(credentials) == 0 {
-				return errors.New("credentials were not provided")
-			}
-
-			var names []string
-			var properties = metadata.Properties()
-
-			// nolint: errcheck
-			myDID, _ := properties[myDIDKey].(string)
-			// nolint: errcheck
-			theirDID, _ := properties[theirDIDKey].(string)
-			if myDID == "" || theirDID == "" {
-				return errors.New("myDID or theirDID is absent")
-			}
-
-			for i, credential := range credentials {
-				names = append(names, getName(i, credential.ID, metadata))
-
-				err := store.SaveCredential(names[i], credential,
-					storeverifiable.WithMyDID(myDID),
-					storeverifiable.WithTheirDID(theirDID),
-				)
-				if err != nil {
-					return fmt.Errorf("save credential: %w", err)
-				}
-			}
-
-			properties[namesKey] = names
+			//var credential = issuecredential.IssueCredential{}
+			//
+			//err := metadata.Message().Decode(&credential)
+			//if err != nil {
+			//	return fmt.Errorf("decode: %w", err)
+			//}
+			//
+			//credentials, err := toVerifiableCredentials(registryVDRI, credential.CredentialsAttach)
+			//if err != nil {
+			//	return fmt.Errorf("to verifiable credentials: %w", err)
+			//}
+			//
+			//if len(credentials) == 0 {
+			//	return errors.New("credentials were not provided")
+			//}
+			//
+			//var names []string
+			//var properties = metadata.Properties()
+			//
+			//// nolint: errcheck
+			//myDID, _ := properties[myDIDKey].(string)
+			//// nolint: errcheck
+			//theirDID, _ := properties[theirDIDKey].(string)
+			//if myDID == "" || theirDID == "" {
+			//	return errors.New("myDID or theirDID is absent")
+			//}
+			//
+			//for i, credential := range credentials {
+			//	names = append(names, getName(i, credential.ID, metadata))
+			//
+			//	err := store.SaveCredential(names[i], credential,
+			//		storeverifiable.WithMyDID(myDID),
+			//		storeverifiable.WithTheirDID(theirDID),
+			//	)
+			//	if err != nil {
+			//		return fmt.Errorf("save credential: %w", err)
+			//	}
+			//}
+			//
+			//properties[namesKey] = names
 
 			return next.Handle(metadata)
 		})

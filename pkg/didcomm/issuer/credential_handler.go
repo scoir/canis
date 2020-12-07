@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/model"
+	"github.com/google/uuid"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/service"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
@@ -97,7 +98,7 @@ func (r *credHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *ic
 		return
 	}
 
-	cred := &datastore.Credential{
+	cred := &datastore.IssuedCredential{
 		AgentName:         agent.Name,
 		MyDID:             myDID,
 		TheirDID:          theirDID,
@@ -129,88 +130,94 @@ func (r *credHandler) IssueCredentialMsg(_ service.DIDCommAction, _ *icprotocol.
 }
 
 func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icprotocol.RequestCredential) {
-	thid, _ := e.Message.ThreadID()
 
-	offer, err := r.store.FindCredentialByOffer(thid)
-	if err != nil {
-		log.Printf("unable to find offer with ID %s: (%v)\n", thid, err)
+	if len(request.RequestsAttach) != 1 {
+		log.Println("only one credential is supported at a time")
+		e.Stop(errors.New("only one credential is supported at a time"))
 		return
 	}
 
-	_, err = r.store.GetAgent(offer.AgentName)
+	thid, _ := e.Message.ThreadID()
+
+	cred, err := r.store.FindCredentialByOffer(thid)
+	if err != nil {
+		log.Printf("unable to find cred with ID %s: (%v)\n", thid, err)
+		return
+	}
+
+	_, err = r.store.GetAgent(cred.AgentName)
 	if err != nil {
 		log.Println("unable to find agent for credential request", err)
 		return
 	}
 
-	schema, err := r.store.GetSchema(offer.SchemaName)
+	schema, err := r.store.GetSchema(cred.SchemaName)
 	if err != nil {
-		log.Printf("unable to find schema with ID %s: (%v)\n", offer.SchemaName, err)
+		log.Printf("unable to find schema with ID %s: (%v)\n", cred.SchemaName, err)
 		return
 	}
 
-	did, err := r.store.GetDID(offer.MyDID)
+	did, err := r.store.GetDID(cred.MyDID)
 	if err != nil {
-		log.Printf("unable to find DID with ID %s: (%v)\n", offer.MyDID, err)
+		log.Printf("unable to find DID with ID %s: (%v)\n", cred.MyDID, err)
 		return
 	}
 
 	values := map[string]interface{}{}
-	for _, attr := range offer.Offer.Preview {
+	for _, attr := range cred.Offer.Preview {
 		//TODO:  do we have to consider mime-type here and convert?
 		values[attr.Name] = attr.Value
 	}
 
-	var credentialAttachments []decorator.Attachment
-	for _, requestAttachment := range request.RequestsAttach {
-
-		attachmentData, err := r.registry.IssueCredential(did, schema, offer.RegistryOfferID,
-			requestAttachment.Data, values)
-		if err != nil {
-			log.Println("registry error creating credential", err)
-			continue
-		}
-
-		credentialAttachments = append(credentialAttachments, decorator.Attachment{Data: *attachmentData})
+	requestAttachment := request.RequestsAttach[0]
+	attachmentData, err := r.registry.IssueCredential(did, schema, cred.RegistryOfferID,
+		requestAttachment.Data, values)
+	if err != nil {
+		msg := fmt.Sprintln("registry error creating credential", err)
+		e.Stop(errors.New(msg))
 	}
 
-	if len(credentialAttachments) == 0 {
-		log.Println("no credentials to issue")
-		e.Stop(errors.New("no credentials to issue"))
-		return
+	credentialAttachment := decorator.Attachment{
+		ID:          uuid.New().String(),
+		MimeType:    "application/json",
+		LastModTime: time.Now(),
+		Data:        *attachmentData,
 	}
 
-	//TODO:  Somehow verify the request against the original offer
-	fmt.Printf("offerID: %s, threadID: %s\n", offer.ThreadID, thid)
 	msg := &icprotocol.IssueCredential{
-		Comment: offer.Offer.Comment,
+		Comment: cred.Offer.Comment,
 		Formats: []icprotocol.Format{
 			{
-				AttachID: credentialAttachments[0].ID,
+				AttachID: credentialAttachment.ID,
 				Format:   "hlindy-zkp-v1.0",
 			},
 		},
-		CredentialsAttach: credentialAttachments,
+		CredentialsAttach: []decorator.Attachment{credentialAttachment},
 	}
 
-	//TODO:  Shouldn't this be built into the Supervisor??
-	log.Println("setting up monitoring for", thid)
-	mon := credential.NewMonitor(r.credsup)
-	mon.WatchThread(thid, r.CredentialAccepted(offer.ThreadID), r.CredentialError)
+	d, err := attachmentData.Fetch()
+	if err != nil {
+		e.Stop(errors.Errorf("unable to fetch attachment: %v", err))
+		return
+	}
+
+	dscred := &datastore.Credential{
+		ID:          credentialAttachment.ID,
+		MimeType:    credentialAttachment.MimeType,
+		LastModTime: credentialAttachment.LastModTime,
+		Data:        d,
+	}
+
+	cred.Credential = dscred
+	cred.SystemState = "issued"
+
+	err = r.store.UpdateCredential(cred)
+	if err != nil {
+		e.Stop(errors.Errorf("unexpected error updating issued credential %s: %v", cred.ID, err))
+		return
+	}
+
 	e.Continue(icprotocol.WithIssueCredential(msg))
-}
-
-func (r *credHandler) CredentialAccepted(id string) func(threadID string, ack *model.Ack) {
-
-	return func(threadID string, ack *model.Ack) {
-		//TODO: find the offer and update the status and send notification!!
-		fmt.Printf("Credential Accepted: %s", id)
-	}
-}
-
-func (r *credHandler) CredentialError(threadID string, err error) {
-	//TODO: find the offer and update the status and send notification!!
-	log.Println("step 1... failed!", threadID, err)
 }
 
 func (r *credHandler) publishProposalReceived(agent *datastore.Agent, externalID string, schema *datastore.Schema,

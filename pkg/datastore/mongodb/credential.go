@@ -12,7 +12,7 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 )
 
-func (r *mongoDBStore) InsertCredential(c *datastore.Credential) (string, error) {
+func (r *mongoDBStore) InsertCredential(c *datastore.IssuedCredential) (string, error) {
 	c.ID = uuid.New().String()
 	_, err := r.db.Collection(CredentialC).InsertOne(context.Background(), c)
 	if err != nil {
@@ -22,8 +22,8 @@ func (r *mongoDBStore) InsertCredential(c *datastore.Credential) (string, error)
 	return c.ID, nil
 }
 
-func (r *mongoDBStore) FindCredentialByOffer(offerID string) (*datastore.Credential, error) {
-	c := &datastore.Credential{}
+func (r *mongoDBStore) FindCredentialByOffer(offerID string) (*datastore.IssuedCredential, error) {
+	c := &datastore.IssuedCredential{}
 	err := r.db.Collection(CredentialC).FindOne(context.Background(),
 		bson.M{"threadid": offerID, "systemstate": "offered"}).Decode(c)
 
@@ -43,8 +43,8 @@ func (r *mongoDBStore) DeleteCredentialByOffer(offerID string) error {
 	return nil
 }
 
-func (r *mongoDBStore) UpdateCredential(c *datastore.Credential) error {
-	_, err := r.db.Collection(CredentialC).UpdateOne(context.Background(), bson.M{"id": c.ID}, c)
+func (r *mongoDBStore) UpdateCredential(c *datastore.IssuedCredential) error {
+	_, err := r.db.Collection(CredentialC).UpdateOne(context.Background(), bson.M{"id": c.ID}, bson.M{"$set": c})
 	if err != nil {
 		return errors.Wrap(err, "unable to update credential")
 	}
