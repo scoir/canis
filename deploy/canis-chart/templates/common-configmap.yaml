@@ -24,7 +24,7 @@ data:
     aries:
       vdri:
         - type: indy
-          method: "scr"
+          method: "sov"
           genesisFile: {{- .Files.Get "indy/genesis.txn" | toYaml | nindent 10}}
   canis-data-store-config.yaml: |-
     ###############################################################
@@ -41,7 +41,7 @@ data:
     #
     ###############################################################
     resolver:
-      method: scr
+      method: sov
       http:
         host: 0.0.0.0
         port: 5544

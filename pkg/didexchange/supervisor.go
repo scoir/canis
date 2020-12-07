@@ -10,6 +10,7 @@ import (
 	"log"
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
+	"github.com/hyperledger/aries-framework-go/pkg/client/outofband"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/service"
 	pdid "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/didexchange"
 	"github.com/pkg/errors"
@@ -32,6 +33,7 @@ type Supervisor struct {
 //go:generate mockery -name=provider
 type provider interface {
 	GetDIDClient() (*didexchange.Client, error)
+	GetOOBClient() (*outofband.Client, error)
 }
 
 func New(ctx provider) (*Supervisor, error) {

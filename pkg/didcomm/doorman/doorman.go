@@ -10,6 +10,7 @@ import (
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	ariesdidex "github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
+	"github.com/hyperledger/aries-framework-go/pkg/client/outofband"
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
@@ -97,7 +98,7 @@ func (r *Doorman) GetInvitation(_ context.Context, request *common.InvitationReq
 			fmt.Sprintf("connection between agent %s and external ID %s already exists", agent.ID, request.ExternalId))
 	}
 
-	var invite *ariesdidex.Invitation
+	var invite *outofband.Invitation
 	if agent.HasPublicDID {
 		did := agent.PublicDID.DID.String()
 		invite, err = r.bouncer.CreateInvitationWithDIDNotify(agent.Name, did, r.accepted(agent, request.ExternalId), failed)

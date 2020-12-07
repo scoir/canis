@@ -44,6 +44,7 @@ func GetAriesVDRIs(vdriConfig []map[string]interface{}) ([]vdriapi.VDRI, error) 
 		switch typ {
 		case "indy":
 			method, _ := v["method"].(string)
+			log.Println("configuring aries indy vdr with method", method)
 			genesisFile, _ := v["genesisFile"].(string)
 			re := strings.NewReader(genesisFile)
 			indyVDRI, err := indy.New(method, indy.WithIndyVDRGenesisReader(ioutil.NopCloser(re)))
@@ -209,7 +210,6 @@ func (r *Provider) GetCredentialClient() (*issuecredential.Client, error) {
 	r.credcl = credcl
 	return r.credcl, nil
 }
-
 
 func (r *Provider) GetSupervisor(h credential.Handler) (*credential.Supervisor, error) {
 	sup, err := credential.New(r)

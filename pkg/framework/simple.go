@@ -3,6 +3,7 @@ package framework
 import (
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
+	"github.com/hyperledger/aries-framework-go/pkg/client/outofband"
 	"github.com/hyperledger/aries-framework-go/pkg/client/presentproof"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 )
@@ -25,4 +26,8 @@ func NewSimpleProvider(ctx *ariescontext.Provider) *SimpleProvider {
 
 func (r *SimpleProvider) GetDIDClient() (*didexchange.Client, error) {
 	return didexchange.New(r.ctx)
+}
+
+func (r *SimpleProvider) GetOOBClient() (*outofband.Client, error) {
+	return outofband.New(r.ctx)
 }

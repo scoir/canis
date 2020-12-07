@@ -47,7 +47,7 @@ func encode() {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
-		log.Fatalln("bad code", resp.StatusCode, body)
+		log.Fatalln("bad code", resp.StatusCode, string(body))
 	}
 
 	m := map[string]interface{}{}
@@ -58,21 +58,41 @@ func encode() {
 
 	b := m["Invitation"].(string)
 
+	m = map[string]interface{}{}
+	err = json.Unmarshal([]byte(b), &m)
+	if err != nil {
+		log.Fatalln("blah", err)
+	}
+
+	d, _ := json.MarshalIndent(m, " ", " ")
+	fmt.Println(string(d))
+
+	ci := base64.StdEncoding.EncodeToString([]byte(b))
+	str := fmt.Sprintf("http://34.72.71.135:7779/invitation?oob=%s", ci)
+
+	fmt.Println(str)
+
+	oobInvite := struct {
+		URL string `json:"url"`
+	}{
+		URL: str,
+	}
+
+	oobJSON, err := json.Marshal(oobInvite)
+	if err != nil {
+		log.Fatalln("unexpected error marshalling invite", err)
+	}
+
 	out, err := os.Create("invite-for-ibm.json")
 	if err != nil {
 		log.Fatalln("can't create ibm invite json", err)
 	}
 
-	_, _ = out.WriteString(b)
+	_, _ = out.WriteString(string(oobJSON))
 	out.Close()
 
-	ci := base64.URLEncoding.EncodeToString([]byte(b))
-	str := fmt.Sprintf("http://34.72.71.135:7779/invitation?c_i=%s", ci)
-
-	fmt.Println(str)
-
 	fname := "./invite.png"
-	err = qrcode.WriteFile(str, qrcode.Medium, 256, fname)
+	err = qrcode.WriteFile(string(oobJSON), qrcode.Medium, 256, fname)
 	if err != nil {
 		log.Fatal(err)
 	}

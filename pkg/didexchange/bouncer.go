@@ -13,6 +13,7 @@ import (
 	"time"
 
 	didclient "github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
+	"github.com/hyperledger/aries-framework-go/pkg/client/outofband"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/service"
 	didservice "github.com/hyperledger/aries-framework-go/pkg/didcomm/common/service"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/didexchange"
@@ -25,8 +26,8 @@ type Bouncer interface {
 	RequestMsg(e service.DIDCommAction, request *didexchange.Request)
 	EstablishConnection(invitation *didclient.Invitation, timeout time.Duration) (*didclient.Connection, error)
 	CreateInvitation(name string) (*didclient.Invitation, error)
-	CreateInvitationNotify(name string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error)
-	CreateInvitationWithDIDNotify(name, did string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error)
+	CreateInvitationNotify(name string, success NotifySuccess, nerr NotifyError) (*outofband.Invitation, error)
+	CreateInvitationWithDIDNotify(name, did string, success NotifySuccess, nerr NotifyError) (*outofband.Invitation, error)
 	Unregister(ch chan service.StateMsg)
 }
 
@@ -46,6 +47,7 @@ func (r *msg) Label() string {
 type bouncer struct {
 	supe  *Supervisor
 	didcl *didclient.Client
+	oobcl *outofband.Client
 
 	validInviteIDs         map[string]*msg
 	invitationToConnection map[string]string
@@ -60,6 +62,11 @@ func NewBouncer(ctx provider) (Bouncer, error) {
 		return nil, errors.Wrap(err, "error getting did client in bouncer")
 	}
 
+	oobcl, err := ctx.GetOOBClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create did client in supervisor")
+	}
+
 	supe, err := New(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "error inializing bouncer")
@@ -68,6 +75,7 @@ func NewBouncer(ctx provider) (Bouncer, error) {
 	r := &bouncer{
 		supe:                   supe,
 		didcl:                  didcl,
+		oobcl:                  oobcl,
 		validInviteIDs:         map[string]*msg{},
 		invitationToConnection: map[string]string{},
 	}
@@ -91,9 +99,9 @@ func (r *bouncer) InvitationMsg(e didservice.DIDCommAction, invite *didexchange.
 }
 
 func (r *bouncer) RequestMsg(e didservice.DIDCommAction, request *didexchange.Request) {
-	iID := e.Message.ParentThreadID()
+	iID := e.Message.ParentThreadID() //2b260332-9a3e-4d37-a05e-c2e866b8a6ee
 	if m, ok := r.validInviteIDs[iID]; ok {
-		log.Println("received valid request from", request.Connection.DID, m.did)
+		log.Println("received valid request from", request.Label, m.did)
 		e.Continue(m)
 		delete(r.validInviteIDs, iID)
 		return
@@ -133,8 +141,8 @@ func (r *bouncer) CreateInvitation(name string) (*didclient.Invitation, error) {
 	return invite, nil
 }
 
-func (r *bouncer) CreateInvitationNotify(name string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error) {
-	invitation, err := r.didcl.CreateInvitation(name)
+func (r *bouncer) CreateInvitationNotify(name string, success NotifySuccess, nerr NotifyError) (*outofband.Invitation, error) {
+	invitation, err := r.oobcl.CreateInvitation([]string{didexchange.PIURI}, outofband.WithLabel(name))
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create invitation in bouncer")
 	}
@@ -152,8 +160,8 @@ func (r *bouncer) CreateInvitationNotify(name string, success NotifySuccess, ner
 	return invitation, nil
 }
 
-func (r *bouncer) CreateInvitationWithDIDNotify(name, did string, success NotifySuccess, nerr NotifyError) (*didclient.Invitation, error) {
-	invitation, err := r.didcl.CreateInvitationWithDID(name, did)
+func (r *bouncer) CreateInvitationWithDIDNotify(name, did string, success NotifySuccess, nerr NotifyError) (*outofband.Invitation, error) {
+	invitation, err := r.oobcl.CreateInvitation([]string{didexchange.PIURI}, outofband.WithLabel(name), outofband.WithServices(did))
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create invitation in bouncer")
 	}
