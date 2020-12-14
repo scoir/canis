@@ -172,7 +172,7 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 		AgentName:         agent.Name,
 		MyDID:             ac.MyDID,
 		TheirDID:          ac.TheirDID,
-		ThreadID:          id,
+		ProtocolID:        id,
 		RegistryOfferID:   registryOfferID,
 		SchemaName:        schema.Name,
 		ExternalSubjectID: req.ExternalId,
@@ -182,7 +182,7 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 			Preview: attrs,
 			Body:    body,
 		},
-		SystemState: "offered",
+		SystemState: "offer-sent",
 	}
 
 	credID, err := r.store.InsertCredential(cred)

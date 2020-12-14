@@ -74,7 +74,6 @@ func (r *Supervisor) Start(h Handler) error {
 	}
 
 	go r.startActionListener(aCh)
-	go r.startMessageListener()
 
 	return nil
 }
@@ -134,21 +133,4 @@ func (r *Supervisor) execRequestCredential(ch chan service.DIDCommAction, f Hand
 
 		f.RequestCredentialMsg(e, req)
 	}
-}
-
-func (r *Supervisor) startMessageListener() {
-	credMsgCh := make(chan service.StateMsg)
-	_ = r.credcli.RegisterMsgEvent(credMsgCh)
-	go func(ch chan service.StateMsg) {
-		for msg := range ch {
-			if msg.Type == service.PostState {
-				for _, c := range r.MsgEvents() {
-					c <- msg
-				}
-				thid, _ := msg.Msg.ThreadID()
-				pthid := msg.Msg.ParentThreadID()
-				log.Println("CRED MSG:", msg.ProtocolName, msg.StateID, thid, pthid)
-			}
-		}
-	}(credMsgCh)
 }

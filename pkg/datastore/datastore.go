@@ -39,6 +39,8 @@ type Store interface {
 	ListSchema(c *SchemaCriteria) (*SchemaList, error)
 	// GetSchema return single Schema
 	GetSchema(name string) (*Schema, error)
+	// GetSchema return single Schema
+	GetSchemaByExternalID(externalID string) (*Schema, error)
 	// DeleteSchema delete single schema
 	DeleteSchema(name string) error
 	// UpdateSchema update single schema
@@ -47,7 +49,7 @@ type Store interface {
 	// InsertCredential add Crednetial to store
 	InsertCredential(c *IssuedCredential) (string, error)
 	//FindCredentialByOffer finds credential in offer state
-	FindCredentialByOffer(offerID string) (*IssuedCredential, error)
+	FindCredentialByProtocolID(offerID string) (*IssuedCredential, error)
 	// Update Credentia updates the credential
 	UpdateCredential(c *IssuedCredential) error
 	//Delete offer deletes the offer identifed by the offerID (thid of message)

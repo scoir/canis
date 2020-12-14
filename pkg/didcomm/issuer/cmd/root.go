@@ -186,7 +186,7 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 		aries.WithInboundTransport(amqpInbound),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 		aries.WithSecretLock(r.lock),
-		aries.WithProtocols(newIssueCredentialSvc()),
+		aries.WithProtocols(r.newIssueCredentialSvc()),
 	}
 	for _, vdri := range vdris {
 		vopts = append(vopts, aries.WithVDRI(vdri))
@@ -206,7 +206,7 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	return r.actx, err
 }
 
-func newIssueCredentialSvc() api.ProtocolSvcCreator {
+func (r *Provider) newIssueCredentialSvc() api.ProtocolSvcCreator {
 	return func(prv api.Provider) (dispatcher.ProtocolService, error) {
 		service, err := icprotocol.New(prv)
 		if err != nil {
@@ -214,7 +214,7 @@ func newIssueCredentialSvc() api.ProtocolSvcCreator {
 		}
 
 		// sets default middleware to the service
-		service.Use(issuecredential.SaveCredentials(prv))
+		service.Use(issuecredential.SaveCredentials(r))
 
 		return service, nil
 	}

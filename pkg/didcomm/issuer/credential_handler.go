@@ -35,10 +35,10 @@ type prop interface {
 
 func (r *credHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *icprotocol.ProposeCredential) {
 	thid, _ := e.Message.ThreadID()
-	offer, err := r.store.FindCredentialByOffer(thid)
+	offer, err := r.store.FindCredentialByProtocolID(thid)
 	if err == nil {
 		e.Stop(errors.New("negociating not currently supported"))
-		err = r.store.DeleteCredentialByOffer(offer.ThreadID)
+		err = r.store.DeleteCredentialByOffer(offer.ProtocolID)
 		if err != nil {
 			log.Println("unable to delete offer in negociation", err)
 			return
@@ -104,8 +104,7 @@ func (r *credHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *ic
 		TheirDID:          theirDID,
 		SchemaName:        schema.Name,
 		ExternalSubjectID: ac.ExternalID,
-		ThreadID:          thid,
-		SystemState:       "proposed",
+		ProtocolID:        thid,
 	}
 
 	_, err = r.store.InsertCredential(cred)
@@ -138,8 +137,7 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	}
 
 	thid, _ := e.Message.ThreadID()
-
-	cred, err := r.store.FindCredentialByOffer(thid)
+	cred, err := r.store.FindCredentialByProtocolID(thid)
 	if err != nil {
 		log.Printf("unable to find cred with ID %s: (%v)\n", thid, err)
 		return
@@ -165,7 +163,6 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 
 	values := map[string]interface{}{}
 	for _, attr := range cred.Offer.Preview {
-		//TODO:  do we have to consider mime-type here and convert?
 		values[attr.Name] = attr.Value
 	}
 
@@ -174,7 +171,9 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 		requestAttachment.Data, values)
 	if err != nil {
 		msg := fmt.Sprintln("registry error creating credential", err)
+		fmt.Println(msg)
 		e.Stop(errors.New(msg))
+		return
 	}
 
 	credentialAttachment := decorator.Attachment{
@@ -209,7 +208,6 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	}
 
 	cred.Credential = dscred
-	cred.SystemState = "issued"
 
 	err = r.store.UpdateCredential(cred)
 	if err != nil {

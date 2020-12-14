@@ -265,6 +265,18 @@ func (r *mongoDBStore) GetSchema(name string) (*datastore.Schema, error) {
 	return schema, nil
 }
 
+// GetSchemaByExternalID return single Schema
+func (r *mongoDBStore) GetSchemaByExternalID(externalID string) (*datastore.Schema, error) {
+	schema := &datastore.Schema{}
+
+	err := r.db.Collection(SchemaC).FindOne(context.Background(), bson.M{"externalschemaid": externalID}).Decode(schema)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load schema")
+	}
+
+	return schema, nil
+}
+
 // DeleteSchema delete single schema
 func (r *mongoDBStore) DeleteSchema(name string) error {
 	_, err := r.db.Collection(SchemaC).DeleteOne(context.Background(), bson.M{"name": name})

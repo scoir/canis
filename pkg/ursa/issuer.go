@@ -6,30 +6,18 @@ SPDX-License-Identifier: Apache-2.0
 
 package ursa
 
-/*
-#cgo LDFLAGS: -L/usr/local/lib -lursa
-#include "ursa_crypto.h"
-#include <stdlib.h>
-*/
-import "C"
 import (
 	"encoding/base64"
 	"encoding/json"
-	"unsafe"
+	"fmt"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
-)
 
-type Credential struct {
-	SchemaID                  string
-	CredDefID                 string
-	Values                    *ValuesBuilder
-	Signature                 json.RawMessage
-	SignatureCorrectnessProof json.RawMessage
-}
+	"github.com/scoir/canis/pkg/schema"
+)
 
 type Issuer interface {
 	IssueCredential(issuerDID string, schemaID, credDefID, offerNonce string, blindedMasterSecret, blindedMSCorrectnessProof, requestNonce string,
@@ -46,88 +34,99 @@ func NewIssuer() *IssuerServer {
 func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, offerNonce string, blindedMasterSecret, blindedMSCorrectnessProof, requestNonce string,
 	credDef *vdr.ClaimDefData, credDefPrivateKey string, values map[string]interface{}) (*decorator.AttachmentData, error) {
 
-	var blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof, credentialNonce,
-		credentialIssuanceNonce, credentialValues, credentialPubKey, credentialPrivKey unsafe.Pointer
-	var credSignature, credSignatureCorrectnessProof unsafe.Pointer
-
-	did := C.CString(issuerDID)
-
-	blindedCredentialSecrets, err := BlindedCredentialSecretsFromJSON(blindedMasterSecret)
+	blindedCredentialSecrets, err := ursa.BlindedCredentialSecretsFromJSON([]byte(blindedMasterSecret))
 	if err != nil {
 		return nil, err
 	}
 
-	blindedCredentialSecretsCorrectnessProof, err = BlindedCredentialSecretsCorrectnessProofFromJSON(blindedMSCorrectnessProof)
+	blindedCredentialSecretsCorrectnessProof, err := ursa.BlindedCredentialSecretsCorrectnessProofFromJSON([]byte(blindedMSCorrectnessProof))
 	if err != nil {
 		return nil, err
 	}
 
-	credentialIssuanceNonce, err = ursa.NonceFromJson(offerNonce)
+	credentialNonce, err := ursa.NonceFromJSON(fmt.Sprintf("\"%s\"", offerNonce))
 	if err != nil {
 		return nil, err
 	}
 
-	credentialNonce, err = ursa.NonceFromJson(requestNonce)
+	credentialIssuanceNonce, err := ursa.NonceFromJSON(fmt.Sprintf("\"%s\"", requestNonce))
 	if err != nil {
 		return nil, err
 	}
 
-	builder := NewValuesBuilder()
+	encodedValues := schema.IndyCredentialValues{}
+
+	builder, err := ursa.NewValueBuilder()
+	if err != nil {
+		return nil, errors.Wrap(err, "unexpected error from ursa value builder")
+	}
+
 	for k, v := range values {
-		builder.AddKnown(k, v)
+		raw, enc := ursa.EncodeValue(v)
+
+		err = builder.AddDecKnown(k, enc)
+		if err != nil {
+			return nil, errors.Wrap(err, "unexpected error adding to ursa value builder")
+		}
+
+		encodedValues[k] = &schema.IndyAttributeValue{Raw: raw, Encoded: enc}
 	}
-	err = builder.Finalize()
+
+	credentialValues, err := builder.Finalize()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create values")
 	}
-	credentialValues = builder.Values()
-	defer builder.Free()
 
-	credentialPubKey, err = CredDefHandle(credDef)
+	credentialPubKey, err := CredDefHandle(credDef)
 	if err != nil {
 		return nil, err
 	}
 
-	credentialPrivKey, err = CredentialPrivateKeyFromJSON(credDefPrivateKey)
+	credentialPrivKey, err := ursa.CredentialPrivateKeyFromJSON([]byte(credDefPrivateKey))
 	if err != nil {
 		return nil, err
 	}
 
-	result := C.ursa_cl_issuer_sign_credential(did, blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof, credentialIssuanceNonce,
-		credentialNonce, credentialValues, credentialPubKey, credentialPrivKey, &credSignature, &credSignatureCorrectnessProof)
-	if result != 0 {
-		return nil, ursaError("signing credentials")
+	signParams := ursa.NewSignatureParams()
+	signParams.ProverID = issuerDID
+	signParams.CredentialPubKey = credentialPubKey
+	signParams.CredentialPrivKey = credentialPrivKey
+	signParams.BlindedCredentialSecrets = blindedCredentialSecrets
+	signParams.BlindedCredentialSecretsCorrectnessProof = blindedCredentialSecretsCorrectnessProof
+	signParams.CredentialNonce = credentialNonce
+	signParams.CredentialValues = credentialValues
+	signParams.CredentialIssuanceNonce = credentialIssuanceNonce
+
+	sig, sigCorrectnessProof, err := signParams.SignCredential()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to sign credential")
 	}
 
 	defer func() {
-		C.free(unsafe.Pointer(did))
-		C.free(blindedCredentialSecrets)
-		C.free(blindedCredentialSecretsCorrectnessProof)
-		C.free(credentialNonce)
-		C.free(credentialIssuanceNonce)
-		C.free(credentialPubKey)
-		C.free(credentialPrivKey)
+		_ = blindedCredentialSecrets.Free()
+		_ = blindedCredentialSecretsCorrectnessProof.Free()
+		_ = credentialNonce.Free()
+		_ = credentialIssuanceNonce.Free()
+		_ = credentialValues.Free()
+		_ = credentialPubKey.Free()
+		_ = credentialPrivKey.Free()
 	}()
 
-	var sigOut, proofOut *C.char
-	result = C.ursa_cl_credential_signature_to_json(credSignature, &sigOut)
-	if result != 0 {
-		return nil, ursaError("getting credential signature JSON")
+	sigOut, err := sig.ToJSON()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get signature JSON")
 	}
-	defer C.free(unsafe.Pointer(sigOut))
 
-	result = C.ursa_cl_signature_correctness_proof_to_json(credSignatureCorrectnessProof, &proofOut)
-	if result != 0 {
-		return nil, ursaError("getting correctness proof json")
+	proofOut, err := sigCorrectnessProof.ToJSON()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get correctness proof JSON")
 	}
-	defer C.free(unsafe.Pointer(proofOut))
-
-	cred := &Credential{
+	cred := &schema.IndyCredential{
 		SchemaID:                  schemaID,
 		CredDefID:                 credDefID,
-		Values:                    builder,
-		Signature:                 []byte(C.GoString(sigOut)),
-		SignatureCorrectnessProof: []byte(C.GoString(proofOut)),
+		Signature:                 sigOut,
+		SignatureCorrectnessProof: proofOut,
+		Values:                    encodedValues,
 	}
 
 	d, _ := json.Marshal(cred)

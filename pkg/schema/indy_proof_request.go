@@ -21,12 +21,13 @@ type IndyProofRequest struct {
 
 type IndyProofRequestAttr struct {
 	Name         string      `json:"name"`
+	Names        []string    `json:"names"`
 	Restrictions interface{} `json:"restrictions,omitempty"`
 }
 
 type IndyProofRequestPredicate struct {
 	Name         string      `json:"name"`
 	PType        string      `json:"p_type"`
-	PValue       interface{} `json:"p_value"`
+	PValue       int32       `json:"p_value"`
 	Restrictions interface{} `json:"restrictions"`
 }

@@ -1,11 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
+
+	"github.com/scoir/canis/pkg/schema"
 )
 
 func main() {
@@ -15,24 +20,24 @@ func main() {
 		log.Fatalln("error", err)
 	}
 
-	fmt.Println(strings.Trim(nonce, "\""))
+	js, _ := nonce.ToJSON()
+	fmt.Println(string(js))
+	fmt.Println(strings.Trim(string(js), "\""))
 
-	handle, err := ursa.NonceFromJson(strings.Trim(nonce, "\""))
+	_, err = ursa.NonceFromJSON(string(js))
 	if err != nil {
 		log.Println("handle error", err)
 	}
 
-	fmt.Println(handle)
+	genesis, err := os.Open(os.Args[1])
+	if err != nil {
+		log.Fatalln("unable to open genesis file", err)
+	}
 
-	//genesis, err := os.Open(os.Args[1])
-	//if err != nil {
-	//	log.Fatalln("unable to open genesis file", err)
-	//}
-	//
-	//client, err := vdr.New(genesis)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
+	client, err := vdr.New(genesis)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	//
 	//err = client.RefreshPool()
 	//if err != nil {
@@ -77,13 +82,21 @@ func main() {
 	//d, _ = json.MarshalIndent(rply, " ", " ")
 	//fmt.Println(string(d))
 	//
-	//rply, err = client.GetCredDef("Xy9dvEi8dkkPif5j342w9q:3:CL:23:default")
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//
-	//d, _ = json.MarshalIndent(rply, " ", " ")
-	//fmt.Println(string(d))
+	rply, err := client.GetCredDef("Xy9dvEi8dkkPif5j342w9q:3:CL:23:default")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	indyCredDef := &schema.IndyCredDef{}
+	d, _ := json.Marshal(rply.Data)
+
+	err = json.Unmarshal(d, indyCredDef)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	d, _ = json.MarshalIndent(indyCredDef, " ", " ")
+	fmt.Println(string(d))
 
 	//rply, err = client.GetSchema("Xy9dvEi8dkkPif5j342w9q:2:Scoir High School:0.0.1")
 	//if err != nil {

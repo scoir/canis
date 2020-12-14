@@ -1,11 +1,5 @@
 package ursa
 
-/*
-#cgo LDFLAGS: -L/usr/local/lib -lursa
-#include "ursa_crypto.h"
-#include <stdlib.h>
-*/
-import "C"
 import (
 	ppprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
 )

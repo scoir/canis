@@ -28,8 +28,6 @@ import (
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
-	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/suite"
-	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/suite/ed25519signature2018"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/verifiable"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api"
@@ -43,12 +41,15 @@ import (
 	goji "goji.io"
 	"goji.io/pat"
 
-	"github.com/scoir/canis/pkg/aries/vdri/indy"
+	vindy "github.com/scoir/canis/pkg/aries/vdri/indy"
 	"github.com/scoir/canis/pkg/credential"
+	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/datastore/mongodb"
 	didex "github.com/scoir/canis/pkg/didexchange"
 	"github.com/scoir/canis/pkg/framework"
 	canisproof "github.com/scoir/canis/pkg/presentproof"
-	"github.com/scoir/canis/pkg/ursa"
+	"github.com/scoir/canis/pkg/schema"
+	cursa "github.com/scoir/canis/pkg/ursa"
 	"github.com/scoir/canis/pkg/util"
 )
 
@@ -58,9 +59,10 @@ var issuerConnection *didexchange.Connection
 var verifierConnection *didexchange.Connection
 var credHandler *credentialHandler
 var pofHandler *proofHandler
-var prover *ursa.Prover
+var prover *cursa.Prover
 var vdrclient *vdr.Client
 var subjectStore storage.Store
+var ds datastore.Store
 
 func main() {
 	arieslog.SetLevel("aries-framework/out-of-band/service", arieslog.CRITICAL)
@@ -69,6 +71,18 @@ func main() {
 	//arieslog.SetLevel("aries-framework/issuecredential/service", arieslog.DEBUG)
 	arieslog.SetLevel("aries-framework/presentproof/service", arieslog.DEBUG)
 	createAriesContext()
+
+	conf := &mongodb.Config{
+		URL:      "mongodb://127.0.0.1:27017/",
+		Database: "canis",
+	}
+	p, err := mongodb.NewProvider(conf)
+	if err != nil {
+		log.Fatalln("unable to open datastore")
+	}
+
+	ds, _ = p.Open()
+
 	listen()
 }
 
@@ -153,7 +167,7 @@ func createAriesContext() {
 
 	storeProv := mongodbstore.NewProvider("mongodb://172.17.0.1:27017", mongodbstore.WithDBPrefix("subject"))
 	subjectStore, _ = storeProv.OpenStore("connections")
-	indyVDRI, err := indy.New("sov", indy.WithIndyClient(vdrclient))
+	indyVDRI, err := vindy.New("sov", vindy.WithIndyClient(vdrclient))
 	if err != nil {
 		log.Fatalln("unable to create aries indy vdr", err)
 	}
@@ -209,7 +223,7 @@ func createAriesContext() {
 		log.Fatalln("unable to start proof supervisor", err)
 	}
 
-	prover, err = ursa.NewProver(ctx)
+	prover, err = cursa.NewProver(ctx)
 	if err != nil {
 		log.Fatalln("unable to create Ursa prover")
 	}
@@ -236,15 +250,15 @@ func createAriesContext() {
 
 func newIssueCredentialSvc() api.ProtocolSvcCreator {
 	return func(prv api.Provider) (dispatcher.ProtocolService, error) {
-		service, err := icprotocol.New(prv)
+		svc, err := icprotocol.New(prv)
 		if err != nil {
 			return nil, err
 		}
 
 		// sets default middleware to the service
-		// service.Use(mdissuecredential.SaveCredentials(prv))
+		// svc.Use(mdissuecredential.SaveCredentials(prv))
 
-		return service, nil
+		return svc, nil
 	}
 }
 
@@ -291,13 +305,14 @@ func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icpro
 
 	answer := "Y"
 	if strings.HasPrefix(strings.ToUpper(answer), "Y") {
-		msID, err := prover.CreateMasterSecret(e.Message.ID())
+		thid, _ := e.Message.ThreadID()
+		msID, err := prover.CreateMasterSecret(thid)
 		if err != nil {
 			log.Println("error creating master secret", err)
 			return
 		}
 
-		offer := &ursa.CredentialOffer{}
+		offer := &schema.IndyCredentialOffer{}
 		bits, _ := d.OffersAttach[0].Data.Fetch()
 		err = json.Unmarshal(bits, offer)
 		if err != nil {
@@ -362,14 +377,23 @@ func (r *credentialHandler) IssueCredentialMsg(e service.DIDCommAction, d *icpro
 
 	answer := "Y"
 	if strings.HasPrefix(strings.ToUpper(answer), "Y") {
-		//TODO: @m00sey you'll probably ask the user for the name here, instead of comment.
 		thid, _ := e.Message.ThreadID()
 		err := r.credcl.AcceptCredential(thid)
 		if err != nil {
 			log.Println("Error accepting credential", err)
 			return
 		}
-		log.Printf("%s Accepted\n", d.Comment)
+
+		data, err := d.CredentialsAttach[0].Data.Fetch()
+		if err != nil {
+			log.Println("error fetching credential", err)
+		}
+
+		err = subjectStore.Put("vc", data)
+		if err != nil {
+			log.Println("unable to save VC", err)
+		}
+
 	}
 
 }
@@ -443,58 +467,97 @@ func (r *proofHandler) ProposePresentationMsg(_ service.DIDCommAction, _ *presen
 }
 
 func (r *proofHandler) RequestPresentationMsg(e service.DIDCommAction, req *presentproof.RequestPresentation) {
-	fmt.Println("I have received the following:")
-	d, _ := json.MarshalIndent(req, " ", " ")
-	fmt.Println(string(d))
-
-	vp := &verifiable.Presentation{
-		Context: []string{
-			"https://www.w3.org/2018/credentials/v1"},
-		ID:     "urn:uuid:3978344f-8596-4c3a-a978-8fcaba3903c",
-		Type:   []string{"VerifiablePresentation", "Clr"},
-		Holder: verifierConnection.MyDID,
+	indyProofRequest, err := req.RequestPresentationsAttach[0].Data.Fetch()
+	if err != nil {
+		log.Fatalln("nope, couldn't fetch", err)
 	}
 
-	doc, err := ctx.VDRIRegistry().Resolve(verifierConnection.MyDID)
+	indyPR := &schema.IndyProofRequest{}
+	err = json.Unmarshal(indyProofRequest, indyPR)
+	if err != nil {
+		log.Fatalln("nope, didn't work", err)
+	}
+
+	_, err = ctx.VDRIRegistry().Resolve(verifierConnection.MyDID)
 	if err != nil {
 		log.Fatalln("unable to load my did doc")
 	}
 
-	signer, err := newCryptoSigner(doc.PublicKey[0].ID[1:])
+	ms, err := prover.GetMasterSecret("bf007ccc-c2c8-4514-b88e-3e90e0848e88")
+	if err != nil {
+		log.Fatalln("unable to get master secret for this thread", err)
+	}
+
+	vcdata, err := subjectStore.Get("vc")
+	if err != nil {
+		log.Fatalln("credential not found", err)
+	}
+
+	cred := &schema.IndyCredential{}
+	err = json.Unmarshal(vcdata, cred)
+	if err != nil {
+		log.Fatalln("unable to unmarshal credential", err)
+	}
+
+	credentials := map[string]*schema.IndyCredential{}
+	credentials[cred.CredDefID] = cred
+
+	sch, err := ds.GetSchemaByExternalID(cred.SchemaID)
+	if err != nil {
+		log.Fatalln("unable to load schema", err)
+	}
+	schemas := map[string]*datastore.Schema{}
+	schemas[sch.ExternalSchemaID] = sch
+
+	rply, err := vdrclient.GetCredDef(cred.CredDefID)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	vc, err := r.store.GetCredential("http://example.edu/credentials/1872")
+	indyCredDef := &vdr.ClaimDefData{}
+	d, _ := json.Marshal(rply.Data)
+	err = json.Unmarshal(d, indyCredDef)
 	if err != nil {
-		log.Fatalln("unable to get credential", err)
+		log.Fatalln("unable to unmarshal creddef", err)
 	}
 
-	err = vp.SetCredentials(vc)
-	if err != nil {
-		log.Fatalln("unable to set credentials on the presentation", err)
+	creddefs := map[string]*vdr.ClaimDefData{}
+	creddefs[cred.CredDefID] = indyCredDef
+
+	requestedCreds := &schema.IndyRequestedCredentials{
+		SelfAttestedAttrs:   map[string]string{},
+		RequestedAttributes: map[string]*schema.IndyRequestedAttribute{},
+		RequestedPredicates: map[string]schema.ProvingCredentialKey{},
 	}
 
-	sigSuite := ed25519signature2018.New(
-		suite.WithSigner(signer),
-		suite.WithVerifier(ed25519signature2018.NewPublicKeyVerifier()))
-	ldpContext := &verifiable.LinkedDataProofContext{
-		SignatureType:           "Ed25519Signature2018",
-		SignatureRepresentation: verifiable.SignatureProofValue,
-		Suite:                   sigSuite,
-		VerificationMethod:      fmt.Sprintf("%s%s", verifierConnection.MyDID, doc.PublicKey[0].ID),
+	for _, attr := range indyPR.RequestedAttributes {
+		requestedCreds.RequestedAttributes[attr.Name] = &schema.IndyRequestedAttribute{
+			CredID:    cred.CredDefID,
+			Timestamp: 0,
+			Revealed:  true,
+		}
 	}
 
-	err = vp.AddLinkedDataProof(ldpContext)
-	if err != nil {
-		log.Fatalln("error adding linked data proof", err)
+	for _, predicate := range indyPR.RequestedPredicates {
+		requestedCreds.RequestedPredicates[predicate.Name] = schema.ProvingCredentialKey{
+			CredID:    cred.CredDefID,
+			Timestamp: 0,
+		}
 	}
+
+	proof, err := cursa.CreateProof(credentials, indyPR, requestedCreds, ms, schemas, creddefs)
+	if err != nil {
+		log.Fatalln("error creating proof", err)
+	}
+
+	d, _ = json.MarshalIndent(proof, " ", " ")
+	fmt.Println(string(d))
 
 	pres := &ppclient.Presentation{
 		PresentationsAttach: []decorator.Attachment{
 			{
 				Data: decorator.AttachmentData{
-					JSON: vp,
+					JSON: proof,
 				},
 			},
 		},

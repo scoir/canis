@@ -115,5 +115,11 @@ type ursaCrypto struct {
 
 // NewNonce wraps ursa.NewNonce until we switch to the go wrapper
 func (r *ursaCrypto) NewNonce() (string, error) {
-	return ursaWrapper.NewNonce()
+	n, err := ursaWrapper.NewNonce()
+	if err != nil {
+		return "", err
+	}
+
+	js, err := n.ToJSON()
+	return string(js), err
 }

@@ -106,7 +106,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 		}
 
 		publishedMsg := `{"topic":"credentials","event":"proposed","message":{"agent_id":"agent-id","my_did":"","their_did":"","external_id":"","schema":{"ID":"","Format":"","Type":"","Name":"","Version":"","ExternalSchemaID":"","Context":null,"Attributes":null},"proposal":{}}}`
-		suite.store.On("FindCredentialByOffer", thid).Return(nil, errors.New("not found"))
+		suite.store.On("FindCredentialByProtocolID", thid).Return(nil, errors.New("not found"))
 		suite.store.On("GetAgentByPublicDID", "did:my").Return(agent, nil)
 		suite.store.On("GetAgentConnectionForDID", agent, "did:their").Return(ac, nil)
 		suite.registry.On("GetSchemaForProposal", "hlindy-zkp-v1.0", []byte(`{}`)).Return(schemaID, nil)
@@ -153,7 +153,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 			},
 		}
 
-		suite.store.On("FindCredentialByOffer", thid).Return(nil, errors.New("not found"))
+		suite.store.On("FindCredentialByProtocolID", thid).Return(nil, errors.New("not found"))
 		suite.store.On("GetAgentByPublicDID", "did:my").Return(agent, nil)
 		suite.store.On("GetAgentConnectionForDID", agent, "did:their").Return(ac, nil)
 		suite.registry.On("GetSchemaForProposal", "hlindy-zkp-v1.0", []byte(`{}`)).Return(schemaID, nil)
@@ -198,7 +198,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 			},
 		}
 
-		suite.store.On("FindCredentialByOffer", thid).Return(nil, errors.New("not found"))
+		suite.store.On("FindCredentialByProtocolID", thid).Return(nil, errors.New("not found"))
 		suite.store.On("GetAgentByPublicDID", "did:my").Return(agent, nil)
 		suite.store.On("GetAgentConnectionForDID", agent, "did:their").Return(ac, nil)
 		suite.registry.On("GetSchemaForProposal", "hlindy-zkp-v1.0", []byte(`{}`)).Return(schemaID, nil)
@@ -240,7 +240,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 				},
 			},
 		}
-		suite.store.On("FindCredentialByOffer", thid).Return(nil, errors.New("not found"))
+		suite.store.On("FindCredentialByProtocolID", thid).Return(nil, errors.New("not found"))
 		suite.store.On("GetAgentByPublicDID", "did:my").Return(agent, nil)
 		suite.store.On("GetAgentConnectionForDID", agent, "did:their").Return(ac, nil)
 		suite.registry.On("GetSchemaForProposal", "hlindy-zkp-v1.0", []byte(`{}`)).Return(schemaID, nil)
@@ -265,7 +265,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 			Formats:      []issuecredential.Format{},
 			FilterAttach: []decorator.Attachment{},
 		}
-		suite.store.On("FindCredentialByOffer", thid).Return(nil, errors.New("not found"))
+		suite.store.On("FindCredentialByProtocolID", thid).Return(nil, errors.New("not found"))
 		suite.store.On("GetAgentByPublicDID", "did:my").Return(agent, nil)
 		suite.store.On("GetAgentConnectionForDID", agent, "did:their").Return(ac, nil)
 
@@ -288,7 +288,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 			Formats:      []issuecredential.Format{},
 			FilterAttach: []decorator.Attachment{},
 		}
-		suite.store.On("FindCredentialByOffer", thid).Return(nil, errors.New("not found"))
+		suite.store.On("FindCredentialByProtocolID", thid).Return(nil, errors.New("not found"))
 		suite.store.On("GetAgentByPublicDID", "did:my").Return(agent, nil)
 		suite.store.On("GetAgentConnectionForDID", agent, "did:their").Return(nil, errors.New("not found"))
 
@@ -307,7 +307,7 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 			Properties:   &mockProp{myDID: "did:my", theirDID: "did:their"},
 		}
 		proposal := &issuecredential.ProposeCredential{}
-		suite.store.On("FindCredentialByOffer", thid).Return(nil, errors.New("not found"))
+		suite.store.On("FindCredentialByProtocolID", thid).Return(nil, errors.New("not found"))
 		suite.store.On("GetAgentByPublicDID", "did:my").Return(nil, errors.New("not found"))
 
 		suite.target.ProposeCredentialMsg(action, proposal)
@@ -318,14 +318,14 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 		defer cleanup()
 
 		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
-		offer := &datastore.IssuedCredential{ThreadID: thid}
+		offer := &datastore.IssuedCredential{ProtocolID: thid}
 		action := service.DIDCommAction{
 			ProtocolName: "propose-credential",
 			Message:      testMsg(t, thid),
 			Stop:         func(error) {},
 		}
 		proposal := &issuecredential.ProposeCredential{}
-		suite.store.On("FindCredentialByOffer", thid).Return(offer, nil)
+		suite.store.On("FindCredentialByProtocolID", thid).Return(offer, nil)
 		suite.store.On("DeleteCredentialByOffer", thid).Return(nil)
 
 		suite.target.ProposeCredentialMsg(action, proposal)

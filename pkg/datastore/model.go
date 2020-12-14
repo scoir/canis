@@ -135,7 +135,7 @@ type IssuedCredential struct {
 	AgentName         string
 	MyDID             string
 	TheirDID          string
-	ThreadID          string
+	ProtocolID        string
 	SchemaName        string
 	RegistryOfferID   string
 	ExternalSubjectID string

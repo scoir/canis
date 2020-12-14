@@ -22,10 +22,10 @@ func (r *mongoDBStore) InsertCredential(c *datastore.IssuedCredential) (string, 
 	return c.ID, nil
 }
 
-func (r *mongoDBStore) FindCredentialByOffer(offerID string) (*datastore.IssuedCredential, error) {
+func (r *mongoDBStore) FindCredentialByProtocolID(protocolID string) (*datastore.IssuedCredential, error) {
 	c := &datastore.IssuedCredential{}
 	err := r.db.Collection(CredentialC).FindOne(context.Background(),
-		bson.M{"threadid": offerID, "systemstate": "offered"}).Decode(c)
+		bson.M{"protocolid": protocolID}).Decode(c)
 
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load offer").Error())

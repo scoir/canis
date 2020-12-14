@@ -55,8 +55,8 @@ func (_m *Store) DeleteAgentConnection(a *datastore.Agent, externalID string) er
 	return r0
 }
 
-// DeleteOffer provides a mock function with given fields: offerID
-func (_m *Store) DeleteOffer(offerID string) error {
+// DeleteCredentialByOffer provides a mock function with given fields: offerID
+func (_m *Store) DeleteCredentialByOffer(offerID string) error {
 	ret := _m.Called(offerID)
 
 	var r0 error
@@ -97,8 +97,8 @@ func (_m *Store) DeleteWebhook(typ string) error {
 	return r0
 }
 
-// FindOffer provides a mock function with given fields: offerID
-func (_m *Store) FindCredentialByOffer(offerID string) (*datastore.IssuedCredential, error) {
+// FindCredentialByProtocolID provides a mock function with given fields: offerID
+func (_m *Store) FindCredentialByProtocolID(offerID string) (*datastore.IssuedCredential, error) {
 	ret := _m.Called(offerID)
 
 	var r0 *datastore.IssuedCredential
@@ -274,6 +274,29 @@ func (_m *Store) GetSchema(name string) (*datastore.Schema, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSchemaByExternalID provides a mock function with given fields: externalID
+func (_m *Store) GetSchemaByExternalID(externalID string) (*datastore.Schema, error) {
+	ret := _m.Called(externalID)
+
+	var r0 *datastore.Schema
+	if rf, ok := ret.Get(0).(func(string) *datastore.Schema); ok {
+		r0 = rf(externalID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.Schema)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(externalID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -529,6 +552,20 @@ func (_m *Store) UpdateAgent(a *datastore.Agent) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*datastore.Agent) error); ok {
 		r0 = rf(a)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateCredential provides a mock function with given fields: c
+func (_m *Store) UpdateCredential(c *datastore.IssuedCredential) error {
+	ret := _m.Called(c)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.IssuedCredential) error); ok {
+		r0 = rf(c)
 	} else {
 		r0 = ret.Error(0)
 	}

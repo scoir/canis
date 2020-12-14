@@ -19,6 +19,7 @@ import (
 
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/indy"
+	"github.com/scoir/canis/pkg/schema"
 	ursaWrapper "github.com/scoir/canis/pkg/ursa"
 )
 
@@ -86,8 +87,8 @@ func (r *CredentialEngine) Accept(format string) bool {
 
 func (r *CredentialEngine) CreateSchema(issuer *datastore.DID, s *datastore.Schema) (string, error) {
 	extId := fmt.Sprintf("%s:2:%s:%s", issuer.DID.MethodID(), s.Name, s.Version)
-	_, err := r.client.GetSchema(extId)
-	if err == nil {
+	rply, err := r.client.GetSchema(extId)
+	if err == nil && rply.SeqNo > 0 {
 		return extId, nil
 	}
 
@@ -138,7 +139,11 @@ func (r *CredentialEngine) RegisterSchema(registrant *datastore.DID, s *datastor
 	for i, attr := range s.Attributes {
 		names[i] = attr.Name
 	}
+
 	indycd.AddSchemaFields(names...)
+
+	indycd.AddNonSchemaField("master_secret")
+
 	err = indycd.Finalize()
 	if err != nil {
 		return errors.Wrap(err, "unable to finalize indy credential definition")
@@ -174,12 +179,12 @@ const (
 )
 
 func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, _ string, s *datastore.Schema, _ []byte) (string, *decorator.AttachmentData, error) {
-	schema, err := r.client.GetSchema(s.ExternalSchemaID)
+	indySchema, err := r.client.GetSchema(s.ExternalSchemaID)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "unable to find schema on ledger to create cred def")
 	}
 
-	credDefID := ursaWrapper.CredentialDefinitionID(issuer, schema.SeqNo, CLSignatureType, DefaultTag)
+	credDefID := ursaWrapper.CredentialDefinitionID(issuer, indySchema.SeqNo, CLSignatureType, DefaultTag)
 
 	rec, err := r.getCredDefRecord(credDefID)
 	if err != nil {
@@ -190,12 +195,16 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, _ string
 	if err != nil {
 		return "", nil, errors.Wrap(err, "unexpected error creating nonce")
 	}
+	js, err := nonce.ToJSON()
+	if err != nil {
+		return "", nil, errors.Wrap(err, "unexpected marshalling nonce")
+	}
 
-	offer := ursaWrapper.CredentialOffer{
+	offer := schema.IndyCredentialOffer{
 		SchemaID:            s.ExternalSchemaID,
 		CredDefID:           credDefID,
 		KeyCorrectnessProof: rec.KeyCorrectnessProof,
-		Nonce:               strings.Trim(nonce, "\""),
+		Nonce:               strings.Trim(string(js), "\""),
 	}
 
 	offerID := uuid.New().URN()
@@ -238,7 +247,7 @@ func (r *CredentialEngine) IssueCredential(issuerDID *datastore.DID, s *datastor
 		return nil, errors.Wrap(err, "invalid attachment JSON for issuing indy credential")
 	}
 
-	offer := &ursaWrapper.CredentialOffer{}
+	offer := &schema.IndyCredentialOffer{}
 	d, err = r.store.Get(offerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load existing indy offer")

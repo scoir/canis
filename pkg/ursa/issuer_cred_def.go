@@ -19,6 +19,7 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
@@ -40,6 +41,15 @@ type CredentialDefinition struct {
 	revocationKey       string
 	privateKey          string
 	keyCorrectnessProof string
+}
+
+func (r *CredentialDefinition) UrsaPublicKey() (*ursa.CredentialDefPubKey, error) {
+	pubKey, err := ursa.CredentialPublicKeyFromJSON([]byte(r.publicKey))
+	if err != nil {
+		return nil, err
+	}
+
+	return pubKey, nil
 }
 
 func (r *CredentialDefinition) KeyCorrectnessProof() (map[string]interface{}, error) {
@@ -109,12 +119,6 @@ func (r *CredentialDefinition) Finalize() error {
 			return errors.Errorf("error adding field %s: %d", field, result)
 		}
 	}
-	cfield := C.CString("master_secret")
-	result = C.ursa_cl_credential_schema_builder_add_attr(builder, cfield)
-	if result != 0 {
-		return errors.Errorf("error from URSA adding attribute: %d", result)
-	}
-	C.free(unsafe.Pointer(cfield))
 
 	result = C.ursa_cl_credential_schema_builder_finalize(builder, &schema)
 	if result != 0 {

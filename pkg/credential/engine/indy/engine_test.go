@@ -12,8 +12,9 @@ import (
 
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
+
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/ursa"
+	"github.com/scoir/canis/pkg/schema"
 )
 
 func TestIssuerCredential(t *testing.T) {
@@ -23,7 +24,7 @@ func TestIssuerCredential(t *testing.T) {
 		engine, err := New(prov)
 		require.NoError(t, err)
 
-		requestAttachment := decorator.AttachmentData{JSON: &ursa.CredentialOffer{}}
+		requestAttachment := decorator.AttachmentData{JSON: &schema.IndyCredentialOffer{}}
 
 		issuerDID := &datastore.DID{
 			DID: &identifiers.DID{
@@ -76,7 +77,7 @@ func TestIssuerCredential(t *testing.T) {
 		offerID := "test-offer-id"
 		var values map[string]interface{}
 		s := &datastore.Schema{}
-		requestAttachment := decorator.AttachmentData{JSON: &ursa.CredentialOffer{}}
+		requestAttachment := decorator.AttachmentData{JSON: &schema.IndyCredentialOffer{}}
 
 		attachment, err := engine.IssueCredential(issuerDID, s, offerID, requestAttachment, values)
 		require.Nil(t, attachment)
@@ -98,7 +99,7 @@ func TestIssuerCredential(t *testing.T) {
 
 		var values map[string]interface{}
 		s := &datastore.Schema{}
-		requestAttachment := decorator.AttachmentData{JSON: &ursa.CredentialOffer{}}
+		requestAttachment := decorator.AttachmentData{JSON: &schema.IndyCredentialOffer{}}
 
 		attachment, err := engine.IssueCredential(issuerDID, s, offerID, requestAttachment, values)
 		require.Nil(t, attachment)
