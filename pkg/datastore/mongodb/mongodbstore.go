@@ -33,6 +33,7 @@ const (
 	AgentConnectionC     = "AgentConnection"
 	SchemaC              = "Schema"
 	CredentialC          = "IssuedCredential"
+	PresentationC        = "Presentation"
 	PresentationRequestC = "PresentationRequest"
 	WebhookC             = "Webhook"
 )
@@ -506,4 +507,26 @@ func (r *mongoDBStore) GetAgentConnectionForDID(a *datastore.Agent, theirDID str
 	}
 
 	return ac, nil
+}
+
+func (r *mongoDBStore) InsertPresentation(p *datastore.Presentation) (string, error) {
+
+	res, err := r.db.Collection(PresentationC).InsertOne(context.Background(), p)
+	if err != nil {
+		return "", err
+	}
+
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+func (r *mongoDBStore) GetPresentationRequest(ID string) (*datastore.PresentationRequest, error) {
+	pr := &datastore.PresentationRequest{}
+	err := r.db.Collection(PresentationRequestC).FindOne(context.Background(),
+		bson.M{"presentationrequestid": ID}).Decode(pr)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
+	}
+
+	return pr, nil
 }

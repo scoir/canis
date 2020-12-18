@@ -3,7 +3,6 @@ package ursa
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
@@ -33,9 +32,9 @@ func NewProver(ctx provider) (*Prover, error) {
 }
 
 func (r *Prover) CreateMasterSecret(masterSecretID string) (string, error) {
-	_, err := r.store.Get(masterSecretID)
+	s, err := r.GetMasterSecret(masterSecretID)
 	if err == nil {
-		return "", errors.New("master secret id already exists")
+		return s, nil
 	}
 
 	ms, err := ursa.NewMasterSecret()
@@ -60,7 +59,7 @@ func (r *Prover) CreateMasterSecret(masterSecretID string) (string, error) {
 		return "", errors.Wrap(err, "unable to store new master secret")
 	}
 
-	return masterSecretID, nil
+	return val.MS, nil
 }
 
 func (r *Prover) GetMasterSecret(masterSecretID string) (string, error) {
@@ -86,13 +85,8 @@ type CredentialRequestMetadata struct {
 	MasterSecretName         string `json:"master_secret_name"`
 }
 
-func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDefData, offer *schema.IndyCredentialOffer, masterSecretID string) (*CredentialRequest, *CredentialRequestMetadata, error) {
-	val, err := r.store.Get(masterSecretID)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "master secret not found")
-	}
-
-	credentialPubKey, err := CredDefHandle(credDef)
+func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDefData, offer *schema.IndyCredentialOffer, masterSecret string) (*CredentialRequest, *CredentialRequestMetadata, error) {
+	credentialPubKey, err := CredDefPublicKey(credDef.PKey(), credDef.RKey())
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to build credential public key")
 	}
@@ -101,7 +95,7 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 		return nil, nil, errors.Wrap(err, "unable to create ursa values builder")
 	}
 
-	err = credValuesBuilder.AddDecHidden("master_secret", string(val)) //Could this not need encoding inside values builder?
+	err = credValuesBuilder.AddDecHidden("master_secret", masterSecret) //Could this not need encoding inside values builder?
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to adding to ursa values builder")
 	}
@@ -133,6 +127,7 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 
 	cr := &CredentialRequest{
 		ProverDID: proverDID,
+		CredDefID: credDef.ID,
 	}
 
 	js, err := blindedSecrets.Handle.ToJSON()
@@ -158,7 +153,7 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 		return nil, nil, errors.Wrap(err, "")
 	}
 	defer reqNonce.Free()
-	cr.Nonce = strings.Trim(string(js), "\"")
+	cr.Nonce = string(js)
 
 	md := &CredentialRequestMetadata{MasterSecretName: "master_secret", Nonce: cr.Nonce}
 
@@ -172,7 +167,7 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 	return cr, md, nil
 }
 
-func CreateProof(credentials map[string]*schema.IndyCredential, proofReq *schema.IndyProofRequest, requestedCreds *schema.IndyRequestedCredentials,
+func (r *Prover) CreateProof(credentials map[string]*schema.IndyCredential, proofReq *schema.IndyProofRequest, requestedCreds *schema.IndyRequestedCredentials,
 	masterSecret string, schemas map[string]*datastore.Schema, credDefs map[string]*vdr.ClaimDefData /*revocation*/) (*schema.IndyProof, error) {
 
 	pb, err := ursa.NewProofBuilder()
@@ -203,7 +198,7 @@ func CreateProof(credentials map[string]*schema.IndyCredential, proofReq *schema
 	}
 
 	subProofIdx := 0
-	identifiers := make([]schema.Identifier, len(credentialsForProving))
+	identifiers := make([]*schema.Identifier, len(credentialsForProving))
 	for credKey, preparedCred := range credentialsForProving {
 		credential, ok := credentials[credKey.CredID]
 		if !ok {
@@ -235,7 +230,7 @@ func CreateProof(credentials map[string]*schema.IndyCredential, proofReq *schema
 			return nil, errors.Wrap(err, "building subproof")
 		}
 
-		credDefPublicKey, err := CredDefHandle(credDef)
+		credDefPublicKey, err := CredDefPublicKey(credDef.PKey(), credDef.RKey())
 		if err != nil {
 			return nil, errors.Wrap(err, "getting public key")
 		}
@@ -250,13 +245,13 @@ func CreateProof(credentials map[string]*schema.IndyCredential, proofReq *schema
 			return nil, errors.Wrap(err, "error adding sub proof")
 		}
 
-		identifier := schema.Identifier{
+		identifier := &schema.Identifier{
 			SchemaID:  credential.SchemaID,
 			CredDefID: credential.CredDefID,
 			Timestamp: credKey.Timestamp,
 		}
 
-		identifiers = append(identifiers, identifier)
+		identifiers[subProofIdx] = identifier
 
 		err = updateRequestedProof(preparedCred.requestedAttrInfo, preparedCred.predicateInfo, proofReq, credential,
 			int32(subProofIdx), requestedProof)
@@ -285,8 +280,69 @@ func CreateProof(credentials map[string]*schema.IndyCredential, proofReq *schema
 	return &schema.IndyProof{
 		Proof:          proofJSON,
 		RequestedProof: requestedProof,
+		Identifiers:    identifiers,
 	}, nil
 
+}
+
+func (r *Prover) ProcessCredentialSignature(cred *schema.IndyCredential, credRequest *CredentialRequest,
+	masterSecret, masterSecretBlindingData, credDefPKey string) (string, error) {
+
+	cryptoSignature, err := ursa.CredentialSignatureFromJSON(cred.Signature)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to get credential signature from JSON")
+	}
+
+	cryptoSigKP, err := ursa.CredentialSignatureCorrectnessProofFromJSON(cred.SignatureCorrectnessProof)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to get signature correctness proof from JSON")
+	}
+
+	issuanceNonce, err := ursa.NonceFromJSON(credRequest.Nonce)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to get nonce from JSON")
+	}
+
+	pubKey, err := CredDefPublicKey(credDefPKey, "")
+	if err != nil {
+		return "", errors.Wrap(err, "unable to get cred def public key")
+	}
+
+	blindingFactor, err := ursa.CredentialSecretsBlindingFactorsFromJSON([]byte(masterSecretBlindingData))
+	if err != nil {
+		return "", errors.Wrap(err, "unable to get blinding factors")
+	}
+
+	valueBuilder, err := ursa.NewValueBuilder()
+	if err != nil {
+		return "", errors.Wrap(err, "unable to create values builder")
+	}
+
+	for name, value := range cred.Values {
+		err = valueBuilder.AddDecKnown(name, value.Encoded)
+		if err != nil {
+			return "", errors.Wrap(err, "unable to add known dec")
+		}
+	}
+
+	err = valueBuilder.AddDecHidden("master_secret", masterSecret)
+
+	values, err := valueBuilder.Finalize()
+	if err != nil {
+		return "", errors.Wrap(err, "unable to finalize values builder")
+	}
+
+	err = cryptoSignature.ProcessCredentialSignature(values, cryptoSigKP, blindingFactor, pubKey, issuanceNonce)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to process signature")
+	}
+
+	sig, err := cryptoSignature.ToJSON()
+	if err != nil {
+		return "", errors.Wrap(err, "unable to get processed signature JSON")
+	}
+
+	return string(sig), nil
 }
 
 func updateRequestedProof(reqAttrs []schema.IndyRequestedAttributeInfo, predicates []schema.IndyRequestedPredicateInfo,
@@ -336,7 +392,7 @@ func updateRequestedProof(reqAttrs []schema.IndyRequestedAttributeInfo, predicat
 
 func getCredentialValuesForAttribute(values schema.IndyCredentialValues, name string) (*schema.IndyAttributeValue, error) {
 	for k, v := range values {
-		if attrCommonView(k) == attrCommonView(name) {
+		if AttrCommonView(k) == AttrCommonView(name) {
 			return v, nil
 		}
 	}
@@ -373,13 +429,13 @@ func buildSubproof(reqAttrs []schema.IndyRequestedAttributeInfo, reqPredicates [
 		if attr.Revealed {
 			if len(attr.AttributeInfo.Names) > 0 {
 				for _, name := range attr.AttributeInfo.Names {
-					err = subProofBuilder.AddRevealedAttr(attrCommonView(name))
+					err = subProofBuilder.AddRevealedAttr(AttrCommonView(name))
 					if err != nil {
 						return nil, errors.Wrap(err, "unable to add revealed attr")
 					}
 				}
 			} else {
-				err = subProofBuilder.AddRevealedAttr(attrCommonView(attr.AttributeInfo.Name))
+				err = subProofBuilder.AddRevealedAttr(AttrCommonView(attr.AttributeInfo.Name))
 				if err != nil {
 					return nil, errors.Wrap(err, "unable to add revealed attr")
 				}
@@ -388,7 +444,7 @@ func buildSubproof(reqAttrs []schema.IndyRequestedAttributeInfo, reqPredicates [
 	}
 
 	for _, predicate := range reqPredicates {
-		err = subProofBuilder.AddPredicate(attrCommonView(predicate.PredicateInfo.Name), predicate.PredicateInfo.PType, predicate.PredicateInfo.PValue)
+		err = subProofBuilder.AddPredicate(AttrCommonView(predicate.PredicateInfo.Name), predicate.PredicateInfo.PType, predicate.PredicateInfo.PValue)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to add predicate")
 		}
@@ -510,8 +566,4 @@ func prepareCredentialsForProving(requestedCreds *schema.IndyRequestedCredential
 	}
 
 	return credentialsForProving, nil
-}
-
-func attrCommonView(attr string) string {
-	return strings.ToLower(strings.Replace(attr, " ", "", -1))
 }

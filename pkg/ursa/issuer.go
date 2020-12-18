@@ -49,7 +49,7 @@ func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, of
 		return nil, err
 	}
 
-	credentialIssuanceNonce, err := ursa.NonceFromJSON(fmt.Sprintf("\"%s\"", requestNonce))
+	credentialIssuanceNonce, err := ursa.NonceFromJSON(requestNonce)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, of
 		return nil, errors.Wrap(err, "unable to create values")
 	}
 
-	credentialPubKey, err := CredDefHandle(credDef)
+	credentialPubKey, err := CredDefPublicKey(credDef.PKey(), credDef.RKey())
 	if err != nil {
 		return nil, err
 	}

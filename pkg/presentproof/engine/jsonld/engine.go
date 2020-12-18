@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/presentproof"
-	api "github.com/scoir/canis/pkg/protogen/common"
+	"github.com/scoir/canis/pkg/schema"
 	"github.com/scoir/canis/pkg/ursa"
 )
 
@@ -52,13 +53,18 @@ func (r *Engine) Accept(typ string) bool {
 }
 
 // RequestPresentation
-func (r *Engine) RequestPresentationAttach(attrInfo map[string]*api.AttrInfo, predicateInfo map[string]*api.PredicateInfo) (string, error) {
+func (r *Engine) RequestPresentation(attrInfo map[string]*schema.IndyProofRequestAttr,
+	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
 	log.Println(attrInfo)
 	log.Println(predicateInfo)
 
-	return "", nil
+	return nil, errors.New("not implemented")
 }
 
 func (r *Engine) RequestPresentationFormat() string {
 	return "LDS/LD-Proof"
+}
+
+func (r *Engine) Verify(presentation, request []byte, theirDID string, myDID string) error {
+	return errors.New("not implemented")
 }

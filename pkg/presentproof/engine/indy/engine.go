@@ -4,15 +4,18 @@ import "C"
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
-	"github.com/hyperledger/aries-framework-go/pkg/storage"
-	ursaWrapper "github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
+	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
+	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/indy"
-	api "github.com/scoir/canis/pkg/protogen/common"
-	"github.com/scoir/canis/pkg/ursa"
+	"github.com/scoir/canis/pkg/schema"
+	cursa "github.com/scoir/canis/pkg/ursa"
 )
 
 const (
@@ -20,36 +23,28 @@ const (
 )
 
 type Engine struct {
-	client VDRClient
-	kms    kms.KeyManager
-	store  store
-	crypto cryptoProvider
+	client   VDRClient
+	kms      kms.KeyManager
+	store    datastore.Store
+	crypto   cryptoProvider
+	verifier *cursa.Verifier
 }
 
 type provider interface {
 	IndyVDR() (indy.IndyVDRClient, error)
 	KMS() kms.KeyManager
-	StorageProvider() storage.Provider
-	Verifier() ursa.Verifier
-}
-
-type store interface {
-	Get(k string) ([]byte, error)
-	Put(k string, v []byte) error
+	Store() datastore.Store
 }
 
 type VDRClient interface {
+	GetCredDef(credDefID string) (*vdr.ReadReply, error)
 }
 
 func New(prov provider) (*Engine, error) {
 	eng := &Engine{}
 
 	var err error
-	eng.store, err = prov.StorageProvider().OpenStore("indy_engine")
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to open store for indy engine")
-	}
-
+	eng.store = prov.Store()
 	eng.client, err = prov.IndyVDR()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get indy vdr for indy proof engine")
@@ -59,6 +54,9 @@ func New(prov provider) (*Engine, error) {
 
 	//todo: this needs to be better, crypto is unique to the engine, however this feels hacky
 	eng.crypto = &ursaCrypto{}
+
+	eng.verifier = cursa.NewVerifier(eng.store)
+
 	return eng, nil
 }
 
@@ -69,21 +67,21 @@ func (r *Engine) Accept(format string) bool {
 // PresentationRequest to be encoded and sent as data in the RequestPresentation response
 // Ref: https://github.com/hyperledger/indy-sdk/blob/57dcdae74164d1c7aa06f2cccecaae121cefac25/libindy/src/api/anoncreds.rs#L1214
 type PresentationRequest struct {
-	Name                string                        `json:"name,omitempty"`
-	Version             string                        `json:"version,omitempty"`
-	Nonce               string                        `json:"nonce,omitempty"`
-	RequestedAttributes map[string]*api.AttrInfo      `json:"requested_attributes,omitempty"`
-	RequestedPredicates map[string]*api.PredicateInfo `json:"requested_predicates,omitempty"`
-	NonRevoked          string                        `json:"non_revoked,omitempty"`
+	Name                string                                       `json:"name,omitempty"`
+	Version             string                                       `json:"version,omitempty"`
+	Nonce               string                                       `json:"nonce,omitempty"`
+	RequestedAttributes map[string]*schema.IndyProofRequestAttr      `json:"requested_attributes,omitempty"`
+	RequestedPredicates map[string]*schema.IndyProofRequestPredicate `json:"requested_predicates,omitempty"`
+	NonRevoked          schema.NonRevokedInterval                    `json:"non_revoked,omitempty"`
 }
 
 // RequestPresentationAttach
-func (r *Engine) RequestPresentationAttach(attrInfo map[string]*api.AttrInfo,
-	predicateInfo map[string]*api.PredicateInfo) (string, error) {
+func (r *Engine) RequestPresentation(attrInfo map[string]*schema.IndyProofRequestAttr,
+	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
 
 	nonce, err := r.crypto.NewNonce()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	//TODO: proper names and version
@@ -95,10 +93,12 @@ func (r *Engine) RequestPresentationAttach(attrInfo map[string]*api.AttrInfo,
 		RequestedPredicates: predicateInfo,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return base64.StdEncoding.EncodeToString(b), nil
+	return &decorator.AttachmentData{
+		Base64: base64.StdEncoding.EncodeToString(b),
+	}, nil
 }
 
 // RequestPresentationFormat
@@ -115,11 +115,173 @@ type ursaCrypto struct {
 
 // NewNonce wraps ursa.NewNonce until we switch to the go wrapper
 func (r *ursaCrypto) NewNonce() (string, error) {
-	n, err := ursaWrapper.NewNonce()
+	n, err := ursa.NewNonce()
 	if err != nil {
 		return "", err
 	}
 
 	js, err := n.ToJSON()
 	return string(js), err
+}
+
+func (r *Engine) Verify(presentation, request []byte, theirDID string, myDID string) error {
+
+	indyProof := &schema.IndyProof{}
+	err := json.Unmarshal(presentation, indyProof)
+	if err != nil {
+		return errors.Wrap(err, "invalid presentation format, not indy proof")
+	}
+
+	proofRequest := &PresentationRequest{}
+	err = json.Unmarshal(request, proofRequest)
+	if err != nil {
+		return errors.Wrap(err, "invalid proof request format")
+	}
+
+	receivedRevealedAttrs, err := receivedRevealedAttrs(indyProof)
+	if err != nil {
+		return err
+	}
+
+	receivedUnrevealedAttrs, err := receivedUnrevealedAttrs(indyProof)
+	if err != nil {
+		return err
+	}
+
+	receivedPredicates, err := receivedPredicates(indyProof)
+	if err != nil {
+		return err
+	}
+
+	receivedSelfAttestedAttrs := receivedSelfAttestedAttrs(indyProof)
+
+	err = compareAttrFromProofAndRequest(proofRequest, receivedRevealedAttrs, receivedUnrevealedAttrs,
+		receivedSelfAttestedAttrs, receivedPredicates)
+	if err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	err = verifyRevealedAttrubuteValues(proofRequest, indyProof)
+	if err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	err = verifiyRequesetedRestrictions(proofRequest, indyProof.RequestedProof, receivedRevealedAttrs, receivedUnrevealedAttrs,
+		receivedPredicates, receivedSelfAttestedAttrs)
+	if err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	err = compareTimestampsFromProofAndRequest(proofRequest, receivedRevealedAttrs, receivedUnrevealedAttrs,
+		receivedSelfAttestedAttrs, receivedPredicates)
+	if err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	credDefs := map[string]*vdr.ClaimDefData{}
+	for _, identifier := range indyProof.Identifiers {
+
+		credDef, err := r.getCredDef(identifier.CredDefID)
+		if err != nil {
+			return errors.Wrapf(err, "unable to load cred def %s", identifier.CredDefID)
+		}
+		credDefs[identifier.CredDefID] = credDef
+
+	}
+
+	return r.verifier.VerifyCredential(indyProof, proofRequest.RequestedAttributes, proofRequest.RequestedPredicates, proofRequest.Nonce,
+		credDefs)
+}
+
+func (r *Engine) getCredDef(credDefID string) (*vdr.ClaimDefData, error) {
+	rply, err := r.client.GetCredDef(credDefID)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get cred def from ledger")
+	}
+
+	indyCredDef := &vdr.ClaimDefData{}
+	d, _ := json.Marshal(rply.Data)
+	err = json.Unmarshal(d, indyCredDef)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid reply from ledger for cred def")
+	}
+
+	return indyCredDef, nil
+}
+
+func (r *Engine) getAttrbutesForCredential(subProofIdx int, requestedProof *schema.IndyRequestedProof, proofRequest *PresentationRequest) []*schema.IndyProofRequestAttr {
+	var revealedAttrs []*schema.IndyProofRequestAttr
+
+	for attrReferent, rattr := range requestedProof.RevealedAttrs {
+		pa, ok := proofRequest.RequestedAttributes[attrReferent]
+		if subProofIdx == int(rattr.SubProofIndex) && ok {
+			revealedAttrs = append(revealedAttrs, pa)
+		}
+	}
+
+	for attrReferent, rgroup := range requestedProof.RevealedAttrGroups {
+		pa, ok := proofRequest.RequestedAttributes[attrReferent]
+		if subProofIdx == int(rgroup.SubProofIndex) && ok {
+			revealedAttrs = append(revealedAttrs, pa)
+		}
+	}
+
+	return revealedAttrs
+}
+
+func (r *Engine) getPredicatesForCredential(subProofIdx int, requestedProof *schema.IndyRequestedProof,
+	proofRequest *PresentationRequest) []*schema.IndyProofRequestPredicate {
+
+	var predicates []*schema.IndyProofRequestPredicate
+
+	for predicateReferent, rpredicate := range requestedProof.Predicates {
+		p, ok := proofRequest.RequestedPredicates[predicateReferent]
+		if subProofIdx == int(rpredicate.SubProofIndex) && ok {
+			predicates = append(predicates, p)
+		}
+	}
+
+	return predicates
+}
+
+func (r *Engine) buildSubProofRequest(attrs []*schema.IndyProofRequestAttr,
+	predicates []*schema.IndyProofRequestPredicate) (*ursa.SubProofRequestHandle, error) {
+
+	subProofBuilder, err := ursa.NewSubProofRequestBuilder()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
+	}
+
+	var names []string
+	for _, attr := range attrs {
+		if len(attr.Name) > 0 {
+			names = append(names, attr.Name)
+		}
+
+		for _, name := range attr.Names {
+			names = append(names, name)
+		}
+	}
+
+	for _, name := range names {
+		fmt.Println("adding revealed attr to sub proof", cursa.AttrCommonView(name))
+		err := subProofBuilder.AddRevealedAttr(cursa.AttrCommonView(name))
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to add revealed attribute")
+		}
+	}
+
+	for _, predicate := range predicates {
+		err = subProofBuilder.AddPredicate(cursa.AttrCommonView(predicate.Name), predicate.PType, predicate.PValue)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to add predicate to sub proof")
+		}
+	}
+
+	subProofRequest, err := subProofBuilder.Finalize()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
+	}
+
+	return subProofRequest, nil
 }

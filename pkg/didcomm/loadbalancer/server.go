@@ -36,7 +36,7 @@ const (
 )
 
 var (
-	supportedProtocols = []string{"didexchange", "issue-credential"}
+	supportedProtocols = []string{"didexchange", "issue-credential", "present-proof"}
 )
 
 type Server struct {

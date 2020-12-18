@@ -116,7 +116,7 @@ type Offer struct {
 	Comment string
 	Type    string
 	Preview []icprotocol.Attribute
-	Body    []byte
+	Data    []byte
 }
 
 type Credential struct {
@@ -154,4 +154,12 @@ type PresentationRequest struct {
 	SchemaID              string
 	ExternalID            string
 	PresentationRequestID string
+	Data                  []byte
+}
+
+type Presentation struct {
+	TheirDID string
+	MyDID    string
+	Format   string
+	Data     []byte
 }

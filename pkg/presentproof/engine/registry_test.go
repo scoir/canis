@@ -85,19 +85,19 @@ func TestRegistry_RequestPresentation(t *testing.T) {
 		require.Contains(t, err.Error(), "presentation type t not supported by any engine")
 	})
 
-	t.Run("RequestPresentationAttach error", func(t *testing.T) {
+	t.Run("RequestPresentation error", func(t *testing.T) {
 		prov := NewProvider()
 
 		reg := New(prov, WithEngine(&indyProofMock{
 			Format:                       "format",
 			DoesAccept:                   true,
-			RequestPresentationAttachErr: errors.New("RequestPresentationAttach error"),
+			RequestPresentationAttachErr: errors.New("RequestPresentation error"),
 		}))
 
 		presentation, err := reg.RequestPresentation("t", nil, nil)
 		require.Error(t, err)
 		require.Nil(t, presentation)
-		require.Contains(t, err.Error(), "RequestPresentationAttach error")
+		require.Contains(t, err.Error(), "RequestPresentation error")
 	})
 }
 

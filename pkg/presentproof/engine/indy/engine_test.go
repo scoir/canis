@@ -7,7 +7,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/mock/storage"
 	"github.com/stretchr/testify/require"
 
-	api "github.com/scoir/canis/pkg/protogen/common"
+	"github.com/scoir/canis/pkg/schema"
 )
 
 func TestNew(t *testing.T) {
@@ -51,24 +51,22 @@ func TestEngine_RequestPresentationAttach(t *testing.T) {
 		require.NoError(t, err)
 		engine.crypto = &cryptoMock{}
 
-		attrInfo := make(map[string]*api.AttrInfo)
-		predInfo := make(map[string]*api.PredicateInfo)
+		attrInfo := make(map[string]*schema.IndyProofRequestAttr)
+		predInfo := make(map[string]*schema.IndyProofRequestPredicate)
 
-		attrInfo["attr1"] = &api.AttrInfo{
+		attrInfo["attr1"] = &schema.IndyProofRequestAttr{
 			Name:         "attr name 1",
 			Restrictions: "restrictions",
-			NonRevoked:   nil,
 		}
 
-		predInfo["pred1"] = &api.PredicateInfo{
+		predInfo["pred1"] = &schema.IndyProofRequestPredicate{
 			Name:         "predicate name 1",
 			PType:        "pytpe",
-			PValue:       "pvalue",
+			PValue:       32,
 			Restrictions: "restrictions",
-			NonRevoked:   nil,
 		}
 
-		attach, err := engine.RequestPresentationAttach(attrInfo, predInfo)
+		attach, err := engine.RequestPresentation(attrInfo, predInfo)
 		require.NoError(t, err)
 		require.NotNil(t, attach)
 
@@ -89,7 +87,7 @@ func TestEngine_RequestPresentationAttach(t *testing.T) {
 			NewNonceErr: errors.New("nonce error"),
 		}
 
-		attach, err := engine.RequestPresentationAttach(nil, nil)
+		attach, err := engine.RequestPresentation(nil, nil)
 		require.Error(t, err)
 		require.Empty(t, attach)
 		require.Contains(t, err.Error(), "nonce error")

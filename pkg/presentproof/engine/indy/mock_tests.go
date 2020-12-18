@@ -5,9 +5,9 @@ import (
 	storagemock "github.com/hyperledger/aries-framework-go/pkg/mock/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 
+	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/indy/mocks"
-	"github.com/scoir/canis/pkg/ursa"
 )
 
 type providerMock struct {
@@ -16,6 +16,10 @@ type providerMock struct {
 	kms            kms.KeyManager
 	store          *storeMock
 	cryptoProvider *cryptoMock
+}
+
+func (r *providerMock) Store() datastore.Store {
+	panic("implement me")
 }
 
 // IndyVDR mock implementation for indy engine
@@ -35,11 +39,6 @@ func (r *providerMock) KMS() kms.KeyManager {
 // StorageProvider mock implementation for indy engine
 func (r *providerMock) StorageProvider() storage.Provider {
 	return r.store
-}
-
-// Verifier mock implementation for indy engine
-func (r *providerMock) Verifier() ursa.Verifier {
-	return nil
 }
 
 type storeMock struct {

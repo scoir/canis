@@ -20,14 +20,21 @@ type IndyProofRequest struct {
 }
 
 type IndyProofRequestAttr struct {
-	Name         string      `json:"name"`
-	Names        []string    `json:"names"`
-	Restrictions interface{} `json:"restrictions,omitempty"`
+	Name         string             `json:"name"`
+	Names        []string           `json:"names"`
+	Restrictions interface{}        `json:"restrictions,omitempty"`
+	NonRevoked   NonRevokedInterval `json:"non_revoked"`
 }
 
 type IndyProofRequestPredicate struct {
-	Name         string      `json:"name"`
-	PType        string      `json:"p_type"`
-	PValue       int32       `json:"p_value"`
-	Restrictions interface{} `json:"restrictions"`
+	Name         string             `json:"name"`
+	PType        string             `json:"p_type"`
+	PValue       int32              `json:"p_value"`
+	Restrictions interface{}        `json:"restrictions"`
+	NonRevoked   NonRevokedInterval `json:"non_revoked"`
+}
+
+type NonRevokedInterval struct {
+	From int64 `json:"from"`
+	To   int64 `json:"to"`
 }

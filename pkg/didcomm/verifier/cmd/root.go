@@ -14,8 +14,11 @@ import (
 	"strings"
 
 	"github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/dispatcher"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
+	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
@@ -33,7 +36,6 @@ import (
 	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/presentproof/engine"
 	"github.com/scoir/canis/pkg/presentproof/engine/indy"
-	"github.com/scoir/canis/pkg/ursa"
 )
 
 var (
@@ -173,6 +175,7 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 		aries.WithInboundTransport(amqpInbound),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 		aries.WithSecretLock(r.lock),
+		aries.WithProtocols(newPresentProofSvc()),
 	}
 	for _, vdri := range vdris {
 		vopts = append(vopts, aries.WithVDRI(vdri))
@@ -192,9 +195,18 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	return actx, err
 }
 
-// Verifier todo
-func (r *Provider) Verifier() ursa.Verifier {
-	return ursa.NewVerifier()
+func newPresentProofSvc() api.ProtocolSvcCreator {
+	return func(prv api.Provider) (dispatcher.ProtocolService, error) {
+		svc, err := presentproof.New(prv)
+		if err != nil {
+			return nil, err
+		}
+
+		// sets default middleware to the service
+		// svc.Use(mdissuecredential.SaveCredentials(prv))
+
+		return svc, nil
+	}
 }
 
 // IndyVDR todo

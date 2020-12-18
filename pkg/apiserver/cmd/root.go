@@ -166,10 +166,6 @@ func (r *Provider) Issuer() ursa.Issuer {
 	return ursa.NewIssuer()
 }
 
-func (r *Provider) Verifier() ursa.Verifier {
-	return ursa.NewVerifier()
-}
-
 func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
 	genesisFile := r.conf.LedgerGenesis()
 	re := strings.NewReader(genesisFile)

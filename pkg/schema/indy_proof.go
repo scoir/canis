@@ -72,3 +72,52 @@ type IndyRequestedPredicateInfo struct {
 	PredicateReferent string                     `json:"predicate_referent"`
 	PredicateInfo     *IndyProofRequestPredicate `json:"predicate_info"`
 }
+
+type CryptoProof struct {
+	Proofs     []*SubProof      `json:"proofs"`
+	Aggregated *AggregatedProof `json:"aggregated_proof"`
+}
+
+type SubProof struct {
+	Primary       *PrimaryProof  `json:"primary_proof"`
+	NonRevocProof *NonRevocProof `json:"non_revoc_proof"`
+}
+
+func (r *SubProof) RevealedAttrs() map[string]string {
+	out := map[string]string{}
+	for k, v := range r.Primary.EqProof.RevealedAttrs {
+		out[k] = v
+	}
+	return out
+}
+
+type PrimaryProof struct {
+	EqProof PrimaryEqualProof                  `json:"eq_proof"`
+	NeProof []*PrimaryPredicateInequalityProof `json:"ne_proof"`
+}
+
+type NonRevocProof struct {
+}
+
+type AggregatedProof struct {
+	CHash string    `json:"c_hash"`
+	CList [][]uint8 `json:"c_list"`
+}
+
+type PrimaryPredicateInequalityProof struct {
+	U         map[string]string         `json:"u"`
+	R         map[string]string         `json:"r"`
+	Mj        string                    `json:"mj"`
+	Alpha     string                    `json:"alpha"`
+	T         map[string]string         `json:"t"`
+	Predicate IndyProofRequestPredicate `json:"predicate"`
+}
+
+type PrimaryEqualProof struct {
+	RevealedAttrs map[string]string `json:"revealed_attrs"`
+	APrime        string            `json:"a_prime"`
+	E             string            `json:"e"`
+	V             string            `json:"v"`
+	M             map[string]string `json:"m"`
+	M2            string            `json:"m_2"`
+}

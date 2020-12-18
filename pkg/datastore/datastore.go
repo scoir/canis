@@ -85,6 +85,12 @@ type Store interface {
 
 	DeleteWebhook(typ string) error
 
-	//InsertPresentationRequest
+	//InsertPresentationRequest inserts the presentation request
 	InsertPresentationRequest(pr *PresentationRequest) (string, error)
+
+	// InsertPresentation inserts the presentation
+	InsertPresentation(p *Presentation) (string, error)
+
+	// GetPresentationRequest retrieves the presentation request by ID
+	GetPresentationRequest(ID string) (*PresentationRequest, error)
 }

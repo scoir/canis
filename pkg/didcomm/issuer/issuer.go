@@ -180,7 +180,7 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 			Comment: req.Credential.Comment,
 			Type:    req.Credential.Type,
 			Preview: attrs,
-			Body:    body,
+			Data:    body,
 		},
 		SystemState: "offer-sent",
 	}
