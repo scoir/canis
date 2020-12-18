@@ -63,6 +63,8 @@ func credentialsRequestProof(_ *cobra.Command, args []string) error {
 
 	agentName := args[0]
 	var presentation = &common.RequestPresentation{
+		Name:                "Proof Name...",
+		Version:             "0.1.0",
 		SchemaId:            schemaName,
 		Comment:             comment,
 		WillConfirm:         true,

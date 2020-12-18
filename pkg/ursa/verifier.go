@@ -149,3 +149,14 @@ func (r *Verifier) buildSubProofRequest(attrs []*schema.IndyProofRequestAttr,
 
 	return subProofRequest, nil
 }
+
+func (r *Verifier) NewNonce() (string, error) {
+	n, err := ursa.NewNonce()
+	if err != nil {
+		return "", err
+	}
+
+	js, err := n.ToJSON()
+	return string(js), err
+
+}

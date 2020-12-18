@@ -8,45 +8,47 @@ import "google/protobuf/struct.proto";
 option go_package = "github.com/scoir/canis/pkg/protogen/common";
 
 message AttrInfo {
-  string name = 1;
-  string restrictions = 2; // wql query
-  google.protobuf.Timestamp non_revoked = 3;
+    string name = 1;
+    string restrictions = 2; // wql query
+    google.protobuf.Timestamp non_revoked = 3;
 }
 
 message PredicateInfo {
-  string name = 1; // attribute name, (case insensitive and ignore spaces)
-  string p_type = 2; // (Currently >= only)
-  int32  p_value = 3;
-  string restrictions = 4; // wql query
-  google.protobuf.Timestamp non_revoked = 5;
+    string name = 1; // attribute name, (case insensitive and ignore spaces)
+    string p_type = 2; // (Currently >= only)
+    int32 p_value = 3;
+    string restrictions = 4; // wql query
+    google.protobuf.Timestamp non_revoked = 5;
 }
 
 message RequestPresentationRequest {
-  string agent_name = 1;
-  string external_id = 2;
-  RequestPresentation presentation = 3;
+    string agent_name = 1;
+    string external_id = 2;
+    RequestPresentation presentation = 3;
 }
 
 message RequestPresentation {
-  string schema_id = 1;
-  string comment = 2;
-  bool will_confirm = 3;
-  map<string, AttrInfo> requested_attributes = 4;
-  map<string, PredicateInfo> requested_predicates = 5;
+    string name = 1;
+    string version = 2;
+    string schema_id = 3;
+    string comment = 4;
+    bool will_confirm = 5;
+    map<string, AttrInfo> requested_attributes = 6;
+    map<string, PredicateInfo> requested_predicates = 7;
 }
 
 message RequestPresentationResponse {
-  string request_presentation_id = 1;
+    string request_presentation_id = 1;
 }
 
 message InvitationRequest {
-  string agent_name = 1;
-  string external_id = 2;
-  string connection_name = 3;
+    string agent_name = 1;
+    string external_id = 2;
+    string connection_name = 3;
 }
 
 message InvitationResponse {
-  string Invitation = 1;
+    string Invitation = 1;
 }
 
 message AcceptInvitationRequest {
@@ -61,8 +63,8 @@ message AcceptInvitationResponse {
 }
 
 message CredentialAttribute {
-  string name = 1;
-  string value = 2;
+    string name = 1;
+    string value = 2;
 }
 
 message Credential {
@@ -88,6 +90,6 @@ message EndpointRequest {
 }
 
 message EndpointResponse {
-  string Endpoint = 1;
+    string Endpoint = 1;
 }
 

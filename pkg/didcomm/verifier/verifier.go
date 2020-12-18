@@ -142,7 +142,7 @@ func (r *Server) RequestPresentation(_ context.Context, req *common.RequestPrese
 			Restrictions: v.Restrictions,
 		}
 	}
-	presentation, err := r.registry.RequestPresentation(sch.Format, attrInfo, predicateInfo)
+	presentation, err := r.registry.RequestPresentation(req.Presentation.Name, req.Presentation.Version, sch.Format, attrInfo, predicateInfo)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating presentation request: %v", err))
 	}

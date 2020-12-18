@@ -53,7 +53,7 @@ func (r *Engine) Accept(typ string) bool {
 }
 
 // RequestPresentation
-func (r *Engine) RequestPresentation(attrInfo map[string]*schema.IndyProofRequestAttr,
+func (r *Engine) RequestPresentation(name, version string, attrInfo map[string]*schema.IndyProofRequestAttr,
 	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
 	log.Println(attrInfo)
 	log.Println(predicateInfo)

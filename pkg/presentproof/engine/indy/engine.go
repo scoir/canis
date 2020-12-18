@@ -26,7 +26,6 @@ type Engine struct {
 	client   VDRClient
 	kms      kms.KeyManager
 	store    datastore.Store
-	crypto   cryptoProvider
 	verifier *cursa.Verifier
 }
 
@@ -52,9 +51,6 @@ func New(prov provider) (*Engine, error) {
 
 	eng.kms = prov.KMS()
 
-	//todo: this needs to be better, crypto is unique to the engine, however this feels hacky
-	eng.crypto = &ursaCrypto{}
-
 	eng.verifier = cursa.NewVerifier(eng.store)
 
 	return eng, nil
@@ -76,18 +72,17 @@ type PresentationRequest struct {
 }
 
 // RequestPresentationAttach
-func (r *Engine) RequestPresentation(attrInfo map[string]*schema.IndyProofRequestAttr,
+func (r *Engine) RequestPresentation(name, version string, attrInfo map[string]*schema.IndyProofRequestAttr,
 	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
 
-	nonce, err := r.crypto.NewNonce()
+	nonce, err := r.verifier.NewNonce()
 	if err != nil {
 		return nil, err
 	}
 
-	//TODO: proper names and version
 	b, err := json.Marshal(&PresentationRequest{
-		Name:                "Proof name...",
-		Version:             "0.0.1",
+		Name:                name,
+		Version:             version,
 		Nonce:               nonce,
 		RequestedAttributes: attrInfo,
 		RequestedPredicates: predicateInfo,
@@ -104,24 +99,6 @@ func (r *Engine) RequestPresentation(attrInfo map[string]*schema.IndyProofReques
 // RequestPresentationFormat
 func (r *Engine) RequestPresentationFormat() string {
 	return Format
-}
-
-type cryptoProvider interface {
-	NewNonce() (string, error)
-}
-
-type ursaCrypto struct {
-}
-
-// NewNonce wraps ursa.NewNonce until we switch to the go wrapper
-func (r *ursaCrypto) NewNonce() (string, error) {
-	n, err := ursa.NewNonce()
-	if err != nil {
-		return "", err
-	}
-
-	js, err := n.ToJSON()
-	return string(js), err
 }
 
 func (r *Engine) Verify(presentation, request []byte, theirDID string, myDID string) error {

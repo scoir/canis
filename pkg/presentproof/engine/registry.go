@@ -14,7 +14,7 @@ const PresentProofType = "https://didcomm.org/present-proof/2.0/request-presenta
 //go:generate mockery -name=PresentationEngine
 type PresentationEngine interface {
 	Accept(typ string) bool
-	RequestPresentation(attrInfo map[string]*schema.IndyProofRequestAttr,
+	RequestPresentation(name, version string, attrInfo map[string]*schema.IndyProofRequestAttr,
 		predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error)
 	RequestPresentationFormat() string
 	Verify(presentation, request []byte, theirDID string, myDID string) error
@@ -22,7 +22,7 @@ type PresentationEngine interface {
 
 //go:generate mockery -name=PresentationRegistry
 type PresentationRegistry interface {
-	RequestPresentation(typ string, attrInfo map[string]*schema.IndyProofRequestAttr,
+	RequestPresentation(name, version, typ string, attrInfo map[string]*schema.IndyProofRequestAttr,
 		predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error)
 	Verify(format string, presentation, request []byte, theirDID string, myDID string) error
 }
@@ -49,7 +49,7 @@ func New(prov provider, opts ...Option) *Registry {
 }
 
 // RequestPresentation
-func (r *Registry) RequestPresentation(typ string, attrInfo map[string]*schema.IndyProofRequestAttr,
+func (r *Registry) RequestPresentation(name, version, typ string, attrInfo map[string]*schema.IndyProofRequestAttr,
 	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
 
 	e, err := r.resolveEngine(typ)
@@ -57,7 +57,7 @@ func (r *Registry) RequestPresentation(typ string, attrInfo map[string]*schema.I
 		return nil, err
 	}
 
-	return e.RequestPresentation(attrInfo, predicateInfo)
+	return e.RequestPresentation(name, version, attrInfo, predicateInfo)
 }
 
 func (r *Registry) Verify(format string, presentation, request []byte, theirDID string, myDID string) error {

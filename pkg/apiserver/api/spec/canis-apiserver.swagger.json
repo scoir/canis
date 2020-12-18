@@ -1081,6 +1081,12 @@
     "commonRequestPresentation": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
         "schema_id": {
           "type": "string"
         },
