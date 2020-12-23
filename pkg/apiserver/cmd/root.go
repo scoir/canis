@@ -162,8 +162,12 @@ func (r *Provider) Store() datastore.Store {
 	return r.store
 }
 
-func (r *Provider) Issuer() ursa.Issuer {
-	return ursa.NewIssuer()
+func (r *Provider) Issuer() credindyengine.UrsaIssuer {
+	return credindyengine.NewIssuer(r)
+}
+
+func (r *Provider) Oracle() ursa.Oracle {
+	return &ursa.CryptoOracle{}
 }
 
 func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
@@ -261,6 +265,10 @@ func (r *Provider) GetCredentialEngineRegistry() (credengine.CredentialRegistry,
 
 func (r *Provider) VDRIRegistry() vdriapi.Registry {
 	return r.vdriReg
+}
+
+func (r *Provider) Verifier() presentindyengine.Verifier {
+	return presentindyengine.NewVerifier(r.Store())
 }
 
 func (r *Provider) GetPresentationEngineRegistry() (presentengine.PresentationRegistry, error) {

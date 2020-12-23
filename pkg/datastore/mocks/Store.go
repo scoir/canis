@@ -235,6 +235,29 @@ func (_m *Store) GetDID(id string) (*datastore.DID, error) {
 	return r0, r1
 }
 
+// GetPresentationRequest provides a mock function with given fields: ID
+func (_m *Store) GetPresentationRequest(ID string) (*datastore.PresentationRequest, error) {
+	ret := _m.Called(ID)
+
+	var r0 *datastore.PresentationRequest
+	if rf, ok := ret.Get(0).(func(string) *datastore.PresentationRequest); ok {
+		r0 = rf(ID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.PresentationRequest)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(ID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPublicDID provides a mock function with given fields:
 func (_m *Store) GetPublicDID() (*datastore.DID, error) {
 	ret := _m.Called()
@@ -372,6 +395,27 @@ func (_m *Store) InsertDID(d *datastore.DID) error {
 	}
 
 	return r0
+}
+
+// InsertPresentation provides a mock function with given fields: p
+func (_m *Store) InsertPresentation(p *datastore.Presentation) (string, error) {
+	ret := _m.Called(p)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*datastore.Presentation) string); ok {
+		r0 = rf(p)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.Presentation) error); ok {
+		r1 = rf(p)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // InsertPresentationRequest provides a mock function with given fields: pr

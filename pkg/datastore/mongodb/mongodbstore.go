@@ -417,12 +417,18 @@ func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
 }
 
 func (r *mongoDBStore) ListAgentConnections(a *datastore.Agent) ([]*datastore.AgentConnection, error) {
+	ctx := context.Background()
 	var ac []*datastore.AgentConnection
-	err := r.db.Collection(AgentConnectionC).FindOne(context.Background(),
-		bson.M{"agentname": a.Name}).Decode(&ac)
+	results, err := r.db.Collection(AgentConnectionC).Find(ctx,
+		bson.M{"agentname": a.Name})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to list agent connections")
+	}
+
+	err = results.All(ctx, &ac)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to decode agent connections")
 	}
 
 	return ac, nil

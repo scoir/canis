@@ -13,14 +13,12 @@ import (
 	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/presentproof"
 	"github.com/scoir/canis/pkg/schema"
-	"github.com/scoir/canis/pkg/ursa"
 )
 
 type provider interface {
 	IndyVDR() (indy.IndyVDRClient, error)
 	KMS() kms.KeyManager
 	StorageProvider() storage.Provider
-	Issuer() ursa.Issuer
 }
 
 type Engine struct {

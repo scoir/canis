@@ -4,12 +4,13 @@ Copyright Scoir Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package ursa
+package indy
 
 import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
@@ -17,21 +18,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/schema"
+	cursa "github.com/scoir/canis/pkg/ursa"
 )
 
-type Issuer interface {
-	IssueCredential(issuerDID string, schemaID, credDefID, offerNonce string, blindedMasterSecret, blindedMSCorrectnessProof, requestNonce string,
-		credDef *vdr.ClaimDefData, credDefPrivateKey string, values map[string]interface{}) (*decorator.AttachmentData, error)
-}
-
-type IssuerServer struct {
-}
-
-func NewIssuer() *IssuerServer {
-	return &IssuerServer{}
-}
-
-func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, offerNonce string, blindedMasterSecret, blindedMSCorrectnessProof, requestNonce string,
+func (r *CredentialEngine) buildIndyCredential(issuerDID, schemaID, credDefID, offerNonce, blindedMasterSecret, blindedMSCorrectnessProof, requestNonce string,
 	credDef *vdr.ClaimDefData, credDefPrivateKey string, values map[string]interface{}) (*decorator.AttachmentData, error) {
 
 	blindedCredentialSecrets, err := ursa.BlindedCredentialSecretsFromJSON([]byte(blindedMasterSecret))
@@ -77,7 +67,7 @@ func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, of
 		return nil, errors.Wrap(err, "unable to create values")
 	}
 
-	credentialPubKey, err := CredDefPublicKey(credDef.PKey(), credDef.RKey())
+	credentialPubKey, err := cursa.CredDefPublicKey(credDef.PKey(), credDef.RKey())
 	if err != nil {
 		return nil, err
 	}
@@ -130,6 +120,25 @@ func (r *IssuerServer) IssueCredential(issuerDID string, schemaID, credDefID, of
 	}
 
 	d, _ := json.Marshal(cred)
+	return &decorator.AttachmentData{
+		Base64: base64.StdEncoding.EncodeToString(d),
+	}, nil
+}
+
+func (r *CredentialEngine) buildIndyOffer(schemaID, credDefID string, keyCorrectnessProof map[string]interface{}) (*decorator.AttachmentData, error) {
+	nonce, err := r.oracle.NewNonce()
+	if err != nil {
+		return nil, errors.Wrap(err, "unexpected error creating nonce")
+	}
+
+	offer := schema.IndyCredentialOffer{
+		SchemaID:            schemaID,
+		CredDefID:           credDefID,
+		KeyCorrectnessProof: keyCorrectnessProof,
+		Nonce:               strings.Trim(nonce, "\""),
+	}
+
+	d, _ := json.Marshal(offer)
 	return &decorator.AttachmentData{
 		Base64: base64.StdEncoding.EncodeToString(d),
 	}, nil

@@ -1,19 +1,16 @@
 package indy
 
-import "C"
 import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
-	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/schema"
 	cursa "github.com/scoir/canis/pkg/ursa"
 )
@@ -23,35 +20,22 @@ const (
 )
 
 type Engine struct {
-	client   VDRClient
-	kms      kms.KeyManager
-	store    datastore.Store
-	verifier *cursa.Verifier
+	client VDRClient
+	store  datastore.Store
+	oracle Oracle
 }
 
-type provider interface {
-	IndyVDR() (indy.IndyVDRClient, error)
-	KMS() kms.KeyManager
-	Store() datastore.Store
-}
-
-type VDRClient interface {
-	GetCredDef(credDefID string) (*vdr.ReadReply, error)
-}
-
-func New(prov provider) (*Engine, error) {
+func New(prov Provider) (*Engine, error) {
 	eng := &Engine{}
 
 	var err error
-	eng.store = prov.Store()
 	eng.client, err = prov.IndyVDR()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get indy vdr for indy proof engine")
 	}
 
-	eng.kms = prov.KMS()
-
-	eng.verifier = cursa.NewVerifier(eng.store)
+	eng.store = prov.Store()
+	eng.oracle = prov.Oracle()
 
 	return eng, nil
 }
@@ -75,7 +59,7 @@ type PresentationRequest struct {
 func (r *Engine) RequestPresentation(name, version string, attrInfo map[string]*schema.IndyProofRequestAttr,
 	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
 
-	nonce, err := r.verifier.NewNonce()
+	nonce, err := r.oracle.NewNonce()
 	if err != nil {
 		return nil, err
 	}
@@ -166,8 +150,7 @@ func (r *Engine) Verify(presentation, request []byte, theirDID string, myDID str
 
 	}
 
-	return r.verifier.VerifyCredential(indyProof, proofRequest.RequestedAttributes, proofRequest.RequestedPredicates, proofRequest.Nonce,
-		credDefs)
+	return r.verifyCryptoCredential(indyProof, proofRequest, credDefs)
 }
 
 func (r *Engine) getCredDef(credDefID string) (*vdr.ClaimDefData, error) {

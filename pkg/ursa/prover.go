@@ -18,11 +18,11 @@ type Prover struct {
 	store storage.Store
 }
 
-type provider interface {
+type proverProvider interface {
 	StorageProvider() storage.Provider
 }
 
-func NewProver(ctx provider) (*Prover, error) {
+func NewProver(ctx proverProvider) (*Prover, error) {
 	s, err := ctx.StorageProvider().OpenStore("wallet")
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to open store 'wallet'")

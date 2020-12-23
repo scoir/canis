@@ -64,6 +64,10 @@ type Provider struct {
 	conf                 config.Config
 }
 
+func (r *Provider) Oracle() ursa.Oracle {
+	return &ursa.CryptoOracle{}
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -220,8 +224,8 @@ func (r *Provider) newIssueCredentialSvc() api.ProtocolSvcCreator {
 	}
 }
 
-func (r *Provider) Issuer() ursa.Issuer {
-	return ursa.NewIssuer()
+func (r *Provider) Issuer() indy.UrsaIssuer {
+	return indy.NewIssuer(r)
 }
 
 func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {

@@ -4,12 +4,13 @@ import (
 	"encoding/base64"
 	"testing"
 
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/datastore/mocks"
-	api "github.com/scoir/canis/pkg/protogen/common"
+	"github.com/scoir/canis/pkg/schema"
 )
 
 type providerMock struct {
@@ -28,58 +29,46 @@ func TestRegistry_RequestPresentation(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		prov := NewProvider()
 
-		reg := New(prov, WithEngine(&indyProofMock{
+		reg := New(prov, WithEngine(&engineMock{
 			Format:     "format",
 			DoesAccept: true,
-			RequestPresentationAttachFunc: func(attrInfo map[string]*api.AttrInfo, predicateInfo map[string]*api.PredicateInfo) (string, error) {
-				return base64.StdEncoding.EncodeToString([]byte("test")), nil
+			RequestPresentationAttachFunc: func(attrInfo map[string]*schema.IndyProofRequestAttr, predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
+				return &decorator.AttachmentData{Base64: base64.StdEncoding.EncodeToString([]byte("test"))}, nil
 			},
 			RequestPresentationAttachErr: nil,
 		}))
 
-		attrInfo := make(map[string]*api.AttrInfo)
-		predInfo := make(map[string]*api.PredicateInfo)
+		attrInfo := make(map[string]*schema.IndyProofRequestAttr)
+		predInfo := make(map[string]*schema.IndyProofRequestPredicate)
 
-		attrInfo["attr1"] = &api.AttrInfo{
+		attrInfo["attr1"] = &schema.IndyProofRequestAttr{
 			Name:         "attr name 1",
 			Restrictions: "restrictions",
-			NonRevoked:   nil,
 		}
 
-		predInfo["pred1"] = &api.PredicateInfo{
+		predInfo["pred1"] = &schema.IndyProofRequestPredicate{
 			Name:         "predicate name 1",
 			PType:        "pytpe",
-			PValue:       "pvalue",
+			PValue:       32,
 			Restrictions: "restrictions",
-			NonRevoked:   nil,
 		}
 
-		presentation, err := reg.RequestPresentation("t", attrInfo, predInfo)
+		presentation, err := reg.RequestPresentation("name", "version", "t", attrInfo, predInfo)
 		require.NoError(t, err)
 		require.NotNil(t, presentation)
 
-		require.Equal(t, PresentProofType, presentation.Type)
-		require.Len(t, presentation.Formats, 1)
-		require.Len(t, presentation.RequestPresentationsAttach, 1)
-
-		require.NotEmpty(t, presentation.Formats[0].AttachID)
-		require.Equal(t, "format", presentation.Formats[0].Format)
-
-		require.NotEmpty(t, presentation.RequestPresentationsAttach[0].ID)
-		require.Equal(t, "application/json", presentation.RequestPresentationsAttach[0].MimeType)
-
 		require.NoError(t, err)
-		require.Equal(t, "dGVzdA==", presentation.RequestPresentationsAttach[0].Data.Base64)
+		require.Equal(t, "dGVzdA==", presentation.Base64)
 	})
 
 	t.Run("engine error", func(t *testing.T) {
 		prov := NewProvider()
 
-		reg := New(prov, WithEngine(&indyProofMock{
+		reg := New(prov, WithEngine(&engineMock{
 			DoesAccept: false,
 		}))
 
-		presentation, err := reg.RequestPresentation("t", nil, nil)
+		presentation, err := reg.RequestPresentation("name", "version", "t", nil, nil)
 		require.Error(t, err)
 		require.Nil(t, presentation)
 		require.Contains(t, err.Error(), "presentation type t not supported by any engine")
@@ -88,43 +77,72 @@ func TestRegistry_RequestPresentation(t *testing.T) {
 	t.Run("RequestPresentation error", func(t *testing.T) {
 		prov := NewProvider()
 
-		reg := New(prov, WithEngine(&indyProofMock{
+		reg := New(prov, WithEngine(&engineMock{
 			Format:                       "format",
 			DoesAccept:                   true,
 			RequestPresentationAttachErr: errors.New("RequestPresentation error"),
 		}))
 
-		presentation, err := reg.RequestPresentation("t", nil, nil)
+		presentation, err := reg.RequestPresentation("name", "version", "t", nil, nil)
 		require.Error(t, err)
 		require.Nil(t, presentation)
 		require.Contains(t, err.Error(), "RequestPresentation error")
 	})
 }
 
-type indyProofMock struct {
-	Format                        string
-	DoesAccept                    bool
-	RequestPresentationAttachFunc func(attrInfo map[string]*api.AttrInfo, predicateInfo map[string]*api.PredicateInfo) (string, error)
-	RequestPresentationAttachErr  error
+func TestVerify(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		prov := NewProvider()
+
+		reg := New(prov, WithEngine(&engineMock{
+			Format:     "format",
+			DoesAccept: true,
+		}))
+
+		err := reg.Verify("format", []byte{}, []byte{}, "did:sov:123", "did:sov:abc")
+		require.NoError(t, err)
+	})
+	t.Run("no engine error", func(t *testing.T) {
+		prov := NewProvider()
+
+		reg := New(prov, WithEngine(&engineMock{
+			Format:     "format",
+			DoesAccept: false,
+		}))
+
+		err := reg.Verify("format", []byte{}, []byte{}, "did:sov:123", "did:sov:abc")
+		require.Error(t, err)
+	})
 }
 
-func (r *indyProofMock) RequestPresentationAttach(attrInfo map[string]*api.AttrInfo,
-	predicateInfo map[string]*api.PredicateInfo) (string, error) {
+type engineMock struct {
+	Format                        string
+	DoesAccept                    bool
+	RequestPresentationAttachFunc func(attrInfo map[string]*schema.IndyProofRequestAttr, predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error)
+	RequestPresentationAttachErr  error
+	VerifyErr                     error
+}
+
+func (r *engineMock) RequestPresentation(name, version string, attrInfo map[string]*schema.IndyProofRequestAttr, predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
 	if r.RequestPresentationAttachErr != nil {
-		return "", r.RequestPresentationAttachErr
+		return nil, r.RequestPresentationAttachErr
 	}
 
 	if r.RequestPresentationAttachFunc != nil {
 		return r.RequestPresentationAttachFunc(attrInfo, predicateInfo)
 	}
 
-	return "", nil
+	return nil, nil
 }
 
-func (r *indyProofMock) Accept(_ string) bool {
+func (r *engineMock) Verify(presentation, request []byte, theirDID string, myDID string) error {
+	return r.VerifyErr
+}
+
+func (r *engineMock) Accept(_ string) bool {
 	return r.DoesAccept
 }
 
-func (r *indyProofMock) RequestPresentationFormat() string {
+func (r *engineMock) RequestPresentationFormat() string {
 	return r.Format
 }

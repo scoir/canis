@@ -10,6 +10,18 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 )
 
+type CryptoOracle struct{}
+
+func (r *CryptoOracle) NewNonce() (string, error) {
+	n, err := ursa.NewNonce()
+	if err != nil {
+		return "", err
+	}
+
+	js, err := n.ToJSON()
+	return string(js), err
+}
+
 func CredDefPublicKey(pkey, rkey string) (*ursa.CredentialDefPubKey, error) {
 	j := fmt.Sprintf(`{"p_key": %s, "r_key": %s}`, pkey, rkey)
 

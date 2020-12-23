@@ -215,14 +215,14 @@ func TestSchema(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 2, list.Count)
 
-		err = store.UpdateSchema(&datastore.Schema{ID: "schema id", Name: "different schema name"})
+		err = store.UpdateSchema(&datastore.Schema{ID: "schema ID", Name: "schema name"})
 		require.NoError(t, err)
 
-		updated, err := store.GetSchema("schema id")
+		updated, err := store.GetSchema("schema name")
 		require.NoError(t, err)
-		require.Equal(t, "different schema name", updated.Name)
+		require.Equal(t, "schema ID", updated.ID)
 
-		err = store.DeleteSchema("schema id")
+		err = store.DeleteSchema("schema name")
 		require.NoError(t, err)
 
 		list, err = store.ListSchema(&datastore.SchemaCriteria{Name: "another"})
@@ -231,6 +231,27 @@ func TestSchema(t *testing.T) {
 
 		err = prov.Close()
 		require.NoError(t, err)
+	})
+
+	t.Run("By external ID", func(t *testing.T) {
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
+		require.NoError(t, err)
+
+		store, err := prov.Open()
+		require.NoError(t, err)
+
+		_, err = store.InsertSchema(&datastore.Schema{ID: "schema id", Name: "schema name", ExternalSchemaID: "12345"})
+		require.NoError(t, err)
+
+		s, err := store.GetSchemaByExternalID("12345")
+		require.NoError(t, err)
+		require.Equal(t, s.Name, "schema name")
+
+		s, err = store.GetSchemaByExternalID("67890")
+		require.Error(t, err)
+		require.Nil(t, s)
 	})
 }
 
@@ -254,14 +275,14 @@ func TestAgent(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 2, list.Count)
 
-		err = store.UpdateAgent(&datastore.Agent{ID: "agent id", Name: "an different agent"})
+		err = store.UpdateAgent(&datastore.Agent{ID: "agent ID", Name: "an agent"})
 		require.NoError(t, err)
 
-		updated, err := store.GetAgent("agent id")
+		updated, err := store.GetAgent("an agent")
 		require.NoError(t, err)
-		require.Equal(t, "an different agent", updated.Name)
+		require.Equal(t, "agent ID", updated.ID)
 
-		err = store.DeleteAgent("agent id")
+		err = store.DeleteAgent("an agent")
 		require.NoError(t, err)
 
 		list, err = store.ListAgent(&datastore.AgentCriteria{Name: "anoth"})
@@ -444,6 +465,28 @@ func TestPresentationRequest(t *testing.T) {
 		require.NoError(t, err)
 
 	})
+	t.Run("get presentation request", func(t *testing.T) {
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
+		require.NoError(t, err)
+
+		store, err := prov.Open()
+		require.NoError(t, err)
+
+		_, err = store.InsertPresentationRequest(&datastore.PresentationRequest{
+			AgentID:               "agent id",
+			SchemaID:              "schema id",
+			ExternalID:            "external id",
+			PresentationRequestID: "presentation request id",
+		})
+		require.NoError(t, err)
+
+		pr, err := store.GetPresentationRequest("presentation request id")
+		require.NoError(t, err)
+		require.Equal(t, pr.AgentID, "agent id")
+		require.Equal(t, pr.ExternalID, "external id")
+	})
 }
 
 func TestOffer(t *testing.T) {
@@ -462,6 +505,9 @@ func TestOffer(t *testing.T) {
 		c, err := store.FindCredentialByProtocolID("1234")
 		require.NoError(t, err)
 		require.NotNil(t, c)
+
+		err = store.UpdateCredential(c)
+		require.NoError(t, err)
 
 		err = store.DeleteCredentialByOffer("1234")
 		require.NoError(t, err)
@@ -502,9 +548,21 @@ func TestAgentConnection(t *testing.T) {
 		ac, err = store.GetAgentConnectionForDID(agent, "did:sov:abc")
 		require.NoError(t, err)
 		require.Equal(t, ac.ExternalID, "external-id")
-		require.Equal(t, ac.AgentName, "agent id")
+		require.Equal(t, ac.AgentName, "an agent")
 		require.Equal(t, ac.MyDID, "did:sov:xyz")
 		require.Equal(t, ac.ConnectionID, "connection-id")
+
+		conns, err := store.ListAgentConnections(agent)
+		require.NoError(t, err)
+		require.Len(t, conns, 1)
+		require.Equal(t, "an agent", conns[0].AgentName)
+
+		err = store.DeleteAgentConnection(agent, "external-id")
+		require.NoError(t, err)
+
+		conns, err = store.ListAgentConnections(agent)
+		require.NoError(t, err)
+		require.Len(t, conns, 0)
 
 	})
 }
@@ -547,5 +605,28 @@ func TestWebhooks(t *testing.T) {
 		hooks, err = store.ListWebhooks("connections")
 		require.NoError(t, err)
 		require.Len(t, hooks, 0)
+	})
+}
+
+func TestPresentation(t *testing.T) {
+	t.Run("insert", func(t *testing.T) {
+		conf := testConfig()
+		prov, err := NewProvider(conf)
+		defer dropTestDatabase(conf.Database)
+		require.NoError(t, err)
+
+		store, err := prov.Open()
+		require.NoError(t, err)
+
+		p := &datastore.Presentation{
+			TheirDID: "did:sov:123",
+			MyDID:    "did:sov:abc",
+			Format:   "indy",
+			Data:     []byte("test"),
+		}
+
+		id, err := store.InsertPresentation(p)
+		require.NoError(t, err)
+		require.NotEmpty(t, id)
 	})
 }

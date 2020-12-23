@@ -35,7 +35,7 @@ func (r *mongoDBStore) FindCredentialByProtocolID(protocolID string) (*datastore
 }
 
 func (r *mongoDBStore) DeleteCredentialByOffer(offerID string) error {
-	_, err := r.db.Collection(CredentialC).DeleteOne(context.Background(), bson.M{"threadid": offerID})
+	_, err := r.db.Collection(CredentialC).DeleteOne(context.Background(), bson.M{"protocolid": offerID})
 	if err != nil {
 		return errors.Wrap(err, "unable to delete credential")
 	}

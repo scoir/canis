@@ -6,18 +6,10 @@ SPDX-License-Identifier: Apache-2.0
 
 package ursa
 
-/*
-#cgo LDFLAGS: -L/usr/local/lib -lursa
-#include "ursa_crypto.h"
-#include <stdlib.h>
-*/
-import "C"
-
 import (
 	"encoding/json"
 	"strconv"
 	"strings"
-	"unsafe"
 
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
@@ -59,7 +51,7 @@ func (r *CredentialDefinition) KeyCorrectnessProof() (map[string]interface{}, er
 	proofDef := map[string]interface{}{}
 	err := json.Unmarshal([]byte(r.keyCorrectnessProof), &proofDef)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid cl pubkey")
+		return nil, errors.Wrap(err, "invalid cl correctness proof")
 	}
 
 	return proofDef, nil
@@ -105,77 +97,68 @@ func (r *CredentialDefinition) AddNonSchemaField(f ...string) {
 }
 
 func (r *CredentialDefinition) Finalize() error {
-	var builder, schema, nonbuilder, nonschema unsafe.Pointer
-	result := C.ursa_cl_credential_schema_builder_new(&builder)
-	if result != 0 {
-		return errors.Errorf("error from URSA creating schema builder: %d", result)
+	builder, err := ursa.NewCredentialSchemaBuilder()
+	if err != nil {
+		return errors.Errorf("error from URSA creating schema builder: %v", err)
 	}
 
 	for _, field := range r.fields {
-		cfield := C.CString(field)
-		result = C.ursa_cl_credential_schema_builder_add_attr(builder, cfield)
-		C.free(unsafe.Pointer(cfield))
-		if result != 0 {
-			return errors.Errorf("error adding field %s: %d", field, result)
+		err := builder.AddAttr(AttrCommonView(field))
+		if err != nil {
+			return errors.Errorf("error adding field %s: %v", field, err)
 		}
 	}
 
-	result = C.ursa_cl_credential_schema_builder_finalize(builder, &schema)
-	if result != 0 {
-		return errors.Errorf("error from URSA building schema: %d", result)
+	schema, err := builder.Finalize()
+	if err != nil {
+		return errors.Errorf("error from URSA building schema: %v", err)
+	}
+	defer schema.Free()
+
+	nonBuilder, err := ursa.NewNonCredentialSchemaBuilder()
+	if err != nil {
+		return errors.Errorf("error from URSA creating non-schema: %v", err)
 	}
 
-	result = C.ursa_cl_non_credential_schema_builder_new(&nonbuilder)
-	if result != 0 {
-		return errors.Errorf("error from URSA creating non-schema: %d", result)
-	}
 	for _, field := range r.nonfields {
-
-		cfield := C.CString(field)
-		result = C.ursa_cl_non_credential_schema_builder_add_attr(nonbuilder, cfield)
-		C.free(unsafe.Pointer(cfield))
-		if result != 0 {
-			return errors.Errorf("error adding non-schema field: %d", result)
+		err := nonBuilder.AddAttr(AttrCommonView(field))
+		if err != nil {
+			return errors.Errorf("error adding non-schema field: %v", err)
 		}
 	}
 
-	result = C.ursa_cl_non_credential_schema_builder_finalize(nonbuilder, &nonschema)
-	if result != 0 {
-		return errors.Errorf("error from URSA finalizing non-schema: %d", result)
+	nonSchema, err := nonBuilder.Finalize()
+	if err != nil {
+		return errors.Errorf("error from URSA finalizing non-schema: %v", err)
+	}
+	defer nonSchema.Free()
+
+	credDef, err := ursa.NewCredentialDef(schema, nonSchema, false)
+	if err != nil {
+		return errors.Errorf("error creating new credential definition: %v", err)
 	}
 
-	var credpub, credpriv, credproof unsafe.Pointer
-
-	credresult := C.ursa_cl_issuer_new_credential_def(schema, nonschema, false, &credpub, &credpriv, &credproof)
-	if credresult != 0 {
-		return errors.Errorf("error from URSA creating cred def: %d", credresult)
+	pubJson, err := credDef.PubKey.ToJSON()
+	if err != nil {
+		return errors.Errorf("error from URSA turning pub key to json: %v", err)
 	}
+	defer credDef.PubKey.Free()
 
-	var proofJson, pubJson, privJson *C.char
-	credresult = C.ursa_cl_credential_public_key_to_json(credpub, &pubJson)
-	if credresult != 0 {
-		return errors.Errorf("error from URSA turning pub key to json: %d", credresult)
+	privJson, err := credDef.PrivKey.ToJSON()
+	if err != nil {
+		return errors.Errorf("error from URSA turning private key to json: %v", err)
 	}
+	defer credDef.PrivKey.Free()
 
-	credresult = C.ursa_cl_credential_private_key_to_json(credpriv, &privJson)
-	if credresult != 0 {
-		return errors.Errorf("error from URSA turning private key to json: %d", credresult)
+	proofJson, err := credDef.KeyCorrectnessProof.ToJSON()
+	if err != nil {
+		return errors.Errorf("error from URSA turning key correctness proof to json: %v", err)
 	}
+	defer credDef.KeyCorrectnessProof.Free()
 
-	credresult = C.ursa_cl_credential_key_correctness_proof_to_json(credproof, &proofJson)
-	if credresult != 0 {
-		return errors.Errorf("error from URSA turning key correctness proof to json: %d", credresult)
-	}
-
-	C.ursa_cl_credential_schema_free(schema)
-	C.ursa_cl_non_credential_schema_free(nonschema)
-	C.ursa_cl_credential_private_key_free(credpriv)
-	C.ursa_cl_credential_public_key_free(credpub)
-	C.ursa_cl_credential_key_correctness_proof_free(credproof)
-
-	r.publicKey = C.GoString(pubJson)
-	r.privateKey = C.GoString(privJson)
-	r.keyCorrectnessProof = C.GoString(proofJson)
+	r.publicKey = string(pubJson)
+	r.privateKey = string(privJson)
+	r.keyCorrectnessProof = string(proofJson)
 
 	return nil
 
