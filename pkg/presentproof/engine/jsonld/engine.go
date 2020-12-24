@@ -10,13 +10,13 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/pkg/errors"
 
-	"github.com/scoir/canis/pkg/indy"
+	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/presentproof"
 	"github.com/scoir/canis/pkg/schema"
 )
 
 type provider interface {
-	IndyVDR() (indy.IndyVDRClient, error)
+	IndyVDR() (credindyengine.VDRClient, error)
 	KMS() kms.KeyManager
 	StorageProvider() storage.Provider
 }

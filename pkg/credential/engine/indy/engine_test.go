@@ -20,6 +20,7 @@ import (
 
 	"github.com/scoir/canis/pkg/credential/engine/indy/mocks"
 	"github.com/scoir/canis/pkg/datastore"
+	gmock "github.com/scoir/canis/pkg/mock"
 	"github.com/scoir/canis/pkg/schema"
 	cursa "github.com/scoir/canis/pkg/ursa"
 )
@@ -53,7 +54,7 @@ func TestIssuerCredential(t *testing.T) {
 		schemaBuilder, err := ursa.NewCredentialSchemaBuilder()
 		require.NoError(t, err)
 
-		for k, _ := range values {
+		for k := range values {
 			err = schemaBuilder.AddAttr(k)
 			require.NoError(t, err)
 		}
@@ -693,8 +694,8 @@ type provider struct {
 	provider *MockProvider
 	oracle   *mocks.Oracle
 	vdr      *mocks.VDRClient
-	sp       *MockStorageProvider
-	store    *mocks.Store
+	sp       *gmock.MockProvider
+	store    *gmock.MockStore
 	kms      *kmsMock.KeyManager
 }
 
@@ -703,8 +704,8 @@ func newProvider() provider {
 		provider: &MockProvider{},
 		oracle:   &mocks.Oracle{},
 		vdr:      &mocks.VDRClient{},
-		store:    &mocks.Store{},
-		sp:       &MockStorageProvider{},
+		store:    &gmock.MockStore{},
+		sp:       &gmock.MockProvider{},
 		kms:      &kmsMock.KeyManager{},
 	}
 

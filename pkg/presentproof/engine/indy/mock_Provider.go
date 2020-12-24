@@ -3,6 +3,7 @@
 package indy
 
 import (
+	"github.com/scoir/canis/pkg/credential/engine/indy"
 	datastore "github.com/scoir/canis/pkg/datastore"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -13,15 +14,15 @@ type MockProvider struct {
 }
 
 // IndyVDR provides a mock function with given fields:
-func (_m *MockProvider) IndyVDR() (VDRClient, error) {
+func (_m *MockProvider) IndyVDR() (indy.VDRClient, error) {
 	ret := _m.Called()
 
-	var r0 VDRClient
-	if rf, ok := ret.Get(0).(func() VDRClient); ok {
+	var r0 indy.VDRClient
+	if rf, ok := ret.Get(0).(func() indy.VDRClient); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(VDRClient)
+			r0 = ret.Get(0).(indy.VDRClient)
 		}
 	}
 
@@ -36,15 +37,15 @@ func (_m *MockProvider) IndyVDR() (VDRClient, error) {
 }
 
 // Oracle provides a mock function with given fields:
-func (_m *MockProvider) Oracle() Oracle {
+func (_m *MockProvider) Oracle() indy.Oracle {
 	ret := _m.Called()
 
-	var r0 Oracle
-	if rf, ok := ret.Get(0).(func() Oracle); ok {
+	var r0 indy.Oracle
+	if rf, ok := ret.Get(0).(func() indy.Oracle); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(Oracle)
+			r0 = ret.Get(0).(indy.Oracle)
 		}
 	}
 

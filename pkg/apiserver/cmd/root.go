@@ -38,7 +38,6 @@ import (
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
-	indywrapper "github.com/scoir/canis/pkg/indy"
 	presentengine "github.com/scoir/canis/pkg/presentproof/engine"
 	presentindyengine "github.com/scoir/canis/pkg/presentproof/engine/indy"
 	presentjsonldengine "github.com/scoir/canis/pkg/presentproof/engine/jsonld"
@@ -162,15 +161,11 @@ func (r *Provider) Store() datastore.Store {
 	return r.store
 }
 
-func (r *Provider) Issuer() credindyengine.UrsaIssuer {
-	return credindyengine.NewIssuer(r)
-}
-
-func (r *Provider) Oracle() ursa.Oracle {
+func (r *Provider) Oracle() credindyengine.Oracle {
 	return &ursa.CryptoOracle{}
 }
 
-func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
+func (r *Provider) IndyVDR() (credindyengine.VDRClient, error) {
 	genesisFile := r.conf.LedgerGenesis()
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
@@ -265,10 +260,6 @@ func (r *Provider) GetCredentialEngineRegistry() (credengine.CredentialRegistry,
 
 func (r *Provider) VDRIRegistry() vdriapi.Registry {
 	return r.vdriReg
-}
-
-func (r *Provider) Verifier() presentindyengine.Verifier {
-	return presentindyengine.NewVerifier(r.Store())
 }
 
 func (r *Provider) GetPresentationEngineRegistry() (presentengine.PresentationRegistry, error) {

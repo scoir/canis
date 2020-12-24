@@ -6,12 +6,12 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/schema"
-	ursa2 "github.com/scoir/canis/pkg/ursa"
+	cursa "github.com/scoir/canis/pkg/ursa"
 )
 
 func (r *Engine) verifyCryptoCredential(indyProof *schema.IndyProof, proofRequest *PresentationRequest, credDefs map[string]*vdr.ClaimDefData) error {
 
-	nonCredSchema, err := ursa2.BuildNonCredentialSchema()
+	nonCredSchema, err := cursa.BuildNonCredentialSchema()
 	verifier, err := ursa.NewProofVerifier()
 	if err != nil {
 		return errors.Wrap(err, "")
@@ -28,14 +28,14 @@ func (r *Engine) verifyCryptoCredential(indyProof *schema.IndyProof, proofReques
 		attrsForCredential := r.getAttrbutesForCredential(subProofIdx, indyProof.RequestedProof, proofRequest)
 		predicatesForCredential := r.getPredicatesForCredential(subProofIdx, indyProof.RequestedProof, proofRequest)
 
-		credentialSchema, err := ursa2.BuildCredentialSchema(sch.Attributes)
+		credentialSchema, err := cursa.BuildCredentialSchema(sch.Attributes)
 		if err != nil {
 			return errors.Wrap(err, "unable to build verify schema")
 		}
 
 		subProofRequest, err := r.buildSubProofRequest(attrsForCredential, predicatesForCredential)
 
-		pubKey, err := ursa2.CredDefPublicKey(credDef.PKey(), credDef.RKey())
+		pubKey, err := cursa.CredDefPublicKey(credDef.PKey(), credDef.RKey())
 		if err != nil {
 			return errors.Wrap(err, "unable to load cred def handle")
 		}
@@ -48,6 +48,9 @@ func (r *Engine) verifyCryptoCredential(indyProof *schema.IndyProof, proofReques
 	}
 
 	proofReqNonce, err := ursa.NonceFromJSON(proofRequest.Nonce)
+	if err != nil {
+		return errors.Wrap(err, "invalid proof request nonce")
+	}
 
 	cryptoProof, err := ursa.ProofFromJSON(indyProof.Proof)
 	if err != nil {

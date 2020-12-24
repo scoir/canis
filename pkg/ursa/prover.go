@@ -95,7 +95,7 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 		return nil, nil, errors.Wrap(err, "unable to create ursa values builder")
 	}
 
-	err = credValuesBuilder.AddDecHidden("master_secret", masterSecret) //Could this not need encoding inside values builder?
+	err = credValuesBuilder.AddDecHidden("master_secret", masterSecret)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to adding to ursa values builder")
 	}

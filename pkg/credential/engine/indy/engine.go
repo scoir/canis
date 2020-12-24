@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
+	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/pkg/errors"
 
@@ -28,7 +29,7 @@ type creddefWalletRecord struct {
 type CredentialEngine struct {
 	client VDRClient
 	kms    kms.KeyManager
-	store  Store
+	store  storage.Store
 	oracle Oracle
 }
 

@@ -38,7 +38,6 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
-	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/ursa"
 )
 
@@ -64,7 +63,7 @@ type Provider struct {
 	conf                 config.Config
 }
 
-func (r *Provider) Oracle() ursa.Oracle {
+func (r *Provider) Oracle() indy.Oracle {
 	return &ursa.CryptoOracle{}
 }
 
@@ -224,11 +223,7 @@ func (r *Provider) newIssueCredentialSvc() api.ProtocolSvcCreator {
 	}
 }
 
-func (r *Provider) Issuer() indy.UrsaIssuer {
-	return indy.NewIssuer(r)
-}
-
-func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
+func (r *Provider) IndyVDR() (indy.VDRClient, error) {
 	genesisFile := r.conf.GetString("registry.indy.genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))

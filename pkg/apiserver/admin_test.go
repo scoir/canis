@@ -79,14 +79,12 @@ func TestCreateAgent(t *testing.T) {
 			},
 		}
 
-		a := &datastore.Agent{
-			ID:                    "123",
-			Name:                  "Test Agent",
-			EndorsableSchemaNames: []string{},
+		match := func(m *datastore.Agent) bool {
+			return m.Name == "Test Agent"
 		}
 
-		suite.Store.On("GetAgent", "123").Return(nil, errors.New("not found"))
-		suite.Store.On("InsertAgent", a).Return("123", nil)
+		suite.Store.On("GetAgent", "Test Agent").Return(nil, errors.New("not found"))
+		suite.Store.On("InsertAgent", mock.MatchedBy(match)).Return("123", nil)
 
 		resp, err := target.CreateAgent(context.Background(), request)
 		require.Nil(t, err)
@@ -115,9 +113,12 @@ func TestCreateAgent(t *testing.T) {
 			KeyPair: &datastore.KeyPair{},
 		}
 		s := &datastore.Schema{}
+		match := func(m *datastore.Agent) bool {
+			return m.Name == "Test Agent" && m.HasPublicDID
+		}
 
-		suite.Store.On("GetAgent", "123").Return(nil, errors.New("not found"))
-		suite.Store.On("InsertAgent", mock.AnythingOfType("*datastore.Agent")).Return("123", nil)
+		suite.Store.On("GetAgent", "Test Agent").Return(nil, errors.New("not found"))
+		suite.Store.On("InsertAgent", mock.MatchedBy(match)).Return("123", nil)
 		suite.Store.On("GetPublicDID").Return(did, nil)
 		suite.Store.On("GetSchema", "test-schema-id").Return(s, nil)
 		suite.CredRegistry.On("RegisterSchema", mock.AnythingOfType("*datastore.DID"), s).Return(nil)
@@ -136,27 +137,23 @@ func TestCreateAgentFails(t *testing.T) {
 			EndorsableSchemaNames: nil,
 		},
 	}
-
-	a := &datastore.Agent{
-		ID:                    "123",
-		Name:                  "Test Agent",
-		EndorsableSchemaNames: []string{},
+	match := func(m *datastore.Agent) bool {
+		return m.Name == "Test Agent"
 	}
 
-	suite.Store.On("GetAgent", "123").Return(nil, errors.New("not found"))
-	suite.Store.On("InsertAgent", a).Return("", errors.New("Boom"))
+	suite.Store.On("GetAgent", "Test Agent").Return(nil, errors.New("not found"))
+	suite.Store.On("InsertAgent", mock.MatchedBy(match)).Return("", errors.New("Boom"))
 
 	resp, err := target.CreateAgent(context.Background(), request)
 	assert.Nil(t, resp)
 	assert.NotNil(t, err)
-	assert.Equal(t, "rpc error: code = Internal desc = failed to create agent 123: Boom", err.Error())
+	assert.Equal(t, "rpc error: code = Internal desc = failed to create agent Test Agent: Boom", err.Error())
 }
 
 func TestCreateAgentMissingRequiredField(t *testing.T) {
 	target, _ := SetupTest()
 	request := &api.CreateAgentRequest{
 		Agent: &api.NewAgent{
-			Name:                  "Test Agent",
 			EndorsableSchemaNames: nil,
 		},
 	}
@@ -164,7 +161,7 @@ func TestCreateAgentMissingRequiredField(t *testing.T) {
 	resp, err := target.CreateAgent(context.Background(), request)
 	assert.Nil(t, resp)
 	assert.NotNil(t, err)
-	assert.Equal(t, "rpc error: code = InvalidArgument desc = name and id are required fields", err.Error())
+	assert.Equal(t, "rpc error: code = InvalidArgument desc = name is a required field", err.Error())
 }
 
 func TestCreateAgentAlreadyExists(t *testing.T) {
@@ -176,12 +173,12 @@ func TestCreateAgentAlreadyExists(t *testing.T) {
 		},
 	}
 
-	suite.Store.On("GetAgent", "123").Return(nil, nil)
+	suite.Store.On("GetAgent", "Test Agent").Return(nil, nil)
 
 	resp, err := target.CreateAgent(context.Background(), request)
 	assert.Nil(t, resp)
 	assert.NotNil(t, err)
-	assert.Equal(t, "rpc error: code = AlreadyExists desc = agent with id 123 already exists", err.Error())
+	assert.Equal(t, "rpc error: code = AlreadyExists desc = agent with name Test Agent already exists", err.Error())
 }
 
 func TestGetAgent(t *testing.T) {
@@ -313,11 +310,15 @@ func TestUpdateAgent(t *testing.T) {
 		}
 		s := &datastore.Schema{}
 
+		match := func(m *datastore.Agent) bool {
+			return m.Name == "Test Agent" && m.HasPublicDID
+		}
+
 		suite.Store.On("GetAgent", "123").Return(a, nil)
 		suite.Store.On("GetPublicDID").Return(did, nil)
 		suite.Store.On("GetSchema", "test-schema-id").Return(s, nil)
 		suite.CredRegistry.On("RegisterSchema", mock.AnythingOfType("*datastore.DID"), s).Return(nil)
-		suite.Store.On("UpdateAgent", mock.AnythingOfType("*datastore.Agent")).Return(nil)
+		suite.Store.On("UpdateAgent", mock.MatchedBy(match)).Return(nil)
 
 		resp, err := target.UpdateAgent(context.Background(), request)
 		assert.Nil(t, err)
@@ -389,29 +390,15 @@ func TestCreateSchema(t *testing.T) {
 		},
 	}
 
-	s := &datastore.Schema{
-		ID:      "123",
-		Name:    "Test Schema",
-		Version: "0.0.1",
-		Attributes: []*datastore.Attribute{{
-			Name: "City",
-			Type: int32(api.Attribute_STRING),
-		}},
-	}
-	s2 := &datastore.Schema{
-		ID:               "123",
-		Name:             "Test Schema",
-		Version:          "0.0.1",
-		ExternalSchemaID: "abc",
-		Attributes: []*datastore.Attribute{{
-			Name: "City",
-			Type: int32(api.Attribute_STRING),
-		}},
+	match := func(m *datastore.Schema) bool {
+		return m.Name == "Test Schema" &&
+			m.Version == "0.0.1" &&
+			1 == len(m.Attributes)
 	}
 
-	suite.Store.On("GetSchema", "123").Return(nil, errors.New("not found"))
-	suite.CredRegistry.On("CreateSchema", s).Return("abc", nil)
-	suite.Store.On("InsertSchema", s2).Return("123", nil)
+	suite.Store.On("GetSchema", "Test Schema").Return(nil, errors.New("not found"))
+	suite.CredRegistry.On("CreateSchema", mock.MatchedBy(match)).Return("abc", nil)
+	suite.Store.On("InsertSchema", mock.MatchedBy(match)).Return("123", nil)
 
 	resp, err := target.CreateSchema(context.Background(), request)
 	assert.Nil(t, err)
@@ -426,40 +413,32 @@ func TestCreateSchemaFails(t *testing.T) {
 		},
 	}
 
-	s := &datastore.Schema{
-		ID:         "123",
-		Name:       "Test Schema",
-		Attributes: []*datastore.Attribute{},
-	}
-	s2 := &datastore.Schema{
-		ID:               "123",
-		Name:             "Test Schema",
-		ExternalSchemaID: "abc",
-		Attributes:       []*datastore.Attribute{},
+	match := func(m *datastore.Schema) bool {
+		return m.Name == "Test Schema"
 	}
 
-	suite.Store.On("GetSchema", "123").Return(nil, errors.New("not found"))
-	suite.CredRegistry.On("CreateSchema", s).Return("abc", nil)
-	suite.Store.On("InsertSchema", s2).Return("", errors.New("Boom"))
+	suite.Store.On("GetSchema", "Test Schema").Return(nil, errors.New("not found"))
+	suite.CredRegistry.On("CreateSchema", mock.MatchedBy(match)).Return("abc", nil)
+	suite.Store.On("InsertSchema", mock.MatchedBy(match)).Return("", errors.New("Boom"))
 
 	resp, err := target.CreateSchema(context.Background(), request)
 	assert.Nil(t, resp)
 	assert.NotNil(t, err)
-	assert.Equal(t, "rpc error: code = Internal desc = failed to create schema 123: Boom", err.Error())
+	assert.Equal(t, "rpc error: code = Internal desc = failed to create schema Test Schema: Boom", err.Error())
 }
 
 func TestCreateSchemaMissingRequiredField(t *testing.T) {
 	target, _ := SetupTest()
 	request := &api.CreateSchemaRequest{
 		Schema: &api.NewSchema{
-			Name: "Test Schema",
+			Name: "",
 		},
 	}
 
 	resp, err := target.CreateSchema(context.Background(), request)
 	assert.Nil(t, resp)
 	assert.NotNil(t, err)
-	assert.Equal(t, "rpc error: code = InvalidArgument desc = name and id are required fields", err.Error())
+	assert.Equal(t, "rpc error: code = InvalidArgument desc = name is a required field", err.Error())
 }
 
 func TestCreateSchemaAlreadyExists(t *testing.T) {
@@ -470,12 +449,12 @@ func TestCreateSchemaAlreadyExists(t *testing.T) {
 		},
 	}
 
-	suite.Store.On("GetSchema", "123").Return(nil, nil)
+	suite.Store.On("GetSchema", "Test Schema").Return(nil, nil)
 
 	resp, err := target.CreateSchema(context.Background(), request)
 	assert.Nil(t, resp)
 	assert.NotNil(t, err)
-	assert.Equal(t, "rpc error: code = AlreadyExists desc = schema with id 123 already exists", err.Error())
+	assert.Equal(t, "rpc error: code = AlreadyExists desc = schema with id Test Schema already exists", err.Error())
 }
 
 func TestGetSchema(t *testing.T) {

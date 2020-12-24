@@ -30,12 +30,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/scoir/canis/pkg/config"
+	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
-	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/presentproof/engine"
 	"github.com/scoir/canis/pkg/presentproof/engine/indy"
+	"github.com/scoir/canis/pkg/ursa"
 )
 
 var (
@@ -210,7 +211,7 @@ func newPresentProofSvc() api.ProtocolSvcCreator {
 }
 
 // IndyVDR todo
-func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
+func (r *Provider) IndyVDR() (credindyengine.VDRClient, error) {
 	genesisFile := r.conf.GetString("registry.indy.genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
@@ -238,4 +239,8 @@ func (r *Provider) GetPresentationEngineRegistry() (engine.PresentationRegistry,
 // SecretLock todo
 func (r *Provider) SecretLock() secretlock.Service {
 	return r.lock
+}
+
+func (r *Provider) Oracle() credindyengine.Oracle {
+	return &ursa.CryptoOracle{}
 }

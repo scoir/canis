@@ -33,6 +33,20 @@ func (_m *VDRClient) CreateClaimDef(from string, ref uint32, pubKey map[string]i
 	return r0, r1
 }
 
+// CreateNym provides a mock function with given fields: did, verkey, role, from, signer
+func (_m *VDRClient) CreateNym(did string, verkey string, role string, from string, signer vdr.Signer) error {
+	ret := _m.Called(did, verkey, role, from, signer)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string, vdr.Signer) error); ok {
+		r0 = rf(did, verkey, role, from, signer)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateSchema provides a mock function with given fields: issuerDID, name, version, attrs, signer
 func (_m *VDRClient) CreateSchema(issuerDID string, name string, version string, attrs []string, signer vdr.Signer) (string, error) {
 	ret := _m.Called(issuerDID, name, version, attrs, signer)
@@ -77,6 +91,29 @@ func (_m *VDRClient) GetCredDef(credDefID string) (*vdr.ReadReply, error) {
 	return r0, r1
 }
 
+// GetNym provides a mock function with given fields: did
+func (_m *VDRClient) GetNym(did string) (*vdr.ReadReply, error) {
+	ret := _m.Called(did)
+
+	var r0 *vdr.ReadReply
+	if rf, ok := ret.Get(0).(func(string) *vdr.ReadReply); ok {
+		r0 = rf(did)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*vdr.ReadReply)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(did)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSchema provides a mock function with given fields: schemaID
 func (_m *VDRClient) GetSchema(schemaID string) (*vdr.ReadReply, error) {
 	ret := _m.Called(schemaID)
@@ -98,4 +135,18 @@ func (_m *VDRClient) GetSchema(schemaID string) (*vdr.ReadReply, error) {
 	}
 
 	return r0, r1
+}
+
+// SetEndpoint provides a mock function with given fields: did, from, ep, signer
+func (_m *VDRClient) SetEndpoint(did string, from string, ep string, signer vdr.Signer) error {
+	ret := _m.Called(did, from, ep, signer)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, vdr.Signer) error); ok {
+		r0 = rf(did, from, ep, signer)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }

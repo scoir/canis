@@ -3,13 +3,13 @@ package indy
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
 
+	"github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/schema"
 	cursa "github.com/scoir/canis/pkg/ursa"
@@ -20,9 +20,9 @@ const (
 )
 
 type Engine struct {
-	client VDRClient
+	client indy.VDRClient
 	store  datastore.Store
-	oracle Oracle
+	oracle indy.Oracle
 }
 
 func New(prov Provider) (*Engine, error) {
@@ -224,7 +224,6 @@ func (r *Engine) buildSubProofRequest(attrs []*schema.IndyProofRequestAttr,
 	}
 
 	for _, name := range names {
-		fmt.Println("adding revealed attr to sub proof", cursa.AttrCommonView(name))
 		err := subProofBuilder.AddRevealedAttr(cursa.AttrCommonView(name))
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to add revealed attribute")
