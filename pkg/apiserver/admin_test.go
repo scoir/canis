@@ -1003,3 +1003,114 @@ func TestDeleteWebhook(t *testing.T) {
 
 	})
 }
+
+func TestListConnections(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.ListConnectionRequest{AgentName: "agent-1"}
+		agent := &datastore.Agent{}
+		connections := []*datastore.AgentConnection{
+			{
+				TheirLabel: "their label",
+			},
+		}
+
+		suite.Store.On("GetAgent", "agent-1").Return(agent, nil)
+		suite.Store.On("ListAgentConnections", agent).Return(connections, nil)
+
+		resp, err := target.ListConnections(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+	})
+	t.Run("agent connection errors", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.ListConnectionRequest{AgentName: "agent-1"}
+		agent := &datastore.Agent{}
+
+		suite.Store.On("GetAgent", "agent-1").Return(agent, nil)
+		suite.Store.On("ListAgentConnections", agent).Return(nil, errors.New("boom"))
+
+		resp, err := target.ListConnections(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
+	t.Run("agent not found", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.ListConnectionRequest{AgentName: "agent-1"}
+
+		suite.Store.On("GetAgent", "agent-1").Return(nil, errors.New("boom"))
+
+		resp, err := target.ListConnections(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+	})
+}
+
+func TestDeleteConnections(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.DeleteConnectionRequest{AgentName: "agent-1", ExternalId: "external-id"}
+		agent := &datastore.Agent{}
+
+		suite.Store.On("GetAgent", "agent-1").Return(agent, nil)
+		suite.Store.On("DeleteAgentConnection", agent, "external-id").Return(nil)
+
+		resp, err := target.DeleteConnection(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+	})
+	t.Run("agent connection errors", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.DeleteConnectionRequest{AgentName: "agent-1", ExternalId: "external-id"}
+		suite.Store.On("GetAgent", "agent-1").Return(nil, errors.New("not found"))
+
+		resp, err := target.DeleteConnection(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+	})
+	t.Run("agent not found", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &api.DeleteConnectionRequest{AgentName: "agent-1", ExternalId: "external-id"}
+		agent := &datastore.Agent{}
+
+		suite.Store.On("GetAgent", "agent-1").Return(agent, nil)
+		suite.Store.On("DeleteAgentConnection", agent, "external-id").Return(errors.New("boom"))
+
+		resp, err := target.DeleteConnection(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+	})
+}
+
+func TestAcceptInvitation(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &common.AcceptInvitationRequest{AgentName: "agent-1", ExternalId: "external-id"}
+		suite.Doorman.AcceptInviteResponse = &common.AcceptInvitationResponse{}
+
+		resp, err := target.AcceptInvitation(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+	})
+	t.Run("doorman error", func(t *testing.T) {
+		target, suite := SetupTest()
+
+		req := &common.AcceptInvitationRequest{AgentName: "agent-1", ExternalId: "external-id"}
+		suite.Doorman.AcceptInviteErr = errors.New("boom")
+
+		resp, err := target.AcceptInvitation(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, resp)
+	})
+}
