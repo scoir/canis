@@ -140,24 +140,28 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	cred, err := r.store.FindCredentialByProtocolID(thid)
 	if err != nil {
 		log.Printf("unable to find cred with ID %s: (%v)\n", thid, err)
+		e.Stop(errors.Errorf("unable to find cred with ID %s: (%v)", thid, err))
 		return
 	}
 
 	_, err = r.store.GetAgent(cred.AgentName)
 	if err != nil {
 		log.Println("unable to find agent for credential request", err)
+		e.Stop(errors.Errorf("unable to find agent for credential request: %v", err))
 		return
 	}
 
 	schema, err := r.store.GetSchema(cred.SchemaName)
 	if err != nil {
 		log.Printf("unable to find schema with ID %s: (%v)\n", cred.SchemaName, err)
+		e.Stop(errors.Errorf("unable to find schema with ID %s: (%v)", cred.SchemaName, err))
 		return
 	}
 
 	did, err := r.store.GetDID(cred.MyDID)
 	if err != nil {
 		log.Printf("unable to find DID with ID %s: (%v)\n", cred.MyDID, err)
+		e.Stop(errors.Errorf("unable to find DID with ID %s: (%v)", cred.MyDID, err))
 		return
 	}
 
@@ -170,7 +174,7 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	attachmentData, err := r.registry.IssueCredential(did, schema, cred.RegistryOfferID,
 		requestAttachment.Data, values)
 	if err != nil {
-		msg := fmt.Sprintln("registry error creating credential", err)
+		msg := fmt.Sprintf("registry error creating credential: %v", err)
 		fmt.Println(msg)
 		e.Stop(errors.New(msg))
 		return

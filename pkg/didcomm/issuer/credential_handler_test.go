@@ -333,6 +333,349 @@ func TestCredHandler_ProposeCredentialMsg(t *testing.T) {
 	})
 }
 
+func TestRequestCredentialMsg(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		suite, cleanup := setup(t)
+		defer cleanup()
+
+		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
+		var err error
+		action := service.DIDCommAction{
+			ProtocolName: "request-credential",
+			Message:      testMsg(t, thid),
+			Stop: func(e error) {
+				err = e
+			},
+			Continue: func(args interface{}) {},
+		}
+		request := &issuecredential.RequestCredential{
+			RequestsAttach: []decorator.Attachment{
+				{Data: decorator.AttachmentData{
+					JSON: map[string]interface{}{},
+				}},
+			},
+		}
+
+		cred := &datastore.IssuedCredential{
+			AgentName:       "agent-01",
+			SchemaName:      "schema-01",
+			MyDID:           "did:sov:123",
+			RegistryOfferID: "1234",
+			Offer: &datastore.Offer{
+				Preview: []issuecredential.Attribute{
+					{Name: "attr1", Value: "test-val-1"},
+				},
+			},
+		}
+		agent := &datastore.Agent{}
+		schema := &datastore.Schema{}
+		did := &datastore.DID{}
+		values := map[string]interface{}{
+			"attr1": "test-val-1",
+		}
+		attach := &decorator.AttachmentData{JSON: map[string]interface{}{}}
+		match := func(m *datastore.IssuedCredential) bool {
+			return m.Credential != nil
+		}
+
+		suite.store.On("FindCredentialByProtocolID", thid).Return(cred, nil)
+		suite.store.On("GetAgent", "agent-01").Return(agent, nil)
+		suite.store.On("GetSchema", "schema-01").Return(schema, nil)
+		suite.store.On("GetDID", "did:sov:123").Return(did, nil)
+		suite.registry.On("IssueCredential", did, schema, "1234", request.RequestsAttach[0].Data, values).Return(attach, nil)
+		suite.store.On("UpdateCredential", mock.MatchedBy(match)).Return(nil)
+
+		suite.target.RequestCredentialMsg(action, request)
+		require.NoError(t, err)
+	})
+	t.Run("unable to update credentual", func(t *testing.T) {
+		suite, cleanup := setup(t)
+		defer cleanup()
+
+		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
+		var err error
+		action := service.DIDCommAction{
+			ProtocolName: "request-credential",
+			Message:      testMsg(t, thid),
+			Stop: func(e error) {
+				err = e
+			},
+			Continue: func(args interface{}) {},
+		}
+		request := &issuecredential.RequestCredential{
+			RequestsAttach: []decorator.Attachment{
+				{Data: decorator.AttachmentData{
+					JSON: map[string]interface{}{},
+				}},
+			},
+		}
+
+		cred := &datastore.IssuedCredential{
+			ID:              "cred-01",
+			AgentName:       "agent-01",
+			SchemaName:      "schema-01",
+			MyDID:           "did:sov:123",
+			RegistryOfferID: "1234",
+			Offer: &datastore.Offer{
+				Preview: []issuecredential.Attribute{
+					{Name: "attr1", Value: "test-val-1"},
+				},
+			},
+		}
+		agent := &datastore.Agent{}
+		schema := &datastore.Schema{}
+		did := &datastore.DID{}
+		values := map[string]interface{}{
+			"attr1": "test-val-1",
+		}
+		attach := &decorator.AttachmentData{JSON: map[string]interface{}{}}
+		match := func(m *datastore.IssuedCredential) bool {
+			return m.Credential != nil
+		}
+
+		suite.store.On("FindCredentialByProtocolID", thid).Return(cred, nil)
+		suite.store.On("GetAgent", "agent-01").Return(agent, nil)
+		suite.store.On("GetSchema", "schema-01").Return(schema, nil)
+		suite.store.On("GetDID", "did:sov:123").Return(did, nil)
+		suite.registry.On("IssueCredential", did, schema, "1234", request.RequestsAttach[0].Data, values).Return(attach, nil)
+		suite.store.On("UpdateCredential", mock.MatchedBy(match)).Return(errors.New("boom"))
+
+		suite.target.RequestCredentialMsg(action, request)
+		require.Equal(t, err.Error(), "unexpected error updating issued credential cred-01: boom")
+	})
+	t.Run("empty result attachment data", func(t *testing.T) {
+		suite, cleanup := setup(t)
+		defer cleanup()
+
+		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
+		var err error
+		action := service.DIDCommAction{
+			ProtocolName: "request-credential",
+			Message:      testMsg(t, thid),
+			Stop: func(e error) {
+				err = e
+			},
+		}
+		request := &issuecredential.RequestCredential{
+			RequestsAttach: []decorator.Attachment{
+				{Data: decorator.AttachmentData{
+					JSON: map[string]interface{}{},
+				}},
+			},
+		}
+
+		cred := &datastore.IssuedCredential{
+			AgentName:       "agent-01",
+			SchemaName:      "schema-01",
+			MyDID:           "did:sov:123",
+			RegistryOfferID: "1234",
+			Offer: &datastore.Offer{
+				Preview: []issuecredential.Attribute{
+					{Name: "attr1", Value: "test-val-1"},
+				},
+			},
+		}
+		agent := &datastore.Agent{}
+		schema := &datastore.Schema{}
+		did := &datastore.DID{}
+		values := map[string]interface{}{
+			"attr1": "test-val-1",
+		}
+		attach := &decorator.AttachmentData{}
+
+		suite.store.On("FindCredentialByProtocolID", thid).Return(cred, nil)
+		suite.store.On("GetAgent", "agent-01").Return(agent, nil)
+		suite.store.On("GetSchema", "schema-01").Return(schema, nil)
+		suite.store.On("GetDID", "did:sov:123").Return(did, nil)
+		suite.registry.On("IssueCredential", did, schema, "1234", request.RequestsAttach[0].Data, values).Return(attach, nil)
+
+		suite.target.RequestCredentialMsg(action, request)
+		require.Equal(t, err.Error(), "unable to fetch attachment: no contents in this attachment")
+	})
+	t.Run("registry error", func(t *testing.T) {
+		suite, cleanup := setup(t)
+		defer cleanup()
+
+		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
+		var err error
+		action := service.DIDCommAction{
+			ProtocolName: "request-credential",
+			Message:      testMsg(t, thid),
+			Stop: func(e error) {
+				err = e
+			},
+		}
+		request := &issuecredential.RequestCredential{
+			RequestsAttach: []decorator.Attachment{
+				{Data: decorator.AttachmentData{
+					JSON: map[string]interface{}{},
+				}},
+			},
+		}
+
+		cred := &datastore.IssuedCredential{
+			AgentName:       "agent-01",
+			SchemaName:      "schema-01",
+			MyDID:           "did:sov:123",
+			RegistryOfferID: "1234",
+			Offer: &datastore.Offer{
+				Preview: []issuecredential.Attribute{
+					{Name: "attr1", Value: "test-val-1"},
+				},
+			},
+		}
+		agent := &datastore.Agent{}
+		schema := &datastore.Schema{}
+		did := &datastore.DID{}
+		values := map[string]interface{}{
+			"attr1": "test-val-1",
+		}
+
+		suite.store.On("FindCredentialByProtocolID", thid).Return(cred, nil)
+		suite.store.On("GetAgent", "agent-01").Return(agent, nil)
+		suite.store.On("GetSchema", "schema-01").Return(schema, nil)
+		suite.store.On("GetDID", "did:sov:123").Return(did, nil)
+		suite.registry.On("IssueCredential", did, schema, "1234", request.RequestsAttach[0].Data, values).Return(nil, errors.New("engine failure"))
+
+		suite.target.RequestCredentialMsg(action, request)
+		require.Equal(t, err.Error(), "registry error creating credential: engine failure")
+	})
+	t.Run("bad DID", func(t *testing.T) {
+		suite, cleanup := setup(t)
+		defer cleanup()
+
+		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
+		var err error
+		action := service.DIDCommAction{
+			ProtocolName: "request-credential",
+			Message:      testMsg(t, thid),
+			Stop: func(e error) {
+				err = e
+			},
+		}
+		request := &issuecredential.RequestCredential{
+			RequestsAttach: []decorator.Attachment{
+				{Data: decorator.AttachmentData{
+					JSON: map[string]interface{}{},
+				}},
+			},
+		}
+
+		cred := &datastore.IssuedCredential{AgentName: "agent-01", SchemaName: "schema-01", MyDID: "bad"}
+		agent := &datastore.Agent{}
+		schema := &datastore.Schema{}
+
+		suite.store.On("FindCredentialByProtocolID", thid).Return(cred, nil)
+		suite.store.On("GetAgent", "agent-01").Return(agent, nil)
+		suite.store.On("GetSchema", "schema-01").Return(schema, nil)
+		suite.store.On("GetDID", "bad").Return(nil, errors.New("boom"))
+
+		suite.target.RequestCredentialMsg(action, request)
+		require.Equal(t, err.Error(), "unable to find DID with ID bad: (boom)")
+	})
+	t.Run("bad schema", func(t *testing.T) {
+		suite, cleanup := setup(t)
+		defer cleanup()
+
+		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
+		var err error
+		action := service.DIDCommAction{
+			ProtocolName: "request-credential",
+			Message:      testMsg(t, thid),
+			Stop: func(e error) {
+				err = e
+			},
+		}
+		request := &issuecredential.RequestCredential{
+			RequestsAttach: []decorator.Attachment{
+				{Data: decorator.AttachmentData{
+					JSON: map[string]interface{}{},
+				}},
+			},
+		}
+
+		cred := &datastore.IssuedCredential{AgentName: "agent-01", SchemaName: "bad"}
+		agent := &datastore.Agent{}
+
+		suite.store.On("FindCredentialByProtocolID", thid).Return(cred, nil)
+		suite.store.On("GetAgent", "agent-01").Return(agent, nil)
+		suite.store.On("GetSchema", "bad").Return(nil, errors.New("not found"))
+
+		suite.target.RequestCredentialMsg(action, request)
+		require.Equal(t, err.Error(), "unable to find schema with ID bad: (not found)")
+	})
+	t.Run("bad agent name", func(t *testing.T) {
+		suite, cleanup := setup(t)
+		defer cleanup()
+
+		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
+
+		var err error
+		action := service.DIDCommAction{
+			ProtocolName: "request-credential",
+			Message:      testMsg(t, thid),
+			Stop: func(e error) {
+				err = e
+			},
+		}
+		request := &issuecredential.RequestCredential{
+			RequestsAttach: []decorator.Attachment{
+				{Data: decorator.AttachmentData{
+					JSON: map[string]interface{}{},
+				}},
+			},
+		}
+
+		cred := &datastore.IssuedCredential{AgentName: "bad"}
+
+		suite.store.On("FindCredentialByProtocolID", thid).Return(cred, nil)
+		suite.store.On("GetAgent", "bad").Return(nil, errors.New("not found"))
+		suite.target.RequestCredentialMsg(action, request)
+		require.Equal(t, err.Error(), "unable to find agent for credential request: not found")
+	})
+	t.Run("invalid credential protocol ID", func(t *testing.T) {
+		suite, cleanup := setup(t)
+		defer cleanup()
+
+		thid := "80f8b418-4818-4af6-8915-f299b974f5c2"
+		var err error
+		action := service.DIDCommAction{
+			ProtocolName: "request-credential",
+			Message:      testMsg(t, thid),
+			Stop: func(e error) {
+				err = e
+			},
+		}
+		request := &issuecredential.RequestCredential{
+			RequestsAttach: []decorator.Attachment{
+				{Data: decorator.AttachmentData{
+					JSON: map[string]interface{}{},
+				}},
+			},
+		}
+
+		suite.store.On("FindCredentialByProtocolID", thid).Return(nil, errors.New("BOOM"))
+		suite.target.RequestCredentialMsg(action, request)
+		require.Equal(t, err.Error(), "unable to find cred with ID 80f8b418-4818-4af6-8915-f299b974f5c2: (BOOM)")
+	})
+	t.Run("empty request", func(t *testing.T) {
+		suite, cleanup := setup(t)
+		defer cleanup()
+
+		var err error
+		action := service.DIDCommAction{
+			ProtocolName: "request-credential",
+			Stop: func(e error) {
+				err = e
+			},
+		}
+		request := &issuecredential.RequestCredential{}
+		suite.target.RequestCredentialMsg(action, request)
+		require.Equal(t, err.Error(), "only one credential is supported at a time")
+	})
+
+}
+
 func testMsg(t *testing.T, thid string) service.DIDCommMsg {
 	msg, err := service.ParseDIDCommMsgMap([]byte(fmt.Sprintf(`{
 						"@id":"80f8b418-4818-4af6-8915-f299b974f5c2",
