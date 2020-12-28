@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package issuecredential
 
 import (
-	"log"
-
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
@@ -17,20 +15,11 @@ import (
 )
 
 const (
-	myDIDKey    = "myDID"
-	theirDIDKey = "theirDID"
-
-	stateNameProposalReceived = "proposal-received"
-	stateNameOfferSent        = "offer-sent"
-	stateNameRequestReceived  = "request-received"
-	stateNameCredentialIssued = "credential-issued"
-	stateNameDone             = "done"
+	stateNameOfferSent = "offer-sent"
 )
 
-// Metadata is an alias to the original Metadata.
-type Metadata issuecredential.Metadata
-
 // Provider contains dependencies for the SaveCredentials middleware function.
+//go:generate mockery -inpkg -name=Provider
 type Provider interface {
 	Store() datastore.Store
 }
@@ -51,10 +40,9 @@ func SaveCredentials(p Provider) issuecredential.Middleware {
 			thid, _ := msg.ThreadID()
 			cred, err := store.FindCredentialByProtocolID(thid)
 			if err != nil {
-				return errors.Errorf("unable to find cred with ID %s: (%v)\n", thid, err)
+				return errors.Errorf("unable to find cred with ID %s: (%v)", thid, err)
 			}
 
-			log.Println(state, ":", thid, ":", msg.Type())
 			cred.SystemState = state
 
 			err = store.UpdateCredential(cred)
