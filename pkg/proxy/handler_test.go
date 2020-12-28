@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package proxy_test
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -16,7 +17,6 @@ import (
 	"time"
 
 	"github.com/mwitkow/grpc-proxy/proxy"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/net/context"
@@ -24,8 +24,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
-
-	"fmt"
 
 	pb "github.com/mwitkow/grpc-proxy/testservice"
 )
@@ -50,9 +48,9 @@ type assertingService struct {
 func (s *assertingService) PingEmpty(ctx context.Context, _ *pb.Empty) (*pb.PingResponse, error) {
 	// Check that this call has client's metadata.
 	md, ok := metadata.FromIncomingContext(ctx)
-	assert.True(s.t, ok, "PingEmpty call must have metadata in context")
+	require.True(s.t, ok, "PingEmpty call must have metadata in context")
 	_, ok = md[clientMdKey]
-	assert.True(s.t, ok, "PingEmpty call must have clients's custom headers in metadata")
+	require.True(s.t, ok, "PingEmpty call must have clients's custom headers in metadata")
 	return &pb.PingResponse{Value: pingDefaultValue, Counter: 42}, nil
 }
 
@@ -138,15 +136,15 @@ func (s *ProxyHappySuite) TestPingCarriesServerHeadersAndTrailers() {
 	out, err := s.testClient.Ping(s.ctx(), &pb.PingRequest{Value: "foo"}, grpc.Header(&headerMd), grpc.Trailer(&trailerMd))
 	require.NoError(s.T(), err, "Ping should succeed without errors")
 	require.Equal(s.T(), &pb.PingResponse{Value: "foo", Counter: 42}, out)
-	assert.Contains(s.T(), headerMd, serverHeaderMdKey, "server response headers must contain server data")
-	assert.Len(s.T(), trailerMd, 1, "server response trailers must contain server data")
+	require.Contains(s.T(), headerMd, serverHeaderMdKey, "server response headers must contain server data")
+	require.Len(s.T(), trailerMd, 1, "server response trailers must contain server data")
 }
 
 func (s *ProxyHappySuite) TestPingErrorPropagatesAppError() {
 	_, err := s.testClient.PingError(s.ctx(), &pb.PingRequest{Value: "foo"})
 	require.Error(s.T(), err, "PingError should never succeed")
-	assert.Equal(s.T(), codes.FailedPrecondition, grpc.Code(err))
-	assert.Equal(s.T(), "Userspace error.", grpc.ErrorDesc(err))
+	require.Equal(s.T(), codes.FailedPrecondition, grpc.Code(err))
+	require.Equal(s.T(), "Userspace error.", grpc.ErrorDesc(err))
 }
 
 func (s *ProxyHappySuite) TestDirectorErrorIsPropagated() {
@@ -154,8 +152,8 @@ func (s *ProxyHappySuite) TestDirectorErrorIsPropagated() {
 	ctx := metadata.NewOutgoingContext(s.ctx(), metadata.Pairs(rejectingMdKey, "true"))
 	_, err := s.testClient.Ping(ctx, &pb.PingRequest{Value: "foo"})
 	require.Error(s.T(), err, "Director should reject this RPC")
-	assert.Equal(s.T(), codes.PermissionDenied, grpc.Code(err))
-	assert.Equal(s.T(), "testing rejection", grpc.ErrorDesc(err))
+	require.Equal(s.T(), codes.PermissionDenied, grpc.Code(err))
+	require.Equal(s.T(), "testing rejection", grpc.ErrorDesc(err))
 }
 
 func (s *ProxyHappySuite) TestPingStream_FullDuplexWorks() {
@@ -173,16 +171,16 @@ func (s *ProxyHappySuite) TestPingStream_FullDuplexWorks() {
 			// Check that the header arrives before all entries.
 			headerMd, err := stream.Header()
 			require.NoError(s.T(), err, "PingStream headers should not error.")
-			assert.Contains(s.T(), headerMd, serverHeaderMdKey, "PingStream response headers user contain metadata")
+			require.Contains(s.T(), headerMd, serverHeaderMdKey, "PingStream response headers user contain metadata")
 		}
-		assert.EqualValues(s.T(), i, resp.Counter, "ping roundtrip must succeed with the correct id")
+		require.EqualValues(s.T(), i, resp.Counter, "ping roundtrip must succeed with the correct id")
 	}
 	require.NoError(s.T(), stream.CloseSend(), "no error on close send")
 	_, err = stream.Recv()
 	require.Equal(s.T(), io.EOF, err, "stream should close with io.EOF, meaining OK")
 	// Check that the trailer headers are here.
 	trailerMd := stream.Trailer()
-	assert.Len(s.T(), trailerMd, 1, "PingList trailer headers user contain metadata")
+	require.Len(s.T(), trailerMd, 1, "PingList trailer headers user contain metadata")
 }
 
 func (s *ProxyHappySuite) TestPingStream_StressTest() {

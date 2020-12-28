@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -77,7 +76,7 @@ func main() {
 	//fmt.Println(string(js))
 
 	credentialIssuanceNonce, err := ursa.NewNonce()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	p := ursa.SignatureParams{
 		ProverID:                                 "CnEDk9HrMnmiHXEV1WFgbVCRteYnPqsJwrTdcZaNhFVW",
@@ -91,37 +90,37 @@ func main() {
 	}
 
 	credSig, credSigKP, err := p.SignCredential()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = credSig.ProcessCredentialSignature(values, credSigKP, blindedSecrets.BlindingFactor, credDef.PubKey, credentialIssuanceNonce)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	subProofBuilder, err := ursa.NewSubProofRequestBuilder()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = subProofBuilder.AddRevealedAttr("attr1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	subProofRequest, err := subProofBuilder.Finalize()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	proofBuilder, err := ursa.NewProofBuilder()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = proofBuilder.AddCommonAttribute("master_secret")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = proofBuilder.AddSubProofRequest(subProofRequest, schema, nonSchema, credSig, values, credDef.PubKey)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	proofRequestNonce, err := ursa.NewNonce()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	proof, err := proofBuilder.Finalize(proofRequestNonce)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	verifier, err := ursa.NewProofVerifier()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = verifier.AddSubProofRequest(subProofRequest, schema, nonSchema, credDef.PubKey)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = verifier.Verify(proof, proofRequestNonce)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

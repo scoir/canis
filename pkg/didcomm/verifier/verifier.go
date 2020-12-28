@@ -25,41 +25,21 @@ import (
 
 	"github.com/scoir/canis/pkg/datastore"
 	api "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
-	"github.com/scoir/canis/pkg/framework"
-	"github.com/scoir/canis/pkg/presentproof"
 	"github.com/scoir/canis/pkg/presentproof/engine"
 	"github.com/scoir/canis/pkg/protogen/common"
 	"github.com/scoir/canis/pkg/schema"
 )
 
-type proofClient interface {
-	SendRequestPresentation(msg *ppclient.RequestPresentation, myDID, theirDID string) (string, error)
-}
-
 type Server struct {
-	store        datastore.Store
-	proofcl      proofClient
-	ctx          *ariescontext.Provider
-	ppsup        *presentproof.Supervisor
-	registry     engine.PresentationRegistry
-	proofHandler *proofHandler
+	store    datastore.Store
+	proofcl  PresentProofClient
+	ctx      *ariescontext.Provider
+	registry engine.PresentationRegistry
 }
 
-type provider interface {
-	Store() datastore.Store
-	GetAriesContext() (*ariescontext.Provider, error)
-	GetPresentationEngineRegistry() (engine.PresentationRegistry, error)
-}
+func New(ctx Provider) (*Server, error) {
 
-func New(ctx provider) (*Server, error) {
-
-	actx, err := ctx.GetAriesContext()
-	if err != nil {
-		return nil, err
-	}
-
-	prov := framework.NewSimpleProvider(actx)
-	proofcl, err := prov.GetPresentProofClient()
+	proofcl, err := ctx.GetPresentProofClient()
 	if err != nil {
 		log.Fatalln("unable to get present proof client")
 	}
@@ -68,28 +48,12 @@ func New(ctx provider) (*Server, error) {
 	if err != nil {
 		log.Fatalln("unable to initialize proof engine registry", err)
 	}
-
-	ppsup, err := presentproof.New(prov)
-	if err != nil {
-		log.Fatalln("unable to create new proof supervisor", err)
-	}
-
 	store := ctx.Store()
-	handler := &proofHandler{
-		store:    store,
-		registry: reg,
-	}
-	err = ppsup.Start(handler)
-	if err != nil {
-		log.Fatalln("unable to start proof supervisor", err)
-	}
 
 	r := &Server{
-		store:        store,
-		proofcl:      proofcl,
-		ppsup:        ppsup,
-		proofHandler: handler,
-		registry:     reg,
+		store:    store,
+		proofcl:  proofcl,
+		registry: reg,
 	}
 
 	return r, nil
@@ -167,8 +131,8 @@ func (r *Server) RequestPresentation(_ context.Context, req *common.RequestPrese
 
 	data, _ := presentation.Fetch()
 	prs := &datastore.PresentationRequest{
-		AgentID:               agent.ID,
-		SchemaID:              sch.ID,
+		AgentID:               agent.Name,
+		SchemaID:              sch.Name,
 		ExternalID:            req.ExternalId,
 		PresentationRequestID: requestPresentationID,
 		Data:                  data,

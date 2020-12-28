@@ -32,6 +32,7 @@ import (
 	"github.com/scoir/canis/pkg/config"
 	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/didcomm/verifier"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
 	"github.com/scoir/canis/pkg/presentproof/engine"
@@ -59,6 +60,7 @@ type Provider struct {
 	ariesStorageProvider storage.Provider
 	keyMgr               kms.KeyManager
 	conf                 config.Config
+	actx                 *ariescontext.Provider
 }
 
 func Execute() {
@@ -116,11 +118,17 @@ func initConfig() {
 		log.Fatalln("error creating lock service")
 	}
 
+	actx, err := GetAriesContext(conf, ls, lock)
+	if err != nil {
+		log.Fatalln("error creating aries context", err)
+	}
+
 	ctx = &Provider{
 		lock:                 lock,
 		store:                store,
 		ariesStorageProvider: ls,
 		conf:                 conf,
+		actx:                 actx,
 	}
 
 	ctx.keyMgr, err = localkms.New("local-lock://default/master/key/", ctx)
@@ -149,14 +157,14 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 }
 
 // GetAriesContext todo
-func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
-	external := r.conf.GetString("inbound.external")
-	cfg, err := r.conf.AMQPConfig()
+func GetAriesContext(conf config.Config, ariesStorageProvider storage.Provider, lock secretlock.Service) (*ariescontext.Provider, error) {
+	external := conf.GetString("inbound.external")
+	cfg, err := conf.AMQPConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	vdrisConfig, err := r.conf.VDRIs()
+	vdrisConfig, err := conf.VDRIs()
 	if err != nil {
 		return nil, err
 	}
@@ -172,10 +180,10 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	}
 
 	vopts := []aries.Option{
-		aries.WithStoreProvider(r.ariesStorageProvider),
+		aries.WithStoreProvider(ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),
 		aries.WithOutboundTransports(ws.NewOutbound()),
-		aries.WithSecretLock(r.lock),
+		aries.WithSecretLock(lock),
 		aries.WithProtocols(newPresentProofSvc()),
 	}
 	for _, vdri := range vdris {
@@ -208,6 +216,17 @@ func newPresentProofSvc() api.ProtocolSvcCreator {
 
 		return svc, nil
 	}
+}
+
+func (r *Provider) GetPresentProofClient() (verifier.PresentProofClient, error) {
+	prov := framework.NewSimpleProvider(r.actx)
+
+	proofcl, err := prov.GetPresentProofClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get present proof client")
+	}
+
+	return proofcl, nil
 }
 
 // IndyVDR todo

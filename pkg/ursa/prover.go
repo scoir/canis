@@ -326,6 +326,9 @@ func (r *Prover) ProcessCredentialSignature(cred *schema.IndyCredential, credReq
 	}
 
 	err = valueBuilder.AddDecHidden("master_secret", masterSecret)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to add master secret")
+	}
 
 	values, err := valueBuilder.Finalize()
 	if err != nil {

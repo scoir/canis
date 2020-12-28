@@ -3,7 +3,7 @@ package framework
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEndpoint_Address(t *testing.T) {
@@ -13,6 +13,6 @@ func TestEndpoint_Address(t *testing.T) {
 			Port: 8080,
 		}
 		addy := ep.Address()
-		assert.Equal(t, "localhost:8080", addy)
+		require.Equal(t, "localhost:8080", addy)
 	})
 }

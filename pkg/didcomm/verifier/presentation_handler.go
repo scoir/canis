@@ -12,7 +12,14 @@ import (
 	"github.com/scoir/canis/pkg/presentproof/engine"
 )
 
-type proofHandler struct {
+func NewProofHandler(store datastore.Store, reg engine.PresentationRegistry) *ProofHandler {
+	return &ProofHandler{
+		store:    store,
+		registry: reg,
+	}
+}
+
+type ProofHandler struct {
 	store    datastore.Store
 	registry engine.PresentationRegistry
 }
@@ -23,17 +30,17 @@ type prop interface {
 	PIID() string
 }
 
-func (r *proofHandler) ProposePresentationMsg(e service.DIDCommAction, _ *ppprotocol.ProposePresentation) {
+func (r *ProofHandler) ProposePresentationMsg(e service.DIDCommAction, _ *ppprotocol.ProposePresentation) {
 	err := errors.New("presentation proposal not implemented")
 	e.Stop(err)
 }
 
-func (r *proofHandler) RequestPresentationMsg(e service.DIDCommAction, _ *ppprotocol.RequestPresentation) {
+func (r *ProofHandler) RequestPresentationMsg(e service.DIDCommAction, _ *ppprotocol.RequestPresentation) {
 	err := errors.New("request presentation not implemented")
 	e.Stop(err)
 }
 
-func (r *proofHandler) PresentationMsg(e service.DIDCommAction, d *ppprotocol.Presentation) {
+func (r *ProofHandler) PresentationMsg(e service.DIDCommAction, d *ppprotocol.Presentation) {
 	props, ok := e.Properties.(prop)
 	if !ok {
 		err := errors.New("presentation properties invalid")
@@ -111,7 +118,7 @@ func getAttachment(attachID string, attach []decorator.Attachment) (*decorator.A
 	return nil, false
 }
 
-func (r *proofHandler) PresentationPreviewMsg(e service.DIDCommAction, _ *ppprotocol.Presentation) {
+func (r *ProofHandler) PresentationPreviewMsg(e service.DIDCommAction, _ *ppprotocol.Presentation) {
 	err := errors.New("presentation preview not implemented")
 	e.Stop(err)
 }

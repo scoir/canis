@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/scoir/canis/pkg/apiserver/mocks"
@@ -27,8 +26,8 @@ func TestNew(t *testing.T) {
 		p.On("KMS").Return(nil, nil)
 
 		server, err := New(p)
-		assert.Nil(t, err)
-		assert.NotNil(t, server)
+		require.Nil(t, err)
+		require.NotNil(t, server)
 		p.AssertExpectations(t)
 		ds.AssertExpectations(t)
 

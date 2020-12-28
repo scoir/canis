@@ -329,7 +329,7 @@ func TestProofHandler_RequestPresentationMsg(t *testing.T) {
 }
 
 type suite struct {
-	target   *proofHandler
+	target   *ProofHandler
 	store    *dsmocks.Store
 	registry *mocks.PresentationRegistry
 }
@@ -340,7 +340,7 @@ func setup(t *testing.T) (*suite, func()) {
 		registry: &mocks.PresentationRegistry{},
 	}
 
-	s.target = &proofHandler{
+	s.target = &ProofHandler{
 		store:    s.store,
 		registry: s.registry,
 	}
