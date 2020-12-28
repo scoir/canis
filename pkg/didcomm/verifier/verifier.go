@@ -76,8 +76,6 @@ func New(ctx provider) (*Server, error) {
 
 	store := ctx.Store()
 	handler := &proofHandler{
-		ctx:      actx,
-		ppsup:    ppsup,
 		store:    store,
 		registry: reg,
 	}

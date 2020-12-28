@@ -6,18 +6,14 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/service"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	ppprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
-	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/presentproof"
 	"github.com/scoir/canis/pkg/presentproof/engine"
 )
 
 type proofHandler struct {
-	ctx      *ariescontext.Provider
 	store    datastore.Store
-	ppsup    *presentproof.Supervisor
 	registry engine.PresentationRegistry
 }
 
@@ -27,18 +23,22 @@ type prop interface {
 	PIID() string
 }
 
-func (r *proofHandler) ProposePresentationMsg(e service.DIDCommAction, d *ppprotocol.ProposePresentation) {
-	log.Println("presentation proposal not implemented")
+func (r *proofHandler) ProposePresentationMsg(e service.DIDCommAction, _ *ppprotocol.ProposePresentation) {
+	err := errors.New("presentation proposal not implemented")
+	e.Stop(err)
 }
 
-func (r *proofHandler) RequestPresentationMsg(e service.DIDCommAction, d *ppprotocol.RequestPresentation) {
-	log.Println("request presentation not implemented")
+func (r *proofHandler) RequestPresentationMsg(e service.DIDCommAction, _ *ppprotocol.RequestPresentation) {
+	err := errors.New("request presentation not implemented")
+	e.Stop(err)
 }
 
 func (r *proofHandler) PresentationMsg(e service.DIDCommAction, d *ppprotocol.Presentation) {
 	props, ok := e.Properties.(prop)
 	if !ok {
-		log.Println("presentation properties invalid")
+		err := errors.New("presentation properties invalid")
+		e.Stop(err)
+		return
 	}
 
 	myDID := props.MyDID()
@@ -73,7 +73,7 @@ func (r *proofHandler) PresentationMsg(e service.DIDCommAction, d *ppprotocol.Pr
 
 		err = r.registry.Verify(format.Format, proofData, pr.Data, theirDID, myDID)
 		if err != nil {
-			err := errors.Errorf("unexpected error verifying %d presentation: (%+v)", i, err)
+			err := errors.Errorf("unexpected error verifying %d presentation: (%v)", i, err)
 			log.Println(err)
 			e.Stop(err)
 			return
@@ -111,6 +111,7 @@ func getAttachment(attachID string, attach []decorator.Attachment) (*decorator.A
 	return nil, false
 }
 
-func (r *proofHandler) PresentationPreviewMsg(e service.DIDCommAction, d *ppprotocol.Presentation) {
-	log.Println("presentation preview not implemented")
+func (r *proofHandler) PresentationPreviewMsg(e service.DIDCommAction, _ *ppprotocol.Presentation) {
+	err := errors.New("presentation preview not implemented")
+	e.Stop(err)
 }
