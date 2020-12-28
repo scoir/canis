@@ -127,12 +127,12 @@ func (r *bouncer) EstablishConnectionNotify(invitation *didclient.Invitation, su
 	}
 
 	go func() {
-		conn, err := r.waitFor(connectionID, "completed", 5*time.Minute)
+		_, err := r.waitFor(connectionID, "completed", 5*time.Minute)
 		if err != nil {
 			nerr(invitation.ID, err)
 			return
 		}
-		conn, _ = r.didcl.GetConnection(connectionID)
+		conn, _ := r.didcl.GetConnection(connectionID)
 		if conn.State != "completed" {
 			nerr(invitation.ID, errors.Errorf("connection timed out in bad state: %s", conn.State))
 			return

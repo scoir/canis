@@ -430,6 +430,9 @@ func (r *credentialHandler) IssueCredentialMsg(e service.DIDCommAction, d *icpro
 	}
 
 	sig, err := prover.ProcessCredentialSignature(cred, credRequest, ms, credRequestMedataData.MasterSecretBlindingData, credDef.PKey())
+	if err != nil {
+		log.Println("unable to process credential signature", err)
+	}
 
 	cred.Signature = []byte(sig)
 	data, _ = json.Marshal(cred)

@@ -12,9 +12,13 @@ import (
 func (r *Engine) verifyCryptoCredential(indyProof *schema.IndyProof, proofRequest *PresentationRequest, credDefs map[string]*vdr.ClaimDefData) error {
 
 	nonCredSchema, err := cursa.BuildNonCredentialSchema()
+	if err != nil {
+		return errors.Wrap(err, "unable to create credential schema")
+	}
+
 	verifier, err := ursa.NewProofVerifier()
 	if err != nil {
-		return errors.Wrap(err, "")
+		return errors.Wrap(err, "unable to create proof verifier")
 	}
 
 	for subProofIdx, identifier := range indyProof.Identifiers {
@@ -34,6 +38,9 @@ func (r *Engine) verifyCryptoCredential(indyProof *schema.IndyProof, proofReques
 		}
 
 		subProofRequest, err := r.buildSubProofRequest(attrsForCredential, predicatesForCredential)
+		if err != nil {
+			return errors.Wrap(err, "unable to build sub proof")
+		}
 
 		pubKey, err := cursa.CredDefPublicKey(credDef.PKey(), credDef.RKey())
 		if err != nil {
