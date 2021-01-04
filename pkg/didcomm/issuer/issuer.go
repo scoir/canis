@@ -15,48 +15,26 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
-	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/scoir/canis/pkg/credential"
 	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
 	api "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
-	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/protogen/common"
 )
 
-type credentialIssuer interface {
-	SendOffer(offer *issuecredential.OfferCredential, myDID, theirDID string) (string, error)
-}
-
 type Server struct {
-	store       datastore.Store
-	credcl      credentialIssuer
-	ctx         *ariescontext.Provider
-	credsup     *credential.Supervisor
-	registry    engine.CredentialRegistry
-	credHandler *credHandler
+	store    datastore.Store
+	credcl   CredentialIssuer
+	registry engine.CredentialRegistry
 }
 
-type provider interface {
-	Store() datastore.Store
-	GetAriesContext() (*ariescontext.Provider, error)
-	GetCredentialEngineRegistry() (engine.CredentialRegistry, error)
-}
+func New(ctx Provider) (*Server, error) {
 
-func New(ctx provider) (*Server, error) {
-
-	actx, err := ctx.GetAriesContext()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get aries context")
-	}
-
-	prov := framework.NewSimpleProvider(actx)
-	credcl, err := prov.GetCredentialClient()
+	credcl, err := ctx.GetCredentialIssuer()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get credential client")
 	}
@@ -66,29 +44,11 @@ func New(ctx provider) (*Server, error) {
 		return nil, errors.Wrap(err, "unable to get credential engine registry")
 	}
 
-	credsup, err := credential.New(prov)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get credential supervisor")
-	}
-
 	store := ctx.Store()
-	handler := &credHandler{
-		ctx:      actx,
-		credsup:  credsup,
-		store:    store,
-		registry: reg,
-	}
-	err = credsup.Start(handler)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to start supervisor")
-	}
-
 	r := &Server{
-		store:       store,
-		credcl:      credcl,
-		credsup:     credsup,
-		credHandler: handler,
-		registry:    reg,
+		store:    store,
+		credcl:   credcl,
+		registry: reg,
 	}
 
 	return r, nil
@@ -108,7 +68,7 @@ func (r *Server) APISpec() (http.HandlerFunc, error) {
 
 func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialRequest) (*common.IssueCredentialResponse, error) {
 
-	agent, err := r.store.GetAgent(req.AgentId)
+	agent, err := r.store.GetAgent(req.AgentName)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unable to load agent: %v", err))
 	}
@@ -168,21 +128,21 @@ func (r *Server) IssueCredential(_ context.Context, req *common.IssueCredentialR
 		return nil, status.Error(codes.Internal, fmt.Sprintf("send offer failed: %v", err))
 	}
 
-	cred := &datastore.Credential{
-		AgentID:           agent.ID,
+	cred := &datastore.IssuedCredential{
+		AgentName:         agent.Name,
 		MyDID:             ac.MyDID,
 		TheirDID:          ac.TheirDID,
-		ThreadID:          id,
+		ProtocolID:        id,
 		RegistryOfferID:   registryOfferID,
-		SchemaID:          schema.ID,
+		SchemaName:        schema.Name,
 		ExternalSubjectID: req.ExternalId,
-		Offer: datastore.Offer{
+		Offer: &datastore.Offer{
 			Comment: req.Credential.Comment,
 			Type:    req.Credential.Type,
 			Preview: attrs,
-			Body:    body,
+			Data:    body,
 		},
-		SystemState: "offered",
+		SystemState: "offer-sent",
 	}
 
 	credID, err := r.store.InsertCredential(cred)

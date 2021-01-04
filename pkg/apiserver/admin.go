@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
@@ -48,16 +49,16 @@ func (r *APIServer) APISpec() (http.HandlerFunc, error) {
 
 func (r *APIServer) CreateSchema(_ context.Context, req *api.CreateSchemaRequest) (*api.CreateSchemaResponse, error) {
 	s := &datastore.Schema{
-		ID:      req.Schema.Id,
+		ID:      uuid.New().String(),
+		Name:    req.Schema.Name,
 		Format:  req.Schema.Format,
 		Type:    req.Schema.Type,
-		Name:    req.Schema.Name,
 		Version: req.Schema.Version,
 		Context: req.Schema.Context,
 	}
 
-	if s.ID == "" || s.Name == "" {
-		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
+	if s.Name == "" {
+		return nil, status.Error(codes.InvalidArgument, "name is a required field")
 	}
 
 	s.Attributes = make([]*datastore.Attribute, len(req.Schema.Attributes))
@@ -68,9 +69,9 @@ func (r *APIServer) CreateSchema(_ context.Context, req *api.CreateSchemaRequest
 		}
 	}
 
-	_, err := r.schemaStore.GetSchema(s.ID)
+	_, err := r.schemaStore.GetSchema(s.Name)
 	if err == nil {
-		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", req.Schema.Id))
+		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", req.Schema.Name))
 	}
 
 	if id, err := r.schemaRegistry.CreateSchema(s); err == nil {
@@ -81,7 +82,7 @@ func (r *APIServer) CreateSchema(_ context.Context, req *api.CreateSchemaRequest
 
 	id, err := r.schemaStore.InsertSchema(s)
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create schema %s", req.Schema.Id).Error())
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create schema %s", req.Schema.Name).Error())
 	}
 
 	return &api.CreateSchemaResponse{
@@ -198,27 +199,27 @@ func (r *APIServer) UpdateSchema(_ context.Context, req *api.UpdateSchemaRequest
 
 func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) (*api.CreateAgentResponse, error) {
 	a := &datastore.Agent{
-		ID:                  req.Agent.Id,
-		Name:                req.Agent.Name,
-		EndorsableSchemaIds: []string{},
-		HasPublicDID:        req.Agent.PublicDid,
+		ID:                    uuid.New().String(),
+		Name:                  req.Agent.Name,
+		EndorsableSchemaNames: []string{},
+		HasPublicDID:          req.Agent.PublicDid,
 	}
 
-	if a.ID == "" || a.Name == "" {
-		return nil, status.Error(codes.InvalidArgument, "name and id are required fields")
+	if a.Name == "" {
+		return nil, status.Error(codes.InvalidArgument, "name is a required field")
 	}
-	_, err := r.agentStore.GetAgent(a.ID)
+	_, err := r.agentStore.GetAgent(a.Name)
 	if err == nil {
-		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("agent with id %s already exists", req.Agent.Id))
+		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("agent with name %s already exists", req.Agent.Name))
 	}
 
 	if a.HasPublicDID {
 		err = r.createAgentPublicDID(a)
 		if err != nil {
-			return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to provision agent wallet %s", req.Agent.Id).Error())
+			return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to provision agent wallet %s", req.Agent.Name).Error())
 		}
 
-		for _, schemaID := range req.Agent.EndorsableSchemaIds {
+		for _, schemaID := range req.Agent.EndorsableSchemaNames {
 			schema, err := r.schemaStore.GetSchema(schemaID)
 			if err != nil {
 				continue
@@ -227,13 +228,13 @@ func (r *APIServer) CreateAgent(_ context.Context, req *api.CreateAgentRequest) 
 			if err != nil {
 				return nil, errors.Wrap(err, "")
 			}
-			a.EndorsableSchemaIds = append(a.EndorsableSchemaIds, schemaID)
+			a.EndorsableSchemaNames = append(a.EndorsableSchemaNames, schemaID)
 		}
 	}
 
 	id, err := r.agentStore.InsertAgent(a)
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Id).Error())
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create agent %s", req.Agent.Name).Error())
 	}
 
 	return &api.CreateAgentResponse{
@@ -260,9 +261,9 @@ func (r *APIServer) ListAgent(_ context.Context, req *api.ListAgentRequest) (*ap
 
 	for i, Agent := range results.Agents {
 		out.Agents[i] = &api.Agent{
-			Id:                  Agent.ID,
-			Name:                Agent.Name,
-			EndorsableSchemaIds: Agent.EndorsableSchemaIds,
+			Id:                    Agent.ID,
+			Name:                  Agent.Name,
+			EndorsableSchemaNames: Agent.EndorsableSchemaNames,
 		}
 	}
 
@@ -278,9 +279,9 @@ func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.
 	out := &api.GetAgentResponse{}
 
 	out.Agent = &api.Agent{
-		Id:                  Agent.ID,
-		Name:                Agent.Name,
-		EndorsableSchemaIds: Agent.EndorsableSchemaIds,
+		Id:                    Agent.ID,
+		Name:                  Agent.Name,
+		EndorsableSchemaNames: Agent.EndorsableSchemaNames,
 	}
 
 	return out, nil
@@ -288,7 +289,7 @@ func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.
 
 func (r *APIServer) GetAgentInvitation(ctx context.Context, request *common.InvitationRequest) (*common.InvitationResponse, error) {
 	doormanReq := &common.InvitationRequest{
-		AgentId:    request.AgentId,
+		AgentName:  request.AgentName,
 		ExternalId: request.ExternalId,
 	}
 	invite, err := r.doorman.GetInvitation(ctx, doormanReq)
@@ -340,7 +341,7 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 		}
 	}
 
-	for _, schemaID := range req.Agent.EndorsableSchemaIds {
+	for _, schemaID := range req.Agent.EndorsableSchemaNames {
 		schema, err := r.schemaStore.GetSchema(schemaID)
 		if err != nil {
 			continue
@@ -349,7 +350,7 @@ func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) 
 		if err != nil {
 			return nil, errors.Wrap(err, "")
 		}
-		upd.EndorsableSchemaIds = append(upd.EndorsableSchemaIds, schemaID)
+		upd.EndorsableSchemaNames = append(upd.EndorsableSchemaNames, schemaID)
 	}
 
 	err = r.agentStore.UpdateAgent(&upd)
@@ -444,7 +445,7 @@ func (r *APIServer) IssueCredential(ctx context.Context, req *common.IssueCreden
 	}
 
 	issuerReq := &common.IssueCredentialRequest{
-		AgentId:    req.AgentId,
+		AgentName:  req.AgentName,
 		ExternalId: req.ExternalId,
 		Credential: &issuerCred,
 	}
@@ -481,13 +482,12 @@ func (r *APIServer) RequestPresentation(ctx context.Context, req *common.Request
 	}
 
 	rpr := &common.RequestPresentationRequest{
-		AgentId:    req.AgentId,
-		ExternalId: "",
+		AgentName:  req.AgentName,
+		ExternalId: req.ExternalId,
 		Presentation: &common.RequestPresentation{
-			SchemaId:            "",
-			Comment:             "",
-			Type:                "",
-			WillConfirm:         false,
+			SchemaId:            req.Presentation.SchemaId,
+			Comment:             req.Presentation.Comment,
+			WillConfirm:         req.Presentation.WillConfirm,
 			RequestedAttributes: pp,
 			RequestedPredicates: pq,
 		},
@@ -545,4 +545,56 @@ func (r *APIServer) DeleteWebhook(_ context.Context, request *api.DeleteWebhookR
 	}
 
 	return &api.DeleteWebhookResponse{}, nil
+}
+
+func (r *APIServer) ListConnections(_ context.Context, req *api.ListConnectionRequest) (*api.ListConnectionResponse, error) {
+	agent, err := r.agentStore.GetAgent(req.AgentName)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("agent with id %s not found", req.AgentName))
+	}
+
+	connections, err := r.store.ListAgentConnections(agent)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("no connections found for agent with id %s", req.AgentName))
+	}
+
+	out := make([]*api.Connection, len(connections))
+	for i, connection := range connections {
+		out[i] = &api.Connection{
+			TheirLabel:   connection.TheirLabel,
+			MyLabel:      connection.MyLabel,
+			TheirDid:     connection.TheirDID,
+			MyDid:        connection.MyDID,
+			ConnectionId: connection.ConnectionID,
+			ExternalId:   connection.ExternalID,
+		}
+	}
+
+	return &api.ListConnectionResponse{
+		Connections: out,
+	}, nil
+
+}
+
+func (r *APIServer) DeleteConnection(_ context.Context, req *api.DeleteConnectionRequest) (*api.DeleteConnectionResponse, error) {
+	agent, err := r.agentStore.GetAgent(req.AgentName)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("agent with id %s not found", req.AgentName))
+	}
+
+	err = r.store.DeleteAgentConnection(agent, req.ExternalId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to delete connection %s for agent with name %s", req.ExternalId, req.AgentName))
+	}
+
+	return &api.DeleteConnectionResponse{}, nil
+}
+
+func (r *APIServer) AcceptInvitation(ctx context.Context, req *common.AcceptInvitationRequest) (*common.AcceptInvitationResponse, error) {
+	resp, err := r.doorman.AcceptInvitation(ctx, req)
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to accept agent invitation").Error())
+	}
+
+	return resp, nil
 }

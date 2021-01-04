@@ -14,8 +14,11 @@ import (
 	"strings"
 
 	"github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/dispatcher"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
+	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
@@ -27,10 +30,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/scoir/canis/pkg/config"
+	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/didcomm/verifier"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
-	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/presentproof/engine"
 	"github.com/scoir/canis/pkg/presentproof/engine/indy"
 	"github.com/scoir/canis/pkg/ursa"
@@ -56,6 +60,7 @@ type Provider struct {
 	ariesStorageProvider storage.Provider
 	keyMgr               kms.KeyManager
 	conf                 config.Config
+	actx                 *ariescontext.Provider
 }
 
 func Execute() {
@@ -113,11 +118,17 @@ func initConfig() {
 		log.Fatalln("error creating lock service")
 	}
 
+	actx, err := GetAriesContext(conf, ls, lock)
+	if err != nil {
+		log.Fatalln("error creating aries context", err)
+	}
+
 	ctx = &Provider{
 		lock:                 lock,
 		store:                store,
 		ariesStorageProvider: ls,
 		conf:                 conf,
+		actx:                 actx,
 	}
 
 	ctx.keyMgr, err = localkms.New("local-lock://default/master/key/", ctx)
@@ -146,14 +157,14 @@ func (r *Provider) GetBridgeEndpoint() (*framework.Endpoint, error) {
 }
 
 // GetAriesContext todo
-func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
-	external := r.conf.GetString("inbound.external")
-	cfg, err := r.conf.AMQPConfig()
+func GetAriesContext(conf config.Config, ariesStorageProvider storage.Provider, lock secretlock.Service) (*ariescontext.Provider, error) {
+	external := conf.GetString("inbound.external")
+	cfg, err := conf.AMQPConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	vdrisConfig, err := r.conf.VDRIs()
+	vdrisConfig, err := conf.VDRIs()
 	if err != nil {
 		return nil, err
 	}
@@ -169,10 +180,11 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	}
 
 	vopts := []aries.Option{
-		aries.WithStoreProvider(r.ariesStorageProvider),
+		aries.WithStoreProvider(ariesStorageProvider),
 		aries.WithInboundTransport(amqpInbound),
 		aries.WithOutboundTransports(ws.NewOutbound()),
-		aries.WithSecretLock(r.lock),
+		aries.WithSecretLock(lock),
+		aries.WithProtocols(newPresentProofSvc()),
 	}
 	for _, vdri := range vdris {
 		vopts = append(vopts, aries.WithVDRI(vdri))
@@ -192,13 +204,33 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	return actx, err
 }
 
-// Verifier todo
-func (r *Provider) Verifier() ursa.Verifier {
-	return ursa.NewVerifier()
+func newPresentProofSvc() api.ProtocolSvcCreator {
+	return func(prv api.Provider) (dispatcher.ProtocolService, error) {
+		svc, err := presentproof.New(prv)
+		if err != nil {
+			return nil, err
+		}
+
+		// sets default middleware to the service
+		// svc.Use(mdissuecredential.SaveCredentials(prv))
+
+		return svc, nil
+	}
+}
+
+func (r *Provider) GetPresentProofClient() (verifier.PresentProofClient, error) {
+	prov := framework.NewSimpleProvider(r.actx)
+
+	proofcl, err := prov.GetPresentProofClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get present proof client")
+	}
+
+	return proofcl, nil
 }
 
 // IndyVDR todo
-func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
+func (r *Provider) IndyVDR() (credindyengine.VDRClient, error) {
 	genesisFile := r.conf.GetString("registry.indy.genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))
@@ -226,4 +258,8 @@ func (r *Provider) GetPresentationEngineRegistry() (engine.PresentationRegistry,
 // SecretLock todo
 func (r *Provider) SecretLock() secretlock.Service {
 	return r.lock
+}
+
+func (r *Provider) Oracle() credindyengine.Oracle {
+	return &ursa.CryptoOracle{}
 }

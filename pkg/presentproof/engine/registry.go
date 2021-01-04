@@ -3,28 +3,28 @@ package engine
 import (
 	"fmt"
 
-	"github.com/google/uuid"
-	ppclient "github.com/hyperledger/aries-framework-go/pkg/client/presentproof"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
-	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
 
 	"github.com/scoir/canis/pkg/datastore"
-	api "github.com/scoir/canis/pkg/protogen/common"
+	"github.com/scoir/canis/pkg/schema"
 )
 
 const PresentProofType = "https://didcomm.org/present-proof/2.0/request-presentation"
 
 //go:generate mockery -name=PresentationEngine
 type PresentationEngine interface {
-	RequestPresentationAttach(attrInfo map[string]*api.AttrInfo, predicateInfo map[string]*api.PredicateInfo) (string, error)
-	RequestPresentationFormat() string
 	Accept(typ string) bool
+	RequestPresentation(name, version string, attrInfo map[string]*schema.IndyProofRequestAttr,
+		predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error)
+	RequestPresentationFormat() string
+	Verify(presentation, request []byte, theirDID string, myDID string) error
 }
 
 //go:generate mockery -name=PresentationRegistry
 type PresentationRegistry interface {
-	RequestPresentation(typ string, attrInfo map[string]*api.AttrInfo, predicateInfo map[string]*api.PredicateInfo) (
-		*ppclient.RequestPresentation, error)
+	RequestPresentation(name, version, typ string, attrInfo map[string]*schema.IndyProofRequestAttr,
+		predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error)
+	Verify(format string, presentation, request []byte, theirDID string, myDID string) error
 }
 
 type Option func(opts *Registry)
@@ -49,38 +49,26 @@ func New(prov provider, opts ...Option) *Registry {
 }
 
 // RequestPresentation
-func (r *Registry) RequestPresentation(typ string, attrInfo map[string]*api.AttrInfo,
-	predicateInfo map[string]*api.PredicateInfo) (*ppclient.RequestPresentation, error) {
+func (r *Registry) RequestPresentation(name, version, typ string, attrInfo map[string]*schema.IndyProofRequestAttr,
+	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
 
 	e, err := r.resolveEngine(typ)
 	if err != nil {
 		return nil, err
 	}
 
-	attach, err := e.RequestPresentationAttach(attrInfo, predicateInfo)
+	return e.RequestPresentation(name, version, attrInfo, predicateInfo)
+}
+
+func (r *Registry) Verify(format string, presentation, request []byte, theirDID string, myDID string) error {
+
+	e, err := r.resolveEngine(format)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	attachID := uuid.New().String()
-	req := &ppclient.RequestPresentation{
-		Type: PresentProofType,
-		Formats: []presentproof.Format{{
-			AttachID: attachID,
-			Format:   e.RequestPresentationFormat(),
-		}},
-		RequestPresentationsAttach: []decorator.Attachment{
-			{
-				ID:       attachID,
-				MimeType: "application/json",
-				Data: decorator.AttachmentData{
-					Base64: attach,
-				},
-			},
-		},
-	}
+	return e.Verify(presentation, request, theirDID, myDID)
 
-	return req, nil
 }
 
 func (r *Registry) resolveEngine(method string) (PresentationEngine, error) {

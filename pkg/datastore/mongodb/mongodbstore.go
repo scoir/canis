@@ -32,7 +32,8 @@ const (
 	AgentC               = "Agent"
 	AgentConnectionC     = "AgentConnection"
 	SchemaC              = "Schema"
-	CredentialC          = "Credential"
+	CredentialC          = "IssuedCredential"
+	PresentationC        = "Presentation"
 	PresentationRequestC = "PresentationRequest"
 	WebhookC             = "Webhook"
 )
@@ -254,10 +255,22 @@ func (r *mongoDBStore) ListSchema(c *datastore.SchemaCriteria) (*datastore.Schem
 }
 
 // GetSchema return single Schema
-func (r *mongoDBStore) GetSchema(id string) (*datastore.Schema, error) {
+func (r *mongoDBStore) GetSchema(name string) (*datastore.Schema, error) {
 	schema := &datastore.Schema{}
 
-	err := r.db.Collection(SchemaC).FindOne(context.Background(), bson.M{"id": id}).Decode(schema)
+	err := r.db.Collection(SchemaC).FindOne(context.Background(), bson.M{"name": name}).Decode(schema)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load schema")
+	}
+
+	return schema, nil
+}
+
+// GetSchemaByExternalID return single Schema
+func (r *mongoDBStore) GetSchemaByExternalID(externalID string) (*datastore.Schema, error) {
+	schema := &datastore.Schema{}
+
+	err := r.db.Collection(SchemaC).FindOne(context.Background(), bson.M{"externalschemaid": externalID}).Decode(schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load schema")
 	}
@@ -266,8 +279,8 @@ func (r *mongoDBStore) GetSchema(id string) (*datastore.Schema, error) {
 }
 
 // DeleteSchema delete single schema
-func (r *mongoDBStore) DeleteSchema(id string) error {
-	_, err := r.db.Collection(SchemaC).DeleteOne(context.Background(), bson.M{"id": id})
+func (r *mongoDBStore) DeleteSchema(name string) error {
+	_, err := r.db.Collection(SchemaC).DeleteOne(context.Background(), bson.M{"name": name})
 	if err != nil {
 		return errors.Wrap(err, "unable to delete schema")
 	}
@@ -277,7 +290,7 @@ func (r *mongoDBStore) DeleteSchema(id string) error {
 
 // UpdateSchema update single schema
 func (r *mongoDBStore) UpdateSchema(s *datastore.Schema) error {
-	_, err := r.db.Collection(SchemaC).UpdateOne(context.Background(), bson.M{"id": s.ID}, bson.M{"$set": s})
+	_, err := r.db.Collection(SchemaC).UpdateOne(context.Background(), bson.M{"name": s.Name}, bson.M{"$set": s})
 	if err != nil {
 		return errors.Wrap(err, "unable to update schema")
 	}
@@ -296,7 +309,8 @@ func (r *mongoDBStore) InsertAgent(a *datastore.Agent) (string, error) {
 
 func (r *mongoDBStore) InsertAgentConnection(a *datastore.Agent, externalID string, conn *didexchange.Connection) error {
 	ac := &datastore.AgentConnection{
-		AgentID:      a.ID,
+		AgentName:    a.Name,
+		TheirLabel:   conn.TheirLabel,
 		TheirDID:     conn.TheirDID,
 		MyDID:        conn.MyDID,
 		ConnectionID: conn.ConnectionID,
@@ -355,10 +369,10 @@ func (r *mongoDBStore) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentLi
 }
 
 // GetAgent return single agent
-func (r *mongoDBStore) GetAgent(id string) (*datastore.Agent, error) {
+func (r *mongoDBStore) GetAgent(name string) (*datastore.Agent, error) {
 	agent := &datastore.Agent{}
 
-	err := r.db.Collection(AgentC).FindOne(context.Background(), bson.M{"id": id}).Decode(agent)
+	err := r.db.Collection(AgentC).FindOne(context.Background(), bson.M{"name": name}).Decode(agent)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load agent")
 	}
@@ -383,8 +397,8 @@ func (r *mongoDBStore) GetAgentByPublicDID(DID string) (*datastore.Agent, error)
 }
 
 // DeleteAgent delete single agent
-func (r *mongoDBStore) DeleteAgent(id string) error {
-	_, err := r.db.Collection(AgentC).DeleteOne(context.Background(), bson.M{"id": id})
+func (r *mongoDBStore) DeleteAgent(name string) error {
+	_, err := r.db.Collection(AgentC).DeleteOne(context.Background(), bson.M{"name": name})
 	if err != nil {
 		return errors.Wrap(err, "unable to delete agent")
 	}
@@ -394,9 +408,38 @@ func (r *mongoDBStore) DeleteAgent(id string) error {
 
 // UpdateAgent delete single agent
 func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
-	_, err := r.db.Collection(AgentC).UpdateOne(context.Background(), bson.M{"id": a.ID}, bson.M{"$set": a})
+	_, err := r.db.Collection(AgentC).UpdateOne(context.Background(), bson.M{"name": a.Name}, bson.M{"$set": a})
 	if err != nil {
 		return errors.Wrap(err, "unable to update agent")
+	}
+
+	return nil
+}
+
+func (r *mongoDBStore) ListAgentConnections(a *datastore.Agent) ([]*datastore.AgentConnection, error) {
+	ctx := context.Background()
+	var ac []*datastore.AgentConnection
+	results, err := r.db.Collection(AgentConnectionC).Find(ctx,
+		bson.M{"agentname": a.Name})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to list agent connections")
+	}
+
+	err = results.All(ctx, &ac)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to decode agent connections")
+	}
+
+	return ac, nil
+}
+
+func (r *mongoDBStore) DeleteAgentConnection(a *datastore.Agent, externalID string) error {
+	_, err := r.db.Collection(AgentConnectionC).DeleteMany(context.Background(),
+		bson.M{"agentname": a.Name, "externalid": externalID})
+
+	if err != nil {
+		return errors.Wrap(err, "unable to delete agent connection")
 	}
 
 	return nil
@@ -405,34 +448,13 @@ func (r *mongoDBStore) UpdateAgent(a *datastore.Agent) error {
 func (r *mongoDBStore) GetAgentConnection(a *datastore.Agent, externalID string) (*datastore.AgentConnection, error) {
 	ac := &datastore.AgentConnection{}
 	err := r.db.Collection(AgentConnectionC).FindOne(context.Background(),
-		bson.M{"agentid": a.ID, "externalid": externalID}).Decode(ac)
+		bson.M{"agentname": a.Name, "externalid": externalID}).Decode(ac)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load agent connection")
 	}
 
 	return ac, nil
-}
-
-func (r *mongoDBStore) InsertCredential(c *datastore.Credential) (string, error) {
-	res, err := r.db.Collection(CredentialC).InsertOne(context.Background(), c)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to insert credential")
-	}
-	id := res.InsertedID.(primitive.ObjectID)
-	return id.Hex(), nil
-}
-
-func (r *mongoDBStore) FindOffer(offerID string) (*datastore.Credential, error) {
-	c := &datastore.Credential{}
-	err := r.db.Collection(CredentialC).FindOne(context.Background(),
-		bson.M{"threadid": offerID, "systemstate": "offered"}).Decode(c)
-
-	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load offer").Error())
-	}
-
-	return c, nil
 }
 
 func (r *mongoDBStore) ListWebhooks(typ string) ([]*datastore.Webhook, error) {
@@ -481,23 +503,36 @@ func (r *mongoDBStore) InsertPresentationRequest(pr *datastore.PresentationReque
 	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
-func (r *mongoDBStore) DeleteOffer(offerID string) error {
-	_, err := r.db.Collection(CredentialC).DeleteOne(context.Background(), bson.M{"threadid": offerID})
-	if err != nil {
-		return errors.Wrap(err, "unable to delete offer")
-	}
-
-	return nil
-}
-
 func (r *mongoDBStore) GetAgentConnectionForDID(a *datastore.Agent, theirDID string) (*datastore.AgentConnection, error) {
 	ac := &datastore.AgentConnection{}
 	err := r.db.Collection(AgentConnectionC).FindOne(context.Background(),
-		bson.M{"agentid": a.ID, "theirdid": theirDID}).Decode(ac)
+		bson.M{"agentname": a.Name, "theirdid": theirDID}).Decode(ac)
 
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
 	}
 
 	return ac, nil
+}
+
+func (r *mongoDBStore) InsertPresentation(p *datastore.Presentation) (string, error) {
+
+	res, err := r.db.Collection(PresentationC).InsertOne(context.Background(), p)
+	if err != nil {
+		return "", err
+	}
+
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+func (r *mongoDBStore) GetPresentationRequest(ID string) (*datastore.PresentationRequest, error) {
+	pr := &datastore.PresentationRequest{}
+	err := r.db.Collection(PresentationRequestC).FindOne(context.Background(),
+		bson.M{"presentationrequestid": ID}).Decode(pr)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
+	}
+
+	return pr, nil
 }

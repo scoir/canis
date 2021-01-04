@@ -27,13 +27,13 @@ func (_m *Store) AddWebhook(hook *datastore.Webhook) error {
 	return r0
 }
 
-// DeleteAgent provides a mock function with given fields: id
-func (_m *Store) DeleteAgent(id string) error {
-	ret := _m.Called(id)
+// DeleteAgent provides a mock function with given fields: name
+func (_m *Store) DeleteAgent(name string) error {
+	ret := _m.Called(name)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(id)
+		r0 = rf(name)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -41,8 +41,22 @@ func (_m *Store) DeleteAgent(id string) error {
 	return r0
 }
 
-// DeleteOffer provides a mock function with given fields: offerID
-func (_m *Store) DeleteOffer(offerID string) error {
+// DeleteAgentConnection provides a mock function with given fields: a, externalID
+func (_m *Store) DeleteAgentConnection(a *datastore.Agent, externalID string) error {
+	ret := _m.Called(a, externalID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.Agent, string) error); ok {
+		r0 = rf(a, externalID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteCredentialByOffer provides a mock function with given fields: offerID
+func (_m *Store) DeleteCredentialByOffer(offerID string) error {
 	ret := _m.Called(offerID)
 
 	var r0 error
@@ -55,13 +69,13 @@ func (_m *Store) DeleteOffer(offerID string) error {
 	return r0
 }
 
-// DeleteSchema provides a mock function with given fields: id
-func (_m *Store) DeleteSchema(id string) error {
-	ret := _m.Called(id)
+// DeleteSchema provides a mock function with given fields: name
+func (_m *Store) DeleteSchema(name string) error {
+	ret := _m.Called(name)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(id)
+		r0 = rf(name)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -83,16 +97,16 @@ func (_m *Store) DeleteWebhook(typ string) error {
 	return r0
 }
 
-// FindOffer provides a mock function with given fields: offerID
-func (_m *Store) FindOffer(offerID string) (*datastore.Credential, error) {
+// FindCredentialByProtocolID provides a mock function with given fields: offerID
+func (_m *Store) FindCredentialByProtocolID(offerID string) (*datastore.IssuedCredential, error) {
 	ret := _m.Called(offerID)
 
-	var r0 *datastore.Credential
-	if rf, ok := ret.Get(0).(func(string) *datastore.Credential); ok {
+	var r0 *datastore.IssuedCredential
+	if rf, ok := ret.Get(0).(func(string) *datastore.IssuedCredential); ok {
 		r0 = rf(offerID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*datastore.Credential)
+			r0 = ret.Get(0).(*datastore.IssuedCredential)
 		}
 	}
 
@@ -221,6 +235,29 @@ func (_m *Store) GetDID(id string) (*datastore.DID, error) {
 	return r0, r1
 }
 
+// GetPresentationRequest provides a mock function with given fields: ID
+func (_m *Store) GetPresentationRequest(ID string) (*datastore.PresentationRequest, error) {
+	ret := _m.Called(ID)
+
+	var r0 *datastore.PresentationRequest
+	if rf, ok := ret.Get(0).(func(string) *datastore.PresentationRequest); ok {
+		r0 = rf(ID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.PresentationRequest)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(ID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPublicDID provides a mock function with given fields:
 func (_m *Store) GetPublicDID() (*datastore.DID, error) {
 	ret := _m.Called()
@@ -244,13 +281,13 @@ func (_m *Store) GetPublicDID() (*datastore.DID, error) {
 	return r0, r1
 }
 
-// GetSchema provides a mock function with given fields: id
-func (_m *Store) GetSchema(id string) (*datastore.Schema, error) {
-	ret := _m.Called(id)
+// GetSchema provides a mock function with given fields: name
+func (_m *Store) GetSchema(name string) (*datastore.Schema, error) {
+	ret := _m.Called(name)
 
 	var r0 *datastore.Schema
 	if rf, ok := ret.Get(0).(func(string) *datastore.Schema); ok {
-		r0 = rf(id)
+		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*datastore.Schema)
@@ -259,7 +296,30 @@ func (_m *Store) GetSchema(id string) (*datastore.Schema, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+		r1 = rf(name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSchemaByExternalID provides a mock function with given fields: externalID
+func (_m *Store) GetSchemaByExternalID(externalID string) (*datastore.Schema, error) {
+	ret := _m.Called(externalID)
+
+	var r0 *datastore.Schema
+	if rf, ok := ret.Get(0).(func(string) *datastore.Schema); ok {
+		r0 = rf(externalID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.Schema)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(externalID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -303,18 +363,18 @@ func (_m *Store) InsertAgentConnection(a *datastore.Agent, externalID string, co
 }
 
 // InsertCredential provides a mock function with given fields: c
-func (_m *Store) InsertCredential(c *datastore.Credential) (string, error) {
+func (_m *Store) InsertCredential(c *datastore.IssuedCredential) (string, error) {
 	ret := _m.Called(c)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*datastore.Credential) string); ok {
+	if rf, ok := ret.Get(0).(func(*datastore.IssuedCredential) string); ok {
 		r0 = rf(c)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*datastore.Credential) error); ok {
+	if rf, ok := ret.Get(1).(func(*datastore.IssuedCredential) error); ok {
 		r1 = rf(c)
 	} else {
 		r1 = ret.Error(1)
@@ -335,6 +395,27 @@ func (_m *Store) InsertDID(d *datastore.DID) error {
 	}
 
 	return r0
+}
+
+// InsertPresentation provides a mock function with given fields: p
+func (_m *Store) InsertPresentation(p *datastore.Presentation) (string, error) {
+	ret := _m.Called(p)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*datastore.Presentation) string); ok {
+		r0 = rf(p)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.Presentation) error); ok {
+		r1 = rf(p)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // InsertPresentationRequest provides a mock function with given fields: pr
@@ -395,6 +476,29 @@ func (_m *Store) ListAgent(c *datastore.AgentCriteria) (*datastore.AgentList, er
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*datastore.AgentCriteria) error); ok {
 		r1 = rf(c)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListAgentConnections provides a mock function with given fields: a
+func (_m *Store) ListAgentConnections(a *datastore.Agent) ([]*datastore.AgentConnection, error) {
+	ret := _m.Called(a)
+
+	var r0 []*datastore.AgentConnection
+	if rf, ok := ret.Get(0).(func(*datastore.Agent) []*datastore.AgentConnection); ok {
+		r0 = rf(a)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*datastore.AgentConnection)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.Agent) error); ok {
+		r1 = rf(a)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -492,6 +596,20 @@ func (_m *Store) UpdateAgent(a *datastore.Agent) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*datastore.Agent) error); ok {
 		r0 = rf(a)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateCredential provides a mock function with given fields: c
+func (_m *Store) UpdateCredential(c *datastore.IssuedCredential) error {
+	ret := _m.Called(c)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.IssuedCredential) error); ok {
+		r0 = rf(c)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -7,10 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package datastore
 
 import (
-	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
-	"github.com/mr-tron/base58"
+	"time"
 
+	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
+	"github.com/mr-tron/base58"
 )
 
 type Criteria map[string]interface{}
@@ -26,16 +27,16 @@ type AgentList struct {
 }
 
 type Agent struct {
-	ID                  string
-	Name                string
-	EndorsableSchemaIds []string
-	PID                 string
-	HasPublicDID        bool
-	PublicDID           *DID
+	ID                    string
+	Name                  string
+	EndorsableSchemaNames []string
+	PID                   string
+	HasPublicDID          bool
+	PublicDID             *DID
 }
 
 func (r *Agent) CanIssue(schemaID string) bool {
-	for _, id := range r.EndorsableSchemaIds {
+	for _, id := range r.EndorsableSchemaNames {
 		if schemaID == id {
 			return true
 		}
@@ -44,7 +45,9 @@ func (r *Agent) CanIssue(schemaID string) bool {
 }
 
 type AgentConnection struct {
-	AgentID      string
+	TheirLabel   string
+	MyLabel      string
+	AgentName    string
 	TheirDID     string
 	MyDID        string
 	ConnectionID string
@@ -113,18 +116,31 @@ type Offer struct {
 	Comment string
 	Type    string
 	Preview []icprotocol.Attribute
-	Body    []byte
+	Data    []byte
 }
 
 type Credential struct {
-	AgentID           string
+	ID string `json:"@id,omitempty"`
+	// Description is an optional human-readable description of the content.
+	Description string `json:"description,omitempty"`
+	// MimeType describes the MIME type of the attached content. Optional but recommended.
+	MimeType string `json:"mime-type,omitempty"`
+	// LastModTime is a hint about when the content in this attachment was last modified.
+	LastModTime time.Time `json:"lastmod_time,omitempty"`
+	Data        []byte    `json:"data"`
+}
+
+type IssuedCredential struct {
+	ID                string
+	AgentName         string
 	MyDID             string
 	TheirDID          string
-	ThreadID          string
-	SchemaID          string
+	ProtocolID        string
+	SchemaName        string
 	RegistryOfferID   string
 	ExternalSubjectID string
-	Offer             Offer
+	Offer             *Offer
+	Credential        *Credential
 	SystemState       string
 }
 
@@ -138,4 +154,12 @@ type PresentationRequest struct {
 	SchemaID              string
 	ExternalID            string
 	PresentationRequestID string
+	Data                  []byte
+}
+
+type Presentation struct {
+	TheirDID string
+	MyDID    string
+	Format   string
+	Data     []byte
 }

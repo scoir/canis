@@ -20,7 +20,7 @@ require (
 	github.com/hyperledger/aries-framework-go v0.1.5-0.20201017112511-5734c20820a9
 	github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp v0.0.0-20201119153638-fc5d5e680587
 	github.com/hyperledger/indy-vdr/wrappers/golang v0.0.0-20201031155907-5f437d26ed71
-	github.com/hyperledger/ursa-wrapper-go v0.0.0-20201020141813-07eecfdbb801
+	github.com/hyperledger/ursa-wrapper-go v0.3.0
 	github.com/makiuchi-d/gozxing v0.0.0-20200903113411-25f730ed83da
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/mr-tron/base58 v1.2.0
@@ -29,6 +29,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
 	github.com/scoir/aries-storage-mongo v0.0.0-20200924155006-8a599355491e
+	github.com/sirupsen/logrus v1.5.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
@@ -36,7 +37,6 @@ require (
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.6.1
-	github.com/unidoc/unipdf/v3 v3.10.1
 	go.mongodb.org/mongo-driver v1.4.1
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20200822124328-c89045814202

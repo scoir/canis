@@ -14,8 +14,11 @@ import (
 	"strings"
 
 	"github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/dispatcher"
+	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/transport/ws"
 	"github.com/hyperledger/aries-framework-go/pkg/framework/aries"
+	"github.com/hyperledger/aries-framework-go/pkg/framework/aries/api"
 	vdriapi "github.com/hyperledger/aries-framework-go/pkg/framework/aries/api/vdri"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
@@ -27,14 +30,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/scoir/canis/pkg/aries/didcomm/protocol/middleware/issuecredential"
 	"github.com/scoir/canis/pkg/config"
 	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/credential/engine/lds"
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/didcomm/issuer"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
-	indywrapper "github.com/scoir/canis/pkg/indy"
 	"github.com/scoir/canis/pkg/ursa"
 )
 
@@ -58,6 +62,10 @@ type Provider struct {
 	store                datastore.Store
 	ariesStorageProvider storage.Provider
 	conf                 config.Config
+}
+
+func (r *Provider) Oracle() indy.Oracle {
+	return &ursa.CryptoOracle{}
 }
 
 func Execute() {
@@ -127,6 +135,15 @@ func (r *Provider) Store() datastore.Store {
 	return r.store
 }
 
+func (r *Provider) GetCredentialIssuer() (issuer.CredentialIssuer, error) {
+	actx, err := r.GetAriesContext()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get aries context")
+	}
+	prov := framework.NewSimpleProvider(actx)
+	return prov.GetCredentialClient()
+}
+
 // GetStorageProvider todo
 func (r *Provider) StorageProvider() storage.Provider {
 	return r.ariesStorageProvider
@@ -182,6 +199,7 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 		aries.WithInboundTransport(amqpInbound),
 		aries.WithOutboundTransports(ws.NewOutbound()),
 		aries.WithSecretLock(r.lock),
+		aries.WithProtocols(r.newIssueCredentialSvc()),
 	}
 	for _, vdri := range vdris {
 		vopts = append(vopts, aries.WithVDRI(vdri))
@@ -201,11 +219,21 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	return r.actx, err
 }
 
-func (r *Provider) Issuer() ursa.Issuer {
-	return ursa.NewIssuer()
+func (r *Provider) newIssueCredentialSvc() api.ProtocolSvcCreator {
+	return func(prv api.Provider) (dispatcher.ProtocolService, error) {
+		service, err := icprotocol.New(prv)
+		if err != nil {
+			return nil, err
+		}
+
+		// sets default middleware to the service
+		service.Use(issuecredential.SaveCredentials(r))
+
+		return service, nil
+	}
 }
 
-func (r *Provider) IndyVDR() (indywrapper.IndyVDRClient, error) {
+func (r *Provider) IndyVDR() (indy.VDRClient, error) {
 	genesisFile := r.conf.GetString("registry.indy.genesisFile")
 	re := strings.NewReader(genesisFile)
 	cl, err := vdr.New(ioutil.NopCloser(re))

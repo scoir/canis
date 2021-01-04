@@ -20,6 +20,12 @@ var (
 	cfgFile        string
 	ctx            *context.Provider
 	configProvider config.Provider
+
+	//common vars reused across commands
+	comment    string
+	schemaName string
+	subject    string
+	attrValues []string
 )
 
 var rootCmd = &cobra.Command{
@@ -45,7 +51,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "no default config file")
 }
 
-// initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	ctx = context.NewProvider(configProvider.Load(cfgFile))
 }

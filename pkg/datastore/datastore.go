@@ -38,18 +38,22 @@ type Store interface {
 	// ListSchema query schemas
 	ListSchema(c *SchemaCriteria) (*SchemaList, error)
 	// GetSchema return single Schema
-	GetSchema(id string) (*Schema, error)
+	GetSchema(name string) (*Schema, error)
+	// GetSchema return single Schema
+	GetSchemaByExternalID(externalID string) (*Schema, error)
 	// DeleteSchema delete single schema
-	DeleteSchema(id string) error
+	DeleteSchema(name string) error
 	// UpdateSchema update single schema
 	UpdateSchema(s *Schema) error
 
 	// InsertCredential add Crednetial to store
-	InsertCredential(c *Credential) (string, error)
-	//FindOffer finds credential in offer state
-	FindOffer(offerID string) (*Credential, error)
+	InsertCredential(c *IssuedCredential) (string, error)
+	//FindCredentialByOffer finds credential in offer state
+	FindCredentialByProtocolID(offerID string) (*IssuedCredential, error)
+	// Update Credentia updates the credential
+	UpdateCredential(c *IssuedCredential) error
 	//Delete offer deletes the offer identifed by the offerID (thid of message)
-	DeleteOffer(offerID string) error
+	DeleteCredentialByOffer(offerID string) error
 
 	// InsertAgent add agent to store
 	InsertAgent(a *Agent) (string, error)
@@ -60,14 +64,19 @@ type Store interface {
 	// GetAgentByIPublicDID return single agent
 	GetAgentByPublicDID(DID string) (*Agent, error)
 	// DeleteAgent delete single agent
-	DeleteAgent(id string) error
+	DeleteAgent(name string) error
 	// UpdateAgent delete single agent
 	UpdateAgent(a *Agent) error
 	// InsertAgentConnection associates an agent with a connection
 	InsertAgentConnection(a *Agent, externalID string, conn *didexchange.Connection) error
+	// ListAgentConnections returns all the connections for an agent
+	ListAgentConnections(a *Agent) ([]*AgentConnection, error)
 	// GetAgentConnection return single connection between an agent and an external subject
 	GetAgentConnection(a *Agent, externalID string) (*AgentConnection, error)
-	// GetAgentConnection return single connection between an agent and an external subject
+	// DeleteAgentConnection deletes a connection for an agent
+	DeleteAgentConnection(a *Agent, externalID string) error
+
+	// GetAgentConnectionForDID return single connection between an agent and an external subject
 	GetAgentConnectionForDID(a *Agent, theirDID string) (*AgentConnection, error)
 
 	ListWebhooks(typ string) ([]*Webhook, error)
@@ -76,6 +85,12 @@ type Store interface {
 
 	DeleteWebhook(typ string) error
 
-	//InsertPresentationRequest
+	//InsertPresentationRequest inserts the presentation request
 	InsertPresentationRequest(pr *PresentationRequest) (string, error)
+
+	// InsertPresentation inserts the presentation
+	InsertPresentation(p *Presentation) (string, error)
+
+	// GetPresentationRequest retrieves the presentation request by ID
+	GetPresentationRequest(ID string) (*PresentationRequest, error)
 }

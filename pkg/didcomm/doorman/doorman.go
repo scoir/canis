@@ -86,9 +86,9 @@ func (r *Doorman) APISpec() (http.HandlerFunc, error) {
 
 func (r *Doorman) GetInvitation(_ context.Context, request *common.InvitationRequest) (*common.InvitationResponse, error) {
 
-	agent, err := r.store.GetAgent(request.AgentId)
+	agent, err := r.store.GetAgent(request.AgentName)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("agent with id %s not found", request.AgentId))
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("agent with id %s not found", request.AgentName))
 	}
 
 	_, err = r.store.GetAgentConnection(agent, request.ExternalId)
@@ -102,16 +102,15 @@ func (r *Doorman) GetInvitation(_ context.Context, request *common.InvitationReq
 		did := agent.PublicDID.DID.String()
 		invite, err = r.bouncer.CreateInvitationWithDIDNotify(agent.Name, did, r.accepted(agent, request.ExternalId), failed)
 		if err != nil {
-			return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", request.AgentId))
+			return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("error creating invitation with public DID for agent %s", request.AgentName))
 		}
 	} else {
 		invite, err = r.bouncer.CreateInvitationNotify(agent.Name, r.accepted(agent, request.ExternalId), failed)
 		if err != nil {
-			return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("schema with id %s already exists", request.AgentId))
+			return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("error creating invitation for agent %s", request.AgentName))
 		}
 	}
 
-	//invite.Type = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation"
 	d, _ := json.MarshalIndent(invite, " ", " ")
 	return &common.InvitationResponse{
 		Invitation: string(d),
@@ -165,7 +164,7 @@ func (r *Doorman) publishEvent(agent *datastore.Agent, externalID string, conn *
 		Topic: ConnectionTopic,
 		Event: AcceptedEvent,
 		EventData: DIDAcceptedEvent{
-			AgentID:      agent.ID,
+			AgentName:    agent.Name,
 			TheirDID:     conn.TheirDID,
 			MyDID:        conn.MyDID,
 			ConnectionID: conn.ConnectionID,
@@ -188,4 +187,31 @@ func (r *Doorman) publishEvent(agent *datastore.Agent, externalID string, conn *
 
 func failed(id string, err error) {
 	log.Println("Connection to", id, "failed with error:", err)
+}
+
+func (r *Doorman) AcceptInvitation(_ context.Context, req *common.AcceptInvitationRequest) (*common.AcceptInvitationResponse, error) {
+
+	agent, err := r.store.GetAgent(req.AgentName)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("agent with id %s not found", req.AgentName))
+	}
+
+	_, err = r.store.GetAgentConnection(agent, req.ExternalId)
+	if err == nil {
+		return nil, status.Error(codes.AlreadyExists,
+			fmt.Sprintf("connection between agent %s and external ID %s already exists", agent.ID, req.ExternalId))
+	}
+
+	invite := &ariesdidex.Invitation{}
+	err = json.Unmarshal([]byte(req.Invitation), invite)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invitation is not valid JSON for an invite")
+	}
+
+	err = r.bouncer.EstablishConnectionNotify(invite, r.accepted(agent, req.ExternalId), failed)
+	if err != nil {
+		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("error creating invitation for agent %s", req.AgentName))
+	}
+
+	return &common.AcceptInvitationResponse{}, nil
 }
