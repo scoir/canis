@@ -13,7 +13,7 @@ import (
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 
 	cengine "github.com/scoir/canis/pkg/credential/engine"
-	indy2 "github.com/scoir/canis/pkg/credential/engine/indy"
+	"github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/datastore"
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 	api "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
@@ -40,7 +40,7 @@ type APIServer struct {
 type provider interface {
 	KMS() kms.KeyManager
 	Store() datastore.Store
-	IndyVDR() (indy2.VDRClient, error)
+	IndyVDR() (indy.VDRClient, error)
 	GetDoormanClient() (doorman.DoormanClient, error)
 	GetIssuerClient() (api.IssuerClient, error)
 	GetVerifierClient() (verifier.VerifierClient, error)

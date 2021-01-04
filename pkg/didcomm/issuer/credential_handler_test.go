@@ -19,7 +19,7 @@ import (
 )
 
 type handlerTestSuite struct {
-	target                *credHandler
+	target                *CredHandler
 	store                 *mocks.Store
 	credsup               *credential.Supervisor
 	registry              *emocks.CredentialRegistry
@@ -53,7 +53,7 @@ func setup(t *testing.T) (*handlerTestSuite, func()) {
 		notificationPublisher: &amqpmocks.Publisher{},
 	}
 
-	suite.target = &credHandler{
+	suite.target = &CredHandler{
 		store:                 suite.store,
 		registry:              suite.registry,
 		notificationPublisher: suite.notificationPublisher,

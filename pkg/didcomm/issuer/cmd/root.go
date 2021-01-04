@@ -36,6 +36,7 @@ import (
 	"github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/credential/engine/lds"
 	"github.com/scoir/canis/pkg/datastore"
+	"github.com/scoir/canis/pkg/didcomm/issuer"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
 	"github.com/scoir/canis/pkg/ursa"
@@ -132,6 +133,15 @@ func initConfig() {
 
 func (r *Provider) Store() datastore.Store {
 	return r.store
+}
+
+func (r *Provider) GetCredentialIssuer() (issuer.CredentialIssuer, error) {
+	actx, err := r.GetAriesContext()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get aries context")
+	}
+	prov := framework.NewSimpleProvider(actx)
+	return prov.GetCredentialClient()
 }
 
 // GetStorageProvider todo

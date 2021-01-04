@@ -10,22 +10,27 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/service"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
-	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/pkg/errors"
 
 	"github.com/scoir/canis/pkg/amqp"
-	"github.com/scoir/canis/pkg/credential"
 	"github.com/scoir/canis/pkg/credential/engine"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/notifier"
 )
 
-type credHandler struct {
-	ctx                   *ariescontext.Provider
+type CredHandler struct {
 	store                 datastore.Store
-	credsup               *credential.Supervisor
 	registry              engine.CredentialRegistry
 	notificationPublisher amqp.Publisher
+}
+
+func NewCredentialHandler(store datastore.Store, reg engine.CredentialRegistry) *CredHandler {
+	handler := &CredHandler{
+		store:    store,
+		registry: reg,
+	}
+
+	return handler
 }
 
 type prop interface {
@@ -33,7 +38,7 @@ type prop interface {
 	TheirDID() string
 }
 
-func (r *credHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *icprotocol.ProposeCredential) {
+func (r *CredHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *icprotocol.ProposeCredential) {
 	thid, _ := e.Message.ThreadID()
 	offer, err := r.store.FindCredentialByProtocolID(thid)
 	if err == nil {
@@ -120,15 +125,15 @@ func (r *credHandler) ProposeCredentialMsg(e service.DIDCommAction, proposal *ic
 
 }
 
-func (r *credHandler) OfferCredentialMsg(_ service.DIDCommAction, _ *icprotocol.OfferCredential) {
+func (r *CredHandler) OfferCredentialMsg(_ service.DIDCommAction, _ *icprotocol.OfferCredential) {
 	//NO-OP - this is a Holder State
 }
 
-func (r *credHandler) IssueCredentialMsg(_ service.DIDCommAction, _ *icprotocol.IssueCredential) {
+func (r *CredHandler) IssueCredentialMsg(_ service.DIDCommAction, _ *icprotocol.IssueCredential) {
 	//NO-OP - this is a Holder State
 }
 
-func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icprotocol.RequestCredential) {
+func (r *CredHandler) RequestCredentialMsg(e service.DIDCommAction, request *icprotocol.RequestCredential) {
 
 	if len(request.RequestsAttach) != 1 {
 		log.Println("only one credential is supported at a time")
@@ -222,7 +227,7 @@ func (r *credHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 	e.Continue(icprotocol.WithIssueCredential(msg))
 }
 
-func (r *credHandler) publishProposalReceived(agent *datastore.Agent, externalID string, schema *datastore.Schema,
+func (r *CredHandler) publishProposalReceived(agent *datastore.Agent, externalID string, schema *datastore.Schema,
 	proposal icprotocol.PreviewCredential) error {
 
 	evt := &notifier.Notification{
@@ -239,7 +244,7 @@ func (r *credHandler) publishProposalReceived(agent *datastore.Agent, externalID
 	return r.publishEvent(evt)
 }
 
-func (r *credHandler) publishEvent(evt interface{}) error {
+func (r *CredHandler) publishEvent(evt interface{}) error {
 
 	message, err := json.Marshal(evt)
 	if err != nil {
