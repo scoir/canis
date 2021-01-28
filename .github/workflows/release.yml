@@ -19,7 +19,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build
-      run: make build
+      run: make
 
     - name: Create Release
       id: create_release
