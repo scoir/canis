@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package didexchange
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -227,6 +229,8 @@ func (r *bouncer) waitForInvitation(invitationID, state string) (*didclient.Conn
 
 	for e := range msgCh {
 		props, _ := e.Properties.(didclient.Event)
+		d, _ := json.MarshalIndent(props, " ", " ")
+		fmt.Println(string(d))
 		if e.Msg.Type() == didexchange.RequestMsgType {
 			iID := e.Msg.ParentThreadID()
 			if iID == invitationID {

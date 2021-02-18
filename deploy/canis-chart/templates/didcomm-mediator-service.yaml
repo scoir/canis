@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-mediator
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-mediator
+spec:
+  ports:
+    - name: grpc
+      port: {{ .Values.mediator.grpc.port }}
+      protocol: TCP
+      targetPort: {{ .Values.mediator.grpc.port }}
+  selector:
+    name: {{ include "canis.fullname" . }}-didcomm-mediator
+  sessionAffinity: None
+  type: ClusterIP

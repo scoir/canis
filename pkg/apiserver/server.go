@@ -18,12 +18,14 @@ import (
 	doorman "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 	api "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
 	lbapi "github.com/scoir/canis/pkg/didcomm/loadbalancer/api/protogen"
+	mdapi "github.com/scoir/canis/pkg/didcomm/mediator/api/protogen"
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	pengine "github.com/scoir/canis/pkg/presentproof/engine"
 )
 
 type APIServer struct {
 	keyMgr               kms.KeyManager
+	mediatorKeyMgr       kms.KeyManager
 	agentStore           datastore.Store
 	schemaStore          datastore.Store
 	store                datastore.Store
@@ -34,15 +36,18 @@ type APIServer struct {
 	issuer               api.IssuerClient
 	verifier             verifier.VerifierClient
 	loadbalancer         lbapi.LoadbalancerClient
+	mediator             mdapi.MediatorClient
 }
 
 //go:generate mockery -name=provider --structname=Provider
 type provider interface {
 	KMS() kms.KeyManager
+	MediatorKMS() kms.KeyManager
 	Store() datastore.Store
 	IndyVDR() (indy.VDRClient, error)
-	GetDoormanClient() (doorman.DoormanClient, error)
 	GetIssuerClient() (api.IssuerClient, error)
+	GetDoormanClient() (doorman.DoormanClient, error)
+	GetMediatorClient() (mdapi.MediatorClient, error)
 	GetVerifierClient() (verifier.VerifierClient, error)
 	GetLoadbalancerClient() (lbapi.LoadbalancerClient, error)
 	GetCredentialEngineRegistry() (cengine.CredentialRegistry, error)
@@ -61,6 +66,7 @@ func New(ctx provider) (*APIServer, error) {
 	r := &APIServer{}
 
 	r.keyMgr = ctx.KMS()
+	r.mediatorKeyMgr = ctx.MediatorKMS()
 	r.schemaStore = ctx.Store()
 	r.agentStore = ctx.Store()
 	r.store = ctx.Store()
@@ -70,14 +76,19 @@ func New(ctx provider) (*APIServer, error) {
 		return nil, errors.Wrap(err, "unable to get IndyVDR")
 	}
 
+	r.issuer, err = ctx.GetIssuerClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get issuer client")
+	}
+
 	r.doorman, err = ctx.GetDoormanClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get doorman client")
 	}
 
-	r.issuer, err = ctx.GetIssuerClient()
+	r.mediator, err = ctx.GetMediatorClient()
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get issuer client")
+		return nil, errors.Wrap(err, "unable to get mediator client")
 	}
 
 	r.verifier, err = ctx.GetVerifierClient()

@@ -20,8 +20,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/scoir/canis/pkg/datastore"
 )
@@ -36,6 +34,8 @@ const (
 	PresentationC        = "Presentation"
 	PresentationRequestC = "PresentationRequest"
 	WebhookC             = "Webhook"
+	MediatorDIDC         = "MediatorDID"
+	EdgeAgentC           = "EdgeAgent"
 )
 
 type Config struct {
@@ -509,7 +509,7 @@ func (r *mongoDBStore) GetAgentConnectionForDID(a *datastore.Agent, theirDID str
 		bson.M{"agentname": a.Name, "theirdid": theirDID}).Decode(ac)
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
+		return nil, errors.Wrap(err, "failed load agent connection")
 	}
 
 	return ac, nil
@@ -531,8 +531,84 @@ func (r *mongoDBStore) GetPresentationRequest(ID string) (*datastore.Presentatio
 		bson.M{"presentationrequestid": ID}).Decode(pr)
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, errors.Wrap(err, "failed load agent connection").Error())
+		return nil, errors.Wrap(err, "failed load agent connection")
 	}
 
 	return pr, nil
+}
+
+func (r *mongoDBStore) RegisterEdgeAgent(connectionID, externalID string) (string, error) {
+	ea := &datastore.EdgeAgent{
+		ConnectionID: connectionID,
+		ExternalID:   externalID,
+	}
+
+	res, err := r.db.Collection(EdgeAgentC).InsertOne(context.Background(), ea)
+	if err != nil {
+		return "", err
+	}
+
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+func (r *mongoDBStore) GetEdgeAgent(connectionID string) (*datastore.EdgeAgent, error) {
+	ea := &datastore.EdgeAgent{}
+
+	err := r.db.Collection(EdgeAgentC).FindOne(context.Background(), bson.M{"connectionid": connectionID}).Decode(ea)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to find edge agent by DID")
+	}
+
+	return ea, nil
+}
+
+func (r *mongoDBStore) GetEdgeAgentForDID(theirDID string) (*datastore.EdgeAgent, error) {
+	ea := &datastore.EdgeAgent{}
+
+	err := r.db.Collection(EdgeAgentC).FindOne(context.Background(), bson.M{"theirdid": theirDID}).Decode(ea)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to find edge agent by DID")
+	}
+
+	return ea, nil
+}
+
+func (r *mongoDBStore) UpdateEdgeAgent(ea *datastore.EdgeAgent) error {
+	_, err := r.db.Collection(EdgeAgentC).UpdateOne(context.Background(),
+		bson.M{"externalid": ea.ExternalID, "connectionid": ea.ConnectionID}, bson.M{"$set": ea})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SetMediatorDID update single DID to public, unset remaining
+func (r *mongoDBStore) SetMediatorDID(d *datastore.DID) error {
+	ctx := context.Background()
+	_, err := r.db.Collection(MediatorDIDC).DeleteMany(ctx, bson.M{})
+	if err != nil {
+		return errors.Wrap(err, "unable to unset public DID")
+	}
+
+	d.ID = d.DID.String()
+	d.Public = true
+	_, err = r.db.Collection(MediatorDIDC).InsertOne(ctx, d)
+	if err != nil {
+		return errors.Wrap(err, "unable to unset public DID")
+	}
+
+	return nil
+}
+
+// GetMediatorDID get mediator public DID
+func (r *mongoDBStore) GetMediatorDID() (*datastore.DID, error) {
+	out := &datastore.DID{}
+
+	err := r.db.Collection(MediatorDIDC).FindOne(context.Background(), bson.M{}).Decode(out)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to find public PeerDID")
+	}
+
+	return out, nil
 }

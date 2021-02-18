@@ -113,6 +113,35 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
+  canis-didcomm-mediator:
+    image: canislabs/canis
+    command: "canis-didcomm-mediator start"
+    ports:
+      - "10001:10001"
+      - "10002:10002"
+      - "10003:10003"
+    networks:
+      - backend
+    secrets:
+      - source: canis-didcomm-mediator-config
+        target: /etc/canis/canis-mediator-config.yml
+      - source: aries-indy-vdri-config
+        target: /etc/canis/canis-aries-indy-vdri-config.yml
+      - source: data-store-config
+        target: /etc/canis/canis-data-store-config.yml
+      - source: ledger-store-config
+        target: /etc/canis/canis-ledger-store-config.yml
+      - source: amqp-config
+        target: /etc/canis/canis-amqp-config.yml
+      - source: master-lock-key
+        target: /etc/canis/canis-master-lock-key.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
   canis-didcomm-lb:
     image: canislabs/canis
     command: "canis-didcomm-lb start"
@@ -186,6 +215,8 @@ secrets:
     file: ./canis-didcomm-verifier.yaml
   canis-didcomm-doorman-config:
     file: ./canis-didcomm-doorman.yaml
+  canis-didcomm-mediator-config:
+    file: ./canis-didcomm-mediator.yaml
   canis-didcomm-lb-config:
     file: ./canis-didcomm-lb.yaml
   canis-webhook-notifier-config:

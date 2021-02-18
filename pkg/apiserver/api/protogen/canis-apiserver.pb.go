@@ -2654,7 +2654,7 @@ var file_canis_apiserver_proto_rawDesc = []byte{
 	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x61,
 	0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74,
 	0x69, 0x6f, 0x6e, 0x52, 0x0b, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73,
-	0x32, 0x95, 0x12, 0x0a, 0x05, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x68, 0x0a, 0x0c, 0x43, 0x72,
+	0x32, 0x91, 0x13, 0x0a, 0x05, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x68, 0x0a, 0x0c, 0x43, 0x72,
 	0x65, 0x61, 0x74, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x1e, 0x2e, 0x61, 0x70, 0x69,
 	0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x63, 0x68,
 	0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x61, 0x70, 0x69,
@@ -2799,18 +2799,25 @@ var file_canis_apiserver_proto_rawDesc = []byte{
 	0x2e, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74,
 	0x65, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
 	0x22, 0x16, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x10, 0x2a, 0x0e, 0x2f, 0x77, 0x65, 0x62, 0x68, 0x6f,
-	0x6f, 0x6b, 0x73, 0x2f, 0x7b, 0x69, 0x64, 0x7d, 0x42, 0x9f, 0x01, 0x5a, 0x0d, 0x61, 0x70, 0x69,
-	0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x92, 0x41, 0x8c, 0x01, 0x12, 0x57,
-	0x0a, 0x0f, 0x43, 0x61, 0x6e, 0x69, 0x73, 0x20, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x20, 0x41, 0x50,
-	0x49, 0x2a, 0x3d, 0x0a, 0x0a, 0x41, 0x70, 0x61, 0x63, 0x68, 0x65, 0x20, 0x32, 0x2e, 0x30, 0x12,
-	0x2f, 0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, 0x77, 0x77, 0x77, 0x2e, 0x61, 0x70, 0x61, 0x63,
-	0x68, 0x65, 0x2e, 0x6f, 0x72, 0x67, 0x2f, 0x6c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x73, 0x2f,
-	0x4c, 0x49, 0x43, 0x45, 0x4e, 0x53, 0x45, 0x2d, 0x32, 0x2e, 0x30, 0x2e, 0x68, 0x74, 0x6d, 0x6c,
-	0x32, 0x05, 0x30, 0x2e, 0x30, 0x2e, 0x32, 0x5a, 0x1f, 0x0a, 0x1d, 0x0a, 0x0a, 0x41, 0x70, 0x69,
-	0x4b, 0x65, 0x79, 0x41, 0x75, 0x74, 0x68, 0x12, 0x0f, 0x08, 0x02, 0x1a, 0x09, 0x58, 0x2d, 0x41,
-	0x50, 0x49, 0x2d, 0x4b, 0x65, 0x79, 0x20, 0x02, 0x62, 0x10, 0x0a, 0x0e, 0x0a, 0x0a, 0x41, 0x70,
-	0x69, 0x4b, 0x65, 0x79, 0x41, 0x75, 0x74, 0x68, 0x12, 0x00, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x6f, 0x6b, 0x73, 0x2f, 0x7b, 0x69, 0x64, 0x7d, 0x12, 0x7a, 0x0a, 0x11, 0x52, 0x65, 0x67, 0x69,
+	0x73, 0x74, 0x65, 0x72, 0x45, 0x64, 0x67, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x12, 0x20, 0x2e,
+	0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x45,
+	0x64, 0x67, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x21, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65,
+	0x72, 0x45, 0x64, 0x67, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x20, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1a, 0x22, 0x15, 0x2f, 0x65, 0x64, 0x67,
+	0x65, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x72, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65,
+	0x72, 0x3a, 0x01, 0x2a, 0x42, 0x9f, 0x01, 0x5a, 0x0d, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76,
+	0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x92, 0x41, 0x8c, 0x01, 0x12, 0x57, 0x0a, 0x0f, 0x43, 0x61,
+	0x6e, 0x69, 0x73, 0x20, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x20, 0x41, 0x50, 0x49, 0x2a, 0x3d, 0x0a,
+	0x0a, 0x41, 0x70, 0x61, 0x63, 0x68, 0x65, 0x20, 0x32, 0x2e, 0x30, 0x12, 0x2f, 0x68, 0x74, 0x74,
+	0x70, 0x3a, 0x2f, 0x2f, 0x77, 0x77, 0x77, 0x2e, 0x61, 0x70, 0x61, 0x63, 0x68, 0x65, 0x2e, 0x6f,
+	0x72, 0x67, 0x2f, 0x6c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x73, 0x2f, 0x4c, 0x49, 0x43, 0x45,
+	0x4e, 0x53, 0x45, 0x2d, 0x32, 0x2e, 0x30, 0x2e, 0x68, 0x74, 0x6d, 0x6c, 0x32, 0x05, 0x30, 0x2e,
+	0x30, 0x2e, 0x32, 0x5a, 0x1f, 0x0a, 0x1d, 0x0a, 0x0a, 0x41, 0x70, 0x69, 0x4b, 0x65, 0x79, 0x41,
+	0x75, 0x74, 0x68, 0x12, 0x0f, 0x08, 0x02, 0x1a, 0x09, 0x58, 0x2d, 0x41, 0x50, 0x49, 0x2d, 0x4b,
+	0x65, 0x79, 0x20, 0x02, 0x62, 0x10, 0x0a, 0x0e, 0x0a, 0x0a, 0x41, 0x70, 0x69, 0x4b, 0x65, 0x79,
+	0x41, 0x75, 0x74, 0x68, 0x12, 0x00, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2879,10 +2886,12 @@ var file_canis_apiserver_proto_goTypes = []interface{}{
 	(*common.InvitationRequest)(nil),           // 48: common.InvitationRequest
 	(*common.AcceptInvitationRequest)(nil),     // 49: common.AcceptInvitationRequest
 	(*common.RequestPresentationRequest)(nil),  // 50: common.RequestPresentationRequest
-	(*common.IssueCredentialResponse)(nil),     // 51: common.IssueCredentialResponse
-	(*common.InvitationResponse)(nil),          // 52: common.InvitationResponse
-	(*common.AcceptInvitationResponse)(nil),    // 53: common.AcceptInvitationResponse
-	(*common.RequestPresentationResponse)(nil), // 54: common.RequestPresentationResponse
+	(*common.RegisterEdgeAgentRequest)(nil),    // 51: common.RegisterEdgeAgentRequest
+	(*common.IssueCredentialResponse)(nil),     // 52: common.IssueCredentialResponse
+	(*common.InvitationResponse)(nil),          // 53: common.InvitationResponse
+	(*common.AcceptInvitationResponse)(nil),    // 54: common.AcceptInvitationResponse
+	(*common.RequestPresentationResponse)(nil), // 55: common.RequestPresentationResponse
+	(*common.RegisterEdgeAgentResponse)(nil),   // 56: common.RegisterEdgeAgentResponse
 }
 var file_canis_apiserver_proto_depIdxs = []int32{
 	6,  // 0: apiserver.NewSchema.attributes:type_name -> apiserver.Attribute
@@ -2921,28 +2930,30 @@ var file_canis_apiserver_proto_depIdxs = []int32{
 	36, // 33: apiserver.Admin.CreateWebhook:input_type -> apiserver.CreateWebhookRequest
 	40, // 34: apiserver.Admin.ListWebhook:input_type -> apiserver.ListWebhookRequest
 	38, // 35: apiserver.Admin.DeleteWebhook:input_type -> apiserver.DeleteWebhookRequest
-	8,  // 36: apiserver.Admin.CreateSchema:output_type -> apiserver.CreateSchemaResponse
-	10, // 37: apiserver.Admin.ListSchema:output_type -> apiserver.ListSchemaResponse
-	12, // 38: apiserver.Admin.GetSchema:output_type -> apiserver.GetSchemaResponse
-	14, // 39: apiserver.Admin.DeleteSchema:output_type -> apiserver.DeleteSchemaResponse
-	16, // 40: apiserver.Admin.UpdateSchema:output_type -> apiserver.UpdateSchemaResponse
-	51, // 41: apiserver.Admin.IssueCredential:output_type -> common.IssueCredentialResponse
-	20, // 42: apiserver.Admin.CreateAgent:output_type -> apiserver.CreateAgentResponse
-	22, // 43: apiserver.Admin.ListAgent:output_type -> apiserver.ListAgentResponse
-	24, // 44: apiserver.Admin.GetAgent:output_type -> apiserver.GetAgentResponse
-	26, // 45: apiserver.Admin.DeleteAgent:output_type -> apiserver.DeleteAgentResponse
-	28, // 46: apiserver.Admin.UpdateAgent:output_type -> apiserver.UpdateAgentResponse
-	52, // 47: apiserver.Admin.GetAgentInvitation:output_type -> common.InvitationResponse
-	53, // 48: apiserver.Admin.AcceptInvitation:output_type -> common.AcceptInvitationResponse
-	46, // 49: apiserver.Admin.ListConnections:output_type -> apiserver.ListConnectionResponse
-	44, // 50: apiserver.Admin.DeleteConnection:output_type -> apiserver.DeleteConnectionResponse
-	54, // 51: apiserver.Admin.RequestPresentation:output_type -> common.RequestPresentationResponse
-	34, // 52: apiserver.Admin.SeedPublicDID:output_type -> apiserver.SeedPublicDIDResponse
-	37, // 53: apiserver.Admin.CreateWebhook:output_type -> apiserver.CreateWebhookResponse
-	41, // 54: apiserver.Admin.ListWebhook:output_type -> apiserver.ListWebhookResponse
-	39, // 55: apiserver.Admin.DeleteWebhook:output_type -> apiserver.DeleteWebhookResponse
-	36, // [36:56] is the sub-list for method output_type
-	16, // [16:36] is the sub-list for method input_type
+	51, // 36: apiserver.Admin.RegisterEdgeAgent:input_type -> common.RegisterEdgeAgentRequest
+	8,  // 37: apiserver.Admin.CreateSchema:output_type -> apiserver.CreateSchemaResponse
+	10, // 38: apiserver.Admin.ListSchema:output_type -> apiserver.ListSchemaResponse
+	12, // 39: apiserver.Admin.GetSchema:output_type -> apiserver.GetSchemaResponse
+	14, // 40: apiserver.Admin.DeleteSchema:output_type -> apiserver.DeleteSchemaResponse
+	16, // 41: apiserver.Admin.UpdateSchema:output_type -> apiserver.UpdateSchemaResponse
+	52, // 42: apiserver.Admin.IssueCredential:output_type -> common.IssueCredentialResponse
+	20, // 43: apiserver.Admin.CreateAgent:output_type -> apiserver.CreateAgentResponse
+	22, // 44: apiserver.Admin.ListAgent:output_type -> apiserver.ListAgentResponse
+	24, // 45: apiserver.Admin.GetAgent:output_type -> apiserver.GetAgentResponse
+	26, // 46: apiserver.Admin.DeleteAgent:output_type -> apiserver.DeleteAgentResponse
+	28, // 47: apiserver.Admin.UpdateAgent:output_type -> apiserver.UpdateAgentResponse
+	53, // 48: apiserver.Admin.GetAgentInvitation:output_type -> common.InvitationResponse
+	54, // 49: apiserver.Admin.AcceptInvitation:output_type -> common.AcceptInvitationResponse
+	46, // 50: apiserver.Admin.ListConnections:output_type -> apiserver.ListConnectionResponse
+	44, // 51: apiserver.Admin.DeleteConnection:output_type -> apiserver.DeleteConnectionResponse
+	55, // 52: apiserver.Admin.RequestPresentation:output_type -> common.RequestPresentationResponse
+	34, // 53: apiserver.Admin.SeedPublicDID:output_type -> apiserver.SeedPublicDIDResponse
+	37, // 54: apiserver.Admin.CreateWebhook:output_type -> apiserver.CreateWebhookResponse
+	41, // 55: apiserver.Admin.ListWebhook:output_type -> apiserver.ListWebhookResponse
+	39, // 56: apiserver.Admin.DeleteWebhook:output_type -> apiserver.DeleteWebhookResponse
+	56, // 57: apiserver.Admin.RegisterEdgeAgent:output_type -> common.RegisterEdgeAgentResponse
+	37, // [37:58] is the sub-list for method output_type
+	16, // [16:37] is the sub-list for method input_type
 	16, // [16:16] is the sub-list for extension type_name
 	16, // [16:16] is the sub-list for extension extendee
 	0,  // [0:16] is the sub-list for field type_name
@@ -3548,6 +3559,7 @@ type AdminClient interface {
 	CreateWebhook(ctx context.Context, in *CreateWebhookRequest, opts ...grpc.CallOption) (*CreateWebhookResponse, error)
 	ListWebhook(ctx context.Context, in *ListWebhookRequest, opts ...grpc.CallOption) (*ListWebhookResponse, error)
 	DeleteWebhook(ctx context.Context, in *DeleteWebhookRequest, opts ...grpc.CallOption) (*DeleteWebhookResponse, error)
+	RegisterEdgeAgent(ctx context.Context, in *common.RegisterEdgeAgentRequest, opts ...grpc.CallOption) (*common.RegisterEdgeAgentResponse, error)
 }
 
 type adminClient struct {
@@ -3738,6 +3750,15 @@ func (c *adminClient) DeleteWebhook(ctx context.Context, in *DeleteWebhookReques
 	return out, nil
 }
 
+func (c *adminClient) RegisterEdgeAgent(ctx context.Context, in *common.RegisterEdgeAgentRequest, opts ...grpc.CallOption) (*common.RegisterEdgeAgentResponse, error) {
+	out := new(common.RegisterEdgeAgentResponse)
+	err := c.cc.Invoke(ctx, "/apiserver.Admin/RegisterEdgeAgent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServer is the server API for Admin service.
 type AdminServer interface {
 	CreateSchema(context.Context, *CreateSchemaRequest) (*CreateSchemaResponse, error)
@@ -3760,6 +3781,7 @@ type AdminServer interface {
 	CreateWebhook(context.Context, *CreateWebhookRequest) (*CreateWebhookResponse, error)
 	ListWebhook(context.Context, *ListWebhookRequest) (*ListWebhookResponse, error)
 	DeleteWebhook(context.Context, *DeleteWebhookRequest) (*DeleteWebhookResponse, error)
+	RegisterEdgeAgent(context.Context, *common.RegisterEdgeAgentRequest) (*common.RegisterEdgeAgentResponse, error)
 }
 
 // UnimplementedAdminServer can be embedded to have forward compatible implementations.
@@ -3825,6 +3847,9 @@ func (*UnimplementedAdminServer) ListWebhook(context.Context, *ListWebhookReques
 }
 func (*UnimplementedAdminServer) DeleteWebhook(context.Context, *DeleteWebhookRequest) (*DeleteWebhookResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteWebhook not implemented")
+}
+func (*UnimplementedAdminServer) RegisterEdgeAgent(context.Context, *common.RegisterEdgeAgentRequest) (*common.RegisterEdgeAgentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterEdgeAgent not implemented")
 }
 
 func RegisterAdminServer(s *grpc.Server, srv AdminServer) {
@@ -4191,6 +4216,24 @@ func _Admin_DeleteWebhook_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Admin_RegisterEdgeAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(common.RegisterEdgeAgentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).RegisterEdgeAgent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/apiserver.Admin/RegisterEdgeAgent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).RegisterEdgeAgent(ctx, req.(*common.RegisterEdgeAgentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Admin_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "apiserver.Admin",
 	HandlerType: (*AdminServer)(nil),
@@ -4274,6 +4317,10 @@ var _Admin_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteWebhook",
 			Handler:    _Admin_DeleteWebhook_Handler,
+		},
+		{
+			MethodName: "RegisterEdgeAgent",
+			Handler:    _Admin_RegisterEdgeAgent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

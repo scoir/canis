@@ -429,6 +429,38 @@
         ]
       }
     },
+    "/edge/agents/register": {
+      "post": {
+        "operationId": "Admin_RegisterEdgeAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/commonRegisterEdgeAgentResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/commonRegisterEdgeAgentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/schema": {
       "get": {
         "operationId": "Admin_ListSchema",
@@ -1075,6 +1107,28 @@
         "non_revoked": {
           "type": "string",
           "format": "date-time"
+        }
+      }
+    },
+    "commonRegisterEdgeAgentRequest": {
+      "type": "object",
+      "properties": {
+        "external_id": {
+          "type": "string"
+        },
+        "secret": {
+          "type": "string"
+        }
+      }
+    },
+    "commonRegisterEdgeAgentResponse": {
+      "type": "object",
+      "properties": {
+        "Id": {
+          "type": "string"
+        },
+        "Invitation": {
+          "type": "string"
         }
       }
     },

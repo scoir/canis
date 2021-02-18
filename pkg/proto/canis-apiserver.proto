@@ -353,4 +353,13 @@ service Admin {
             delete: "/webhooks/{id}"
         };
     }
+
+    rpc RegisterEdgeAgent (common.RegisterEdgeAgentRequest) returns (common.RegisterEdgeAgentResponse) {
+        option (google.api.http) = {
+            post: "/edge/agents/register"
+            body: "*"
+        };
+
+    }
+
 }

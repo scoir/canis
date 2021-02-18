@@ -62,3 +62,13 @@ data:
       grpc:
         host: canis-didcomm-lb
         port: {{ .Values.loadbalancer.grpc.port }}
+
+    ###############################################################
+    #
+    #  Mediator configuration
+    #
+    ###############################################################
+    Mediator:
+      grpc:
+        host: 172.17.0.1
+        port: {{ .Values.mediator.grpc.port }}

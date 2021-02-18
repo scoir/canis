@@ -922,6 +922,116 @@ func (x *EndpointResponse) GetEndpoint() string {
 	return ""
 }
 
+type RegisterEdgeAgentRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ExternalId string `protobuf:"bytes,2,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	Secret     string `protobuf:"bytes,3,opt,name=secret,proto3" json:"secret,omitempty"`
+}
+
+func (x *RegisterEdgeAgentRequest) Reset() {
+	*x = RegisterEdgeAgentRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RegisterEdgeAgentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterEdgeAgentRequest) ProtoMessage() {}
+
+func (x *RegisterEdgeAgentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterEdgeAgentRequest.ProtoReflect.Descriptor instead.
+func (*RegisterEdgeAgentRequest) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *RegisterEdgeAgentRequest) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
+	}
+	return ""
+}
+
+func (x *RegisterEdgeAgentRequest) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+type RegisterEdgeAgentResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id         string `protobuf:"bytes,1,opt,name=Id,proto3" json:"Id,omitempty"`
+	Invitation string `protobuf:"bytes,2,opt,name=Invitation,proto3" json:"Invitation,omitempty"`
+}
+
+func (x *RegisterEdgeAgentResponse) Reset() {
+	*x = RegisterEdgeAgentResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_messages_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RegisterEdgeAgentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterEdgeAgentResponse) ProtoMessage() {}
+
+func (x *RegisterEdgeAgentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterEdgeAgentResponse.ProtoReflect.Descriptor instead.
+func (*RegisterEdgeAgentResponse) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *RegisterEdgeAgentResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RegisterEdgeAgentResponse) GetInvitation() string {
+	if x != nil {
+		return x.Invitation
+	}
+	return ""
+}
+
 var File_messages_proto protoreflect.FileDescriptor
 
 var file_messages_proto_rawDesc = []byte{
@@ -1055,10 +1165,20 @@ var file_messages_proto_rawDesc = []byte{
 	0x73, 0x74, 0x22, 0x2e, 0x0a, 0x10, 0x45, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x45, 0x6e, 0x64, 0x70, 0x6f, 0x69,
 	0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x45, 0x6e, 0x64, 0x70, 0x6f, 0x69,
-	0x6e, 0x74, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x73, 0x63, 0x6f, 0x69, 0x72, 0x2f, 0x63, 0x61, 0x6e, 0x69, 0x73, 0x2f, 0x70, 0x6b, 0x67,
-	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x67, 0x65, 0x6e, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6e, 0x74, 0x22, 0x53, 0x0a, 0x18, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x45, 0x64,
+	0x67, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f,
+	0x0a, 0x0b, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0a, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x49, 0x64, 0x12,
+	0x16, 0x0a, 0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x22, 0x4b, 0x0a, 0x19, 0x52, 0x65, 0x67, 0x69, 0x73,
+	0x74, 0x65, 0x72, 0x45, 0x64, 0x67, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x02, 0x49, 0x64, 0x12, 0x1e, 0x0a, 0x0a, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x73, 0x63, 0x6f, 0x69, 0x72, 0x2f, 0x63, 0x61, 0x6e, 0x69, 0x73, 0x2f, 0x70,
+	0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x67, 0x65, 0x6e, 0x2f, 0x63, 0x6f, 0x6d, 0x6d,
+	0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1073,7 +1193,7 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_messages_proto_goTypes = []interface{}{
 	(*AttrInfo)(nil),                    // 0: common.AttrInfo
 	(*PredicateInfo)(nil),               // 1: common.PredicateInfo
@@ -1090,18 +1210,20 @@ var file_messages_proto_goTypes = []interface{}{
 	(*IssueCredentialResponse)(nil),     // 12: common.IssueCredentialResponse
 	(*EndpointRequest)(nil),             // 13: common.EndpointRequest
 	(*EndpointResponse)(nil),            // 14: common.EndpointResponse
-	nil,                                 // 15: common.RequestPresentation.RequestedAttributesEntry
-	nil,                                 // 16: common.RequestPresentation.RequestedPredicatesEntry
-	(*timestamp.Timestamp)(nil),         // 17: google.protobuf.Timestamp
-	(*_struct.Struct)(nil),              // 18: google.protobuf.Struct
+	(*RegisterEdgeAgentRequest)(nil),    // 15: common.RegisterEdgeAgentRequest
+	(*RegisterEdgeAgentResponse)(nil),   // 16: common.RegisterEdgeAgentResponse
+	nil,                                 // 17: common.RequestPresentation.RequestedAttributesEntry
+	nil,                                 // 18: common.RequestPresentation.RequestedPredicatesEntry
+	(*timestamp.Timestamp)(nil),         // 19: google.protobuf.Timestamp
+	(*_struct.Struct)(nil),              // 20: google.protobuf.Struct
 }
 var file_messages_proto_depIdxs = []int32{
-	17, // 0: common.AttrInfo.non_revoked:type_name -> google.protobuf.Timestamp
-	17, // 1: common.PredicateInfo.non_revoked:type_name -> google.protobuf.Timestamp
+	19, // 0: common.AttrInfo.non_revoked:type_name -> google.protobuf.Timestamp
+	19, // 1: common.PredicateInfo.non_revoked:type_name -> google.protobuf.Timestamp
 	3,  // 2: common.RequestPresentationRequest.presentation:type_name -> common.RequestPresentation
-	15, // 3: common.RequestPresentation.requested_attributes:type_name -> common.RequestPresentation.RequestedAttributesEntry
-	16, // 4: common.RequestPresentation.requested_predicates:type_name -> common.RequestPresentation.RequestedPredicatesEntry
-	18, // 5: common.Credential.body:type_name -> google.protobuf.Struct
+	17, // 3: common.RequestPresentation.requested_attributes:type_name -> common.RequestPresentation.RequestedAttributesEntry
+	18, // 4: common.RequestPresentation.requested_predicates:type_name -> common.RequestPresentation.RequestedPredicatesEntry
+	20, // 5: common.Credential.body:type_name -> google.protobuf.Struct
 	9,  // 6: common.Credential.preview:type_name -> common.CredentialAttribute
 	10, // 7: common.IssueCredentialRequest.credential:type_name -> common.Credential
 	0,  // 8: common.RequestPresentation.RequestedAttributesEntry.value:type_name -> common.AttrInfo
@@ -1299,6 +1421,30 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
+		file_messages_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegisterEdgeAgentRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_messages_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegisterEdgeAgentResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1306,7 +1452,7 @@ func file_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_messages_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

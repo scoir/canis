@@ -93,3 +93,13 @@ message EndpointResponse {
     string Endpoint = 1;
 }
 
+message RegisterEdgeAgentRequest {
+    string external_id = 2;
+    string secret = 3;
+}
+
+
+message RegisterEdgeAgentResponse {
+    string Id = 1;
+    string Invitation = 2;
+}
