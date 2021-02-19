@@ -1,0 +1,46 @@
+{{if eq .Values.mediator.external.type "loadbalancer"}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-mediator-external
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-mediator-external
+spec:
+  ports:
+    - name: ws-didcomm
+      port: {{ .Values.mediator.inbound.wsPort }}
+      protocol: TCP
+      targetPort: {{ .Values.mediator.inbound.wsPort }}
+    - name: http-didcomm
+      port: {{ .Values.mediator.inbound.httpPort }}
+      protocol: TCP
+      targetPort: {{ .Values.mediator.inbound.httpPort }}
+  selector:
+    name: {{ include "canis.fullname" . }}-didcomm-mediator
+  sessionAffinity: None
+  type: LoadBalancer
+  loadBalancerIP: {{ .Values.mediator.external.loadbalancer.host }}
+{{ else }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-mediator-external
+  name: {{ include "canis.fullname" . }}-didcomm-mediator-external
+spec:
+  ports:
+    - name: ws-didcomm
+      port: {{ .Values.mediator.inbound.wsPort }}
+      protocol: TCP
+      targetPort: {{ .Values.mediator.inbound.wsPort }}
+      nodePort: {{ .Values.mediator.external.nodePort.wsPort }}
+    - name: http-didcomm
+      port: {{ .Values.mediator.inbound.httpPort }}
+      protocol: TCP
+      targetPort: {{ .Values.mediator.inbound.httpPort }}
+      nodePort: {{ .Values.mediator.external.nodePort.httpPort }}
+  selector:
+    name: {{ include "canis.fullname" . }}-didcomm-mediator
+  sessionAffinity: None
+  type: NodePort
+{{ end }}

@@ -79,10 +79,13 @@ type Store interface {
 	// GetAgentConnectionForDID return single connection between an agent and an external subject
 	GetAgentConnectionForDID(a *Agent, theirDID string) (*AgentConnection, error)
 
+	// ListWebhooks list the webhooks currently registered
 	ListWebhooks(typ string) ([]*Webhook, error)
 
+	// AddWebhook adds a new webhook
 	AddWebhook(hook *Webhook) error
 
+	// DeleteWebhook deletes an existing webhook
 	DeleteWebhook(typ string) error
 
 	//InsertPresentationRequest inserts the presentation request
@@ -93,4 +96,24 @@ type Store interface {
 
 	// GetPresentationRequest retrieves the presentation request by ID
 	GetPresentationRequest(ID string) (*PresentationRequest, error)
+
+	// SetMediatorDID sets the public DID for the mediator
+	SetMediatorDID(DID *DID) error
+
+	// GetMediatorDID get public DID for the mediator
+	GetMediatorDID() (*DID, error)
+
+	// RegisterEdgeAgent associates the DID and external ID with an internal ID for a registered
+	// Edge Agent
+	RegisterEdgeAgent(connectionID, externalID string) (string, error)
+
+	// GetEdgeAgent retrieves the internal ID associated with a registered DID for an
+	// Edge Agent
+	GetEdgeAgent(connectionID string) (*EdgeAgent, error)
+
+	// GetEdgeAgentForDID retrieves the internal ID associated with a registered DID for an existing connection
+	GetEdgeAgentForDID(theirDID string) (*EdgeAgent, error)
+
+	// UpdateEdgeAgent updates the edge agent using the connection ID and the external ID
+	UpdateEdgeAgent(ea *EdgeAgent) error
 }

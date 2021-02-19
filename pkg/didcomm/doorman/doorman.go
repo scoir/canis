@@ -39,7 +39,6 @@ type provider interface {
 
 type Doorman struct {
 	store                 datastore.Store
-	didcl                 *ariesdidex.Client
 	bouncer               didexchange.Bouncer
 	vdriReg               vdriapi.Registry
 	notificationPublisher amqp.Publisher

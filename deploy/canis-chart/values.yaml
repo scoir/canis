@@ -80,6 +80,21 @@ doorman:
   grpc:
     port: 8886
 
+mediator:
+  secret: ArwXoACJgOleVZ2PY7kXn7rA0II0mHYDhc6WrBH8fDAc
+  grpc:
+    port: 10003
+  inbound:
+    wsPort: 10002
+    httpPort: 10001
+  external:
+    type: "nodePort"
+    loadbalancer:
+      host: ""
+    nodePort:
+      wsPort: 31001
+      httpPort: 31003
+      host: 192.168.99.100
 
 issuer:
   grpc:

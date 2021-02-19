@@ -14,6 +14,8 @@ import (
 
 	kms "github.com/hyperledger/aries-framework-go/pkg/kms"
 
+	mediatorapiprotogen "github.com/scoir/canis/pkg/didcomm/mediator/api/protogen"
+
 	mock "github.com/stretchr/testify/mock"
 
 	presentproofengine "github.com/scoir/canis/pkg/presentproof/engine"
@@ -120,6 +122,29 @@ func (_m *Provider) GetLoadbalancerClient() (apiprotogen.LoadbalancerClient, err
 	return r0, r1
 }
 
+// GetMediatorClient provides a mock function with given fields:
+func (_m *Provider) GetMediatorClient() (mediatorapiprotogen.MediatorClient, error) {
+	ret := _m.Called()
+
+	var r0 mediatorapiprotogen.MediatorClient
+	if rf, ok := ret.Get(0).(func() mediatorapiprotogen.MediatorClient); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(mediatorapiprotogen.MediatorClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPresentationEngineRegistry provides a mock function with given fields:
 func (_m *Provider) GetPresentationEngineRegistry() (presentproofengine.PresentationRegistry, error) {
 	ret := _m.Called()
@@ -191,6 +216,22 @@ func (_m *Provider) IndyVDR() (indy.VDRClient, error) {
 
 // KMS provides a mock function with given fields:
 func (_m *Provider) KMS() kms.KeyManager {
+	ret := _m.Called()
+
+	var r0 kms.KeyManager
+	if rf, ok := ret.Get(0).(func() kms.KeyManager); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(kms.KeyManager)
+		}
+	}
+
+	return r0
+}
+
+// MediatorKMS provides a mock function with given fields:
+func (_m *Provider) MediatorKMS() kms.KeyManager {
 	ret := _m.Called()
 
 	var r0 kms.KeyManager

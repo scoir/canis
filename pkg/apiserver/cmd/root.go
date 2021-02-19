@@ -21,6 +21,7 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
 	"github.com/hyperledger/aries-framework-go/pkg/vdri"
 	"github.com/pkg/errors"
+	mongodbstore "github.com/scoir/aries-storage-mongo/pkg"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
@@ -35,6 +36,7 @@ import (
 	doormanapi "github.com/scoir/canis/pkg/didcomm/doorman/api/protogen"
 	issuerapi "github.com/scoir/canis/pkg/didcomm/issuer/api/protogen"
 	lbapi "github.com/scoir/canis/pkg/didcomm/loadbalancer/api/protogen"
+	api "github.com/scoir/canis/pkg/didcomm/mediator/api/protogen"
 	verifier "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/framework"
 	"github.com/scoir/canis/pkg/framework/context"
@@ -59,12 +61,13 @@ var rootCmd = &cobra.Command{
 }
 
 type Provider struct {
-	lock    secretlock.Service
-	store   datastore.Store
-	ariesSP storage.Provider
-	vdriReg vdriapi.Registry
-	keyMgr  kms.KeyManager
-	conf    config.Config
+	lock           secretlock.Service
+	store          datastore.Store
+	ariesSP        storage.Provider
+	vdriReg        vdriapi.Registry
+	keyMgr         kms.KeyManager
+	mediatorKeyMgr kms.KeyManager
+	conf           config.Config
 }
 
 func Execute() {
@@ -133,6 +136,8 @@ func initConfig() {
 	if err != nil {
 		log.Fatalln("unable to create local kms", err)
 	}
+
+	ctx.mediatorKeyMgr = createMediatorKMS(conf)
 
 	vdrisConfig, err := conf.VDRIs()
 	if err != nil {
@@ -240,8 +245,26 @@ func (r *Provider) GetLoadbalancerClient() (lbapi.LoadbalancerClient, error) {
 	return lb, nil
 }
 
+func (r *Provider) GetMediatorClient() (api.MediatorClient, error) {
+	ep, err := r.conf.Endpoint("mediator.grpc")
+	if err != nil {
+		return nil, errors.Wrap(err, "mediator grpc is not properly configured")
+	}
+
+	cc, err := grpc.Dial(ep.Address(), grpc.WithInsecure())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to dial grpc for mediator client")
+	}
+	lb := api.NewMediatorClient(cc)
+	return lb, nil
+}
+
 func (r *Provider) KMS() kms.KeyManager {
 	return r.keyMgr
+}
+
+func (r *Provider) MediatorKMS() kms.KeyManager {
+	return r.mediatorKeyMgr
 }
 
 func (r *Provider) GetCredentialEngineRegistry() (credengine.CredentialRegistry, error) {
@@ -278,4 +301,29 @@ func (r *Provider) GetPresentationEngineRegistry() (presentengine.PresentationRe
 
 func (r *Provider) SecretLock() secretlock.Service {
 	return r.lock
+}
+
+func createMediatorKMS(conf config.Config) kms.KeyManager {
+	lc, err := conf.LedgerStore()
+	if err != nil {
+		log.Fatalln("invalid ledgerstore key in configuration")
+	}
+	ls := mongodbstore.NewProvider(lc.URL, mongodbstore.WithDBPrefix("canis-mediator"))
+
+	lock, err := local.NewService(strings.NewReader(conf.MasterLockKey()), nil)
+	if err != nil {
+		log.Fatalln("error creating lock service")
+	}
+
+	p := &Provider{
+		lock:    lock,
+		ariesSP: ls,
+	}
+
+	keyMgr, err := localkms.New("local-lock://default/master/key/", p)
+	if err != nil {
+		log.Fatalln("error creating mediator key manager", err)
+	}
+
+	return keyMgr
 }

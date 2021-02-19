@@ -235,6 +235,75 @@ func (_m *Store) GetDID(id string) (*datastore.DID, error) {
 	return r0, r1
 }
 
+// GetEdgeAgent provides a mock function with given fields: connectionID
+func (_m *Store) GetEdgeAgent(connectionID string) (*datastore.EdgeAgent, error) {
+	ret := _m.Called(connectionID)
+
+	var r0 *datastore.EdgeAgent
+	if rf, ok := ret.Get(0).(func(string) *datastore.EdgeAgent); ok {
+		r0 = rf(connectionID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.EdgeAgent)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(connectionID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetEdgeAgentForDID provides a mock function with given fields: theirDID
+func (_m *Store) GetEdgeAgentForDID(theirDID string) (*datastore.EdgeAgent, error) {
+	ret := _m.Called(theirDID)
+
+	var r0 *datastore.EdgeAgent
+	if rf, ok := ret.Get(0).(func(string) *datastore.EdgeAgent); ok {
+		r0 = rf(theirDID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.EdgeAgent)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(theirDID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetMediatorDID provides a mock function with given fields:
+func (_m *Store) GetMediatorDID() (*datastore.DID, error) {
+	ret := _m.Called()
+
+	var r0 *datastore.DID
+	if rf, ok := ret.Get(0).(func() *datastore.DID); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.DID)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPresentationRequest provides a mock function with given fields: ID
 func (_m *Store) GetPresentationRequest(ID string) (*datastore.PresentationRequest, error) {
 	ret := _m.Called(ID)
@@ -575,6 +644,41 @@ func (_m *Store) ListWebhooks(typ string) ([]*datastore.Webhook, error) {
 	return r0, r1
 }
 
+// RegisterEdgeAgent provides a mock function with given fields: connectionID, externalID
+func (_m *Store) RegisterEdgeAgent(connectionID string, externalID string) (string, error) {
+	ret := _m.Called(connectionID, externalID)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = rf(connectionID, externalID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(connectionID, externalID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SetMediatorDID provides a mock function with given fields: DID
+func (_m *Store) SetMediatorDID(DID *datastore.DID) error {
+	ret := _m.Called(DID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.DID) error); ok {
+		r0 = rf(DID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SetPublicDID provides a mock function with given fields: DID
 func (_m *Store) SetPublicDID(DID *datastore.DID) error {
 	ret := _m.Called(DID)
@@ -610,6 +714,20 @@ func (_m *Store) UpdateCredential(c *datastore.IssuedCredential) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*datastore.IssuedCredential) error); ok {
 		r0 = rf(c)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateEdgeAgent provides a mock function with given fields: ea
+func (_m *Store) UpdateEdgeAgent(ea *datastore.EdgeAgent) error {
+	ret := _m.Called(ea)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.EdgeAgent) error); ok {
+		r0 = rf(ea)
 	} else {
 		r0 = ret.Error(0)
 	}

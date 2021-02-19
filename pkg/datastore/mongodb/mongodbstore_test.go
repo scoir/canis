@@ -630,3 +630,67 @@ func TestPresentation(t *testing.T) {
 		require.NotEmpty(t, id)
 	})
 }
+
+func TestEdgeAgent(t *testing.T) {
+	conf := testConfig()
+	prov, err := NewProvider(conf)
+	defer dropTestDatabase(conf.Database)
+	require.NoError(t, err)
+
+	store, err := prov.Open()
+	require.NoError(t, err)
+
+	id, err := store.RegisterEdgeAgent("test-connect-id", "test-external-id")
+	require.NoError(t, err)
+	require.NotEmpty(t, id)
+
+	ae, err := store.GetEdgeAgent("test-connect-id")
+	require.NoError(t, err)
+	require.NotNil(t, ae)
+
+	ae.TheirDID = "did:sov:abc"
+	err = store.UpdateEdgeAgent(ae)
+	require.NoError(t, err)
+
+	ae, err = store.GetEdgeAgentForDID("did:sov:abc")
+	require.NoError(t, err)
+	require.NotNil(t, ae)
+
+	ae, err = store.GetEdgeAgent("bad-connect-id")
+	require.Error(t, err)
+	require.Nil(t, ae)
+
+	ae, err = store.GetEdgeAgentForDID("did:sov:123")
+	require.Error(t, err)
+	require.Nil(t, ae)
+
+}
+
+func TestMediator(t *testing.T) {
+	conf := testConfig()
+	prov, err := NewProvider(conf)
+	defer dropTestDatabase(conf.Database)
+	require.NoError(t, err)
+
+	store, err := prov.Open()
+	require.NoError(t, err)
+
+	did, err := store.GetMediatorDID()
+	require.Error(t, err)
+	require.Nil(t, did)
+
+	err = store.SetMediatorDID(&datastore.DID{
+		DID: &identifiers.DID{
+			DIDVal: identifiers.DIDValue{
+				MethodSpecificID: "abc",
+				Method:           "sov",
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	did, err = store.GetMediatorDID()
+	require.NoError(t, err)
+	require.Equal(t, "did:sov:abc", did.ID)
+
+}

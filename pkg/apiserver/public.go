@@ -24,7 +24,7 @@ func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 		return errors.Wrap(err, "unable to get public DID.")
 	}
 
-	mysig, err := r.getSignerForID(did.KeyPair.ID)
+	mysig, err := r.getSignerForID(r.keyMgr, did.KeyPair.ID)
 	if err != nil {
 		return errors.Wrap(err, "unable to get signer for public DID")
 	}
@@ -39,7 +39,7 @@ func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 		return errors.Wrap(err, "unable to create and export public key")
 	}
 
-	newDIDsig, err := r.getSignerForID(newKeyID)
+	newDIDsig, err := r.getSignerForID(r.keyMgr, newKeyID)
 	if err != nil {
 		return errors.Wrap(err, "unable to load signer primitives")
 	}
@@ -72,8 +72,67 @@ func (r *APIServer) createAgentPublicDID(a *datastore.Agent) error {
 	return nil
 }
 
-func (r *APIServer) getSignerForID(kid string) (vdr.Signer, error) {
-	kh, err := r.keyMgr.Get(kid)
+func (r *APIServer) createMediatorPublicDID() error {
+	did, err := r.store.GetPublicDID()
+	if err != nil {
+		return errors.Wrap(err, "unable to get Public DID.")
+	}
+
+	mysig, err := r.getSignerForID(r.keyMgr, did.KeyPair.ID)
+	if err != nil {
+		return errors.Wrap(err, "unable to get signer for public DID")
+	}
+
+	endpoint, err := r.mediator.GetEndpoint(context.Background(), &common.EndpointRequest{})
+	if err != nil {
+		return errors.Wrap(err, "unable to retrieve endpoint for new agent")
+	}
+
+	newKeyID, pubKey, err := r.mediatorKeyMgr.CreateAndExportPubKeyBytes(kms.ED25519Type)
+	if err != nil {
+		return errors.Wrap(err, "unable to create and export public key")
+	}
+
+	newDIDsig, err := r.getSignerForID(r.mediatorKeyMgr, newKeyID)
+	if err != nil {
+		return errors.Wrap(err, "unable to load signer primitives")
+	}
+
+	mediatorPublicDID, err := identifiers.CreateDID(&identifiers.MyDIDInfo{PublicKey: pubKey, MethodName: "sov", Cid: true})
+	if err != nil {
+		return errors.Wrap(err, "unable to create agent DID")
+	}
+
+	err = r.client.CreateNym(mediatorPublicDID.DIDVal.MethodSpecificID, mediatorPublicDID.Verkey, vdr.NoRole, did.DID.DIDVal.MethodSpecificID, mysig)
+	if err != nil {
+		return errors.Wrap(err, "unable to set nym")
+	}
+
+	err = r.client.SetEndpoint(mediatorPublicDID.DIDVal.MethodSpecificID, mediatorPublicDID.DIDVal.MethodSpecificID,
+		endpoint.Endpoint, newDIDsig)
+	if err != nil {
+		return errors.Wrap(err, "unable to set endpoint")
+	}
+
+	mediatorDID := &datastore.DID{
+		DID: mediatorPublicDID,
+		KeyPair: &datastore.KeyPair{
+			ID:        newKeyID,
+			PublicKey: base58.Encode(pubKey),
+		},
+		Endpoint: endpoint.Endpoint,
+	}
+
+	err = r.store.SetMediatorDID(mediatorDID)
+	if err != nil {
+		return errors.Wrap(err, "unable to save mediator DID")
+	}
+
+	return nil
+}
+
+func (r *APIServer) getSignerForID(kms kms.KeyManager, kid string) (vdr.Signer, error) {
+	kh, err := kms.Get(kid)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get private key")
 	}

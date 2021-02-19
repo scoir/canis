@@ -1,0 +1,11 @@
+syntax = "proto3";
+package didcomm;
+
+import "common/messages.proto";
+
+option go_package = "didcomm/mediator/api";
+
+service Mediator {
+  rpc RegisterEdgeAgent (common.RegisterEdgeAgentRequest) returns (common.RegisterEdgeAgentResponse) {}
+  rpc GetEndpoint (common.EndpointRequest) returns (common.EndpointResponse) {}
+}

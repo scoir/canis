@@ -1,5 +1,5 @@
 /*
-Copyright Scoir Inc. All Rights Reserved.
+Copyright Scoir, Inc. All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
 */
@@ -424,6 +424,14 @@ func (r *APIServer) SeedPublicDID(_ context.Context, req *api.SeedPublicDIDReque
 		return nil, errors.Wrap(err, "unable to save public DID")
 	}
 
+	_, err = r.store.GetMediatorDID()
+	if err != nil {
+		err = r.createMediatorPublicDID()
+		if err != nil {
+			return nil, status.Error(codes.Internal, errors.Wrapf(err, "failed to create new DID for mediator PublicDID").Error())
+		}
+	}
+
 	return &api.SeedPublicDIDResponse{}, nil
 }
 
@@ -594,6 +602,15 @@ func (r *APIServer) AcceptInvitation(ctx context.Context, req *common.AcceptInvi
 	resp, err := r.doorman.AcceptInvitation(ctx, req)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to accept agent invitation").Error())
+	}
+
+	return resp, nil
+}
+
+func (r *APIServer) RegisterEdgeAgent(ctx context.Context, request *common.RegisterEdgeAgentRequest) (*common.RegisterEdgeAgentResponse, error) {
+	resp, err := r.mediator.RegisterEdgeAgent(ctx, request)
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to register edge agent with mediator").Error())
 	}
 
 	return resp, nil

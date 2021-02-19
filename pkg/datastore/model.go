@@ -163,3 +163,11 @@ type Presentation struct {
 	Format   string
 	Data     []byte
 }
+
+type EdgeAgent struct {
+	ID           string
+	TheirDID     string
+	MyDID        string
+	ConnectionID string
+	ExternalID   string
+}

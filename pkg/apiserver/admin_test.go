@@ -32,9 +32,11 @@ type AdminTestSuite struct {
 	LoadbalanceClient *apimocks.MockLoadbalancer
 	IndyClient        *apimocks.MockVDRClient
 	KMS               *apimocks.MockKMS
+	MediatorKMS       *apimocks.MockKMS
 	Doorman           *apimocks.MockDoorman
 	Issuer            *apimocks.MockIssuer
 	Verifier          *apimocks.MockVerifier
+	Mediator          *apimocks.MockMediator
 }
 
 func SetupTest() (*APIServer, *AdminTestSuite) {
@@ -44,15 +46,18 @@ func SetupTest() (*APIServer, *AdminTestSuite) {
 	suite.CredRegistry = &emocks.CredentialRegistry{}
 	suite.IndyClient = &apimocks.MockVDRClient{}
 	suite.KMS = &apimocks.MockKMS{}
+	suite.MediatorKMS = &apimocks.MockKMS{}
 	suite.Doorman = &apimocks.MockDoorman{}
 	suite.LoadbalanceClient = &apimocks.MockLoadbalancer{
 		EndpointValue: "0.0.0.0:420",
 	}
 	suite.Issuer = &apimocks.MockIssuer{}
 	suite.Verifier = &apimocks.MockVerifier{}
+	suite.Mediator = &apimocks.MockMediator{}
 
 	target := &APIServer{
 		keyMgr:         suite.KMS,
+		mediatorKeyMgr: suite.KMS,
 		agentStore:     suite.Store,
 		schemaStore:    suite.Store,
 		store:          suite.Store,
@@ -62,6 +67,7 @@ func SetupTest() (*APIServer, *AdminTestSuite) {
 		issuer:         suite.Issuer,
 		verifier:       suite.Verifier,
 		loadbalancer:   suite.LoadbalanceClient,
+		mediator:       suite.Mediator,
 	}
 
 	return target, suite
@@ -660,6 +666,36 @@ func TestSeedPublicDID(t *testing.T) {
 
 		suite.Store.On("GetPublicDID").Return(nil, errors.New("not found"))
 		suite.Store.On("SetPublicDID", mock.AnythingOfType("*datastore.DID")).Return(nil)
+		suite.Store.On("GetMediatorDID").Return(&datastore.DID{}, nil)
+
+		resp, err := target.SeedPublicDID(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+	})
+	t.Run("happy with mediator DID creation", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &api.SeedPublicDIDRequest{
+			Seed: "b2352b32947e188eb72871093ac6217e",
+		}
+
+		suite.Mediator.EndpointResponse = &common.EndpointResponse{Endpoint: "ws://test:1000"}
+
+		var newPubDID datastore.DID
+		match := func(did *datastore.DID) bool {
+			newPubDID = *did
+			return true
+		}
+
+		medMatch := func(did *datastore.DID) bool {
+			return did.Endpoint == "ws://test:1000"
+		}
+
+		suite.Store.On("GetPublicDID").Return(nil, errors.New("not found")).Once()
+		suite.Store.On("SetPublicDID", mock.MatchedBy(match)).Return(nil)
+		suite.Store.On("GetMediatorDID").Return(nil, errors.New("not found"))
+		suite.Store.On("GetPublicDID").Return(&newPubDID, nil).Once()
+		suite.Store.On("SetMediatorDID", mock.MatchedBy(medMatch)).Return(nil)
 
 		resp, err := target.SeedPublicDID(context.Background(), req)
 		require.NoError(t, err)
@@ -674,6 +710,7 @@ func TestSeedPublicDID(t *testing.T) {
 
 		suite.Store.On("GetPublicDID").Return(nil, errors.New("not found"))
 		suite.Store.On("SetPublicDID", mock.AnythingOfType("*datastore.DID")).Return(nil)
+		suite.Store.On("GetMediatorDID").Return(&datastore.DID{}, nil)
 
 		resp, err := target.SeedPublicDID(context.Background(), req)
 		require.NoError(t, err)
@@ -1112,4 +1149,29 @@ func TestAcceptInvitation(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
+}
+
+func TestRegisterEdgeAgent(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &common.RegisterEdgeAgentRequest{}
+
+		resp := &common.RegisterEdgeAgentResponse{}
+		suite.Mediator.RegisterResponse = resp
+
+		result, err := target.RegisterEdgeAgent(context.Background(), req)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+	t.Run("mediator error", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &common.RegisterEdgeAgentRequest{}
+
+		suite.Mediator.RegisterErr = errors.New("BOOM")
+
+		result, err := target.RegisterEdgeAgent(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
 }

@@ -11,6 +11,7 @@ DIDCOMM_LB_FILES = $(wildcard pkg/didcomm/loadbalancer/*.go pkg/didcomm/loadbala
 DIDCOMM_ISSUER_FILES = $(wildcard pkg/didcomm/issuer/*.go pkg/didcomm/issuer/**/*.go cmd/canis-didcomm-issuer/*.go pkg/credential/engine/**/*.go)
 DIDCOMM_VERIFIER_FILES = $(wildcard pkg/didcomm/verifier/*.go pkg/didcomm/verifier/**/*.go cmd/canis-didcomm-verifier/*.go go pkg/presentproof/engine/**/*.go)
 DIDCOMM_DOORMAN_FILES = $(wildcard pkg/didcomm/doorman/*.go pkg/didcomm/doorman/**/*.go cmd/canis-didcomm-doorman/*.go)
+DIDCOMM_MEDIATOR_FILES = $(wildcard pkg/didcomm/mediator/*.go pkg/didcomm/mediator/**/*.go cmd/canis-didcomm-mediator/*.go)
 HTTP_INDY_RESOLVER_FILES = $(wildcard pkg/resolver/*.go pkg/resolver/**/*.go cmd/http-indy-resolver/*.go)
 WEBHOOK_NOTIFIER_FILES = $(wildcard pkg/notifier/*.go pkg/notifier/**/*.go cmd/canis-webhook-notifier/*.go)
 
@@ -38,7 +39,7 @@ checks: license
 license:
 	@scripts/check_license.sh
 
-build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-verifier bin/canis-didcomm-lb bin/canis-didcomm-doorman bin/http-indy-resolver bin/canis-webhook-notifier
+build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-verifier bin/canis-didcomm-lb bin/canis-didcomm-doorman bin/canis-didcomm-mediator bin/http-indy-resolver bin/canis-webhook-notifier
 
 .PHONY: canis-apiserver
 canis-apiserver: bin/canis-apiserver
@@ -63,6 +64,12 @@ canis-didcomm-doorman: bin/canis-didcomm-doorman
 bin/canis-didcomm-doorman: canis-didcomm-doorman-pb $(DIDCOMM_DOORMAN_FILES)
 	@echo 'Building canis-didcomm-doorman...'
 	@. ./canis.sh; cd cmd/canis-didcomm-doorman && go build -o $(CANIS_ROOT)/bin/canis-didcomm-doorman
+
+.PHONY: canis-didcomm-mediator
+canis-didcomm-mediator: bin/canis-didcomm-mediator
+bin/canis-didcomm-mediator: canis-didcomm-mediator-pb $(DIDCOMM_mediator_FILES)
+	@echo 'Building canis-didcomm-mediator...'
+	@. ./canis.sh; cd cmd/canis-didcomm-mediator && go build -o $(CANIS_ROOT)/bin/canis-didcomm-mediator
 
 .PHONY: canis-didcomm-lb
 canis-didcomm-lb: bin/canis-didcomm-lb
@@ -112,7 +119,7 @@ canis-docker-ubuntu: build
 	@docker build -f ./docker/canis/Dockerfile --no-cache -t canislabs/canis:latest .
 
 .PHONY: all-pb
-all-pb: canis-common-pb canis-apiserver-pb canis-didcomm-doorman-pb canis-didcomm-issuer-pb canis-didcomm-verifier-pb canis-didcomm-lb-pb
+all-pb: canis-common-pb canis-apiserver-pb canis-didcomm-doorman-pb canis-didcomm-mediator-pb canis-didcomm-issuer-pb canis-didcomm-verifier-pb canis-didcomm-lb-pb
 
 .PHONY: canis-common-pb
 canis-common-pb: pkg/protogen/common/messages.pb.go
@@ -144,6 +151,13 @@ pkg/didcomm/doorman/api/protogen/canis-didcomm-doorman.pb.go: pkg/protogen/commo
 	@echo "Generating doorman protobuf files..."
 	@cd pkg && protoc -I proto -I proto/include/ -I proto/common -I didcomm/doorman/api/ proto/canis-didcomm-doorman.proto --go_out=plugins=grpc:.
 	@mv pkg/didcomm/doorman/api/canis-didcomm-doorman.pb.go pkg/didcomm/doorman/api/protogen/canis-didcomm-doorman.pb.go
+
+.PHONY: canis-didcomm-mediator-pb
+canis-didcomm-mediator-pb: pkg/didcomm/mediator/api/protogen/canis-didcomm-mediator.pb.go
+pkg/didcomm/mediator/api/protogen/canis-didcomm-mediator.pb.go: pkg/protogen/common/messages.pb.go pkg/proto/canis-didcomm-mediator.proto
+	@echo "Generating mediator protobuf files..."
+	@cd pkg && protoc -I proto -I proto/include/ -I proto/common -I didcomm/mediator/api/ proto/canis-didcomm-mediator.proto --go_out=plugins=grpc:.
+	@mv pkg/didcomm/mediator/api/canis-didcomm-mediator.pb.go pkg/didcomm/mediator/api/protogen/canis-didcomm-mediator.pb.go
 
 .PHONY: canis-didcomm-issuer-pb
 canis-didcomm-issuer-pb: pkg/didcomm/issuer/api/protogen/canis-didcomm-issuer.pb.go
