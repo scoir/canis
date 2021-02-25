@@ -123,7 +123,10 @@ func (r *Runner) launchGRPC() error {
 }
 
 func (r *Runner) launchWebBridge() error {
-	rmux := runtime.NewServeMux()
+	rmux := runtime.NewServeMux(
+		runtime.WithMarshalerOption("image/png", &runtime.HTTPBodyMarshaler{
+			Marshaler: &runtime.JSONPb{OrigName: true},
+		}))
 	u := fmt.Sprintf("%s:%d", r.grpcBridgeHost, r.grpcBridgePort)
 	if u == ":0" {
 		return nil

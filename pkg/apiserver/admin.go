@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,6 +21,8 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/kms/localkms"
 	"github.com/mr-tron/base58"
 	"github.com/pkg/errors"
+	"github.com/skip2/go-qrcode"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -299,6 +302,25 @@ func (r *APIServer) GetAgentInvitation(ctx context.Context, request *common.Invi
 
 	return &common.InvitationResponse{
 		Invitation: invite.Invitation,
+	}, nil
+}
+
+func (r *APIServer) GetAgentInvitationImage(ctx context.Context, request *common.InvitationRequest) (*httpbody.HttpBody, error) {
+	resp, err := r.GetAgentInvitation(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	ci := base64.URLEncoding.EncodeToString([]byte(resp.Invitation))
+
+	qr, err := qrcode.Encode(ci, qrcode.Medium, 256)
+	if err != nil {
+		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to encode invitation QR code").Error())
+	}
+
+	return &httpbody.HttpBody{
+		ContentType: "image/png",
+		Data:        qr,
 	}, nil
 }
 
