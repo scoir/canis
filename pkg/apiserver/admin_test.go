@@ -657,6 +657,34 @@ func TestGetAgentInvitation(t *testing.T) {
 
 }
 
+func TestGetAgentInvitationIamge(t *testing.T) {
+	t.Run("happy", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &common.InvitationRequest{}
+
+		resp := &common.InvitationResponse{
+			Invitation: `{"test": "abc"}`,
+		}
+		suite.Doorman.InviteResponse = resp
+
+		result, err := target.GetAgentInvitationImage(context.Background(), req)
+		require.NoError(t, err)
+		require.Equal(t, result.ContentType, "image/png")
+		require.Len(t, result.Data, 437)
+	})
+	t.Run("doorman error", func(t *testing.T) {
+		target, suite := SetupTest()
+		req := &common.InvitationRequest{}
+
+		suite.Doorman.InviteErr = errors.New("BOOM")
+
+		result, err := target.GetAgentInvitationImage(context.Background(), req)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+}
+
 func TestSeedPublicDID(t *testing.T) {
 	t.Run("happy", func(t *testing.T) {
 		target, suite := SetupTest()
