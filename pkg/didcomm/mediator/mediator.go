@@ -166,10 +166,9 @@ func (r *Mediator) Start() {
 func (r *Mediator) accepted(externalID string) func(id string, conn *ariesdidex.Connection) {
 	return func(id string, conn *ariesdidex.Connection) {
 
-		//TODO: update edge agent with both DIDs
-		ea, err := r.store.GetEdgeAgent(conn.ConnectionID)
+		ea, err := r.store.GetEdgeAgent(id)
 		if err != nil {
-			log.Println("unable to get edge agent from conneciton", conn.ConnectionID)
+			log.Println("unable to get edge agent from conneciton", conn.ConnectionID, id)
 			return
 		}
 

@@ -142,6 +142,36 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
+  canis-didcomm-cloudagent:
+    image: canislabs/canis
+    command: "canis-didcomm-cloudagent start"
+    ports:
+      - "11001:11001"
+      - "11002:11002"
+      - "11003:11003"
+      - "11004:11004"
+    networks:
+      - backend
+    secrets:
+      - source: canis-didcomm-cloudagent-config
+        target: /etc/canis/canis-cloudagent-config.yml
+      - source: aries-indy-vdri-config
+        target: /etc/canis/canis-aries-indy-vdri-config.yml
+      - source: data-store-config
+        target: /etc/canis/canis-data-store-config.yml
+      - source: ledger-store-config
+        target: /etc/canis/canis-ledger-store-config.yml
+      - source: amqp-config
+        target: /etc/canis/canis-amqp-config.yml
+      - source: master-lock-key
+        target: /etc/canis/canis-master-lock-key.yml
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
   canis-didcomm-lb:
     image: canislabs/canis
     command: "canis-didcomm-lb start"
@@ -217,6 +247,8 @@ secrets:
     file: ./canis-didcomm-doorman.yaml
   canis-didcomm-mediator-config:
     file: ./canis-didcomm-mediator.yaml
+  canis-didcomm-cloudagent-config:
+    file: ./canis-didcomm-cloudagent.yaml
   canis-didcomm-lb-config:
     file: ./canis-didcomm-lb.yaml
   canis-webhook-notifier-config:

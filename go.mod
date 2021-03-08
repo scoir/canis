@@ -6,7 +6,7 @@ module github.com/scoir/canis
 
 go 1.14
 
-replace github.com/hyperledger/aries-framework-go => github.com/pfeairheller/aries-framework-go v0.2.0
+replace github.com/hyperledger/aries-framework-go => ../aries-framework-go
 
 replace github.com/hyperledger/indy-vdr/wrappers/golang => github.com/pfeairheller/indy-vdr/wrappers/golang v0.0.1
 
@@ -22,7 +22,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.15.2
-	github.com/hyperledger/aries-framework-go v0.1.5-0.20201017112511-5734c20820a9
+	github.com/hyperledger/aries-framework-go v0.1.5
 	github.com/hyperledger/aries-framework-go-ext/component/didcomm/transport/amqp v0.0.0-20201119153638-fc5d5e680587
 	github.com/hyperledger/indy-vdr/wrappers/golang v0.0.0-20201031155907-5f437d26ed71
 	github.com/hyperledger/ursa-wrapper-go v0.3.0

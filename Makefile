@@ -12,6 +12,7 @@ DIDCOMM_ISSUER_FILES = $(wildcard pkg/didcomm/issuer/*.go pkg/didcomm/issuer/**/
 DIDCOMM_VERIFIER_FILES = $(wildcard pkg/didcomm/verifier/*.go pkg/didcomm/verifier/**/*.go cmd/canis-didcomm-verifier/*.go go pkg/presentproof/engine/**/*.go)
 DIDCOMM_DOORMAN_FILES = $(wildcard pkg/didcomm/doorman/*.go pkg/didcomm/doorman/**/*.go cmd/canis-didcomm-doorman/*.go)
 DIDCOMM_MEDIATOR_FILES = $(wildcard pkg/didcomm/mediator/*.go pkg/didcomm/mediator/**/*.go cmd/canis-didcomm-mediator/*.go)
+DIDCOMM_CLOUDAGENT_FILES = $(wildcard pkg/didcomm/cloudagent/*.go pkg/didcomm/cloudagent/**/*.go cmd/canis-didcomm-cloudagent/*.go)
 HTTP_INDY_RESOLVER_FILES = $(wildcard pkg/resolver/*.go pkg/resolver/**/*.go cmd/http-indy-resolver/*.go)
 WEBHOOK_NOTIFIER_FILES = $(wildcard pkg/notifier/*.go pkg/notifier/**/*.go cmd/canis-webhook-notifier/*.go)
 
@@ -39,7 +40,7 @@ checks: license
 license:
 	@scripts/check_license.sh
 
-build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-verifier bin/canis-didcomm-lb bin/canis-didcomm-doorman bin/canis-didcomm-mediator bin/http-indy-resolver bin/canis-webhook-notifier
+build: bin/canis-apiserver bin/sirius bin/canis-didcomm-issuer bin/canis-didcomm-verifier bin/canis-didcomm-lb bin/canis-didcomm-doorman bin/canis-didcomm-mediator bin/canis-didcomm-cloudagent bin/http-indy-resolver bin/canis-webhook-notifier
 
 .PHONY: canis-apiserver
 canis-apiserver: bin/canis-apiserver
@@ -67,9 +68,15 @@ bin/canis-didcomm-doorman: canis-didcomm-doorman-pb $(DIDCOMM_DOORMAN_FILES)
 
 .PHONY: canis-didcomm-mediator
 canis-didcomm-mediator: bin/canis-didcomm-mediator
-bin/canis-didcomm-mediator: canis-didcomm-mediator-pb $(DIDCOMM_mediator_FILES)
+bin/canis-didcomm-mediator: canis-didcomm-mediator-pb $(DIDCOMM_MEDIATOR_FILES)
 	@echo 'Building canis-didcomm-mediator...'
 	@. ./canis.sh; cd cmd/canis-didcomm-mediator && go build -o $(CANIS_ROOT)/bin/canis-didcomm-mediator
+
+.PHONY: canis-didcomm-cloudagent
+canis-didcomm-cloudagent: bin/canis-didcomm-cloudagent
+bin/canis-didcomm-cloudagent: canis-didcomm-cloudagent-pb $(DIDCOMM_CLOUDAGENT_FILES)
+	@echo 'Building canis-didcomm-cloudagent...'
+	@. ./canis.sh; cd cmd/canis-didcomm-cloudagent && go build -o $(CANIS_ROOT)/bin/canis-didcomm-cloudagent
 
 .PHONY: canis-didcomm-lb
 canis-didcomm-lb: bin/canis-didcomm-lb
@@ -119,7 +126,7 @@ canis-docker-ubuntu: build
 	@docker build -f ./docker/canis/Dockerfile --no-cache -t canislabs/canis:latest .
 
 .PHONY: all-pb
-all-pb: canis-common-pb canis-apiserver-pb canis-didcomm-doorman-pb canis-didcomm-mediator-pb canis-didcomm-issuer-pb canis-didcomm-verifier-pb canis-didcomm-lb-pb
+all-pb: canis-common-pb canis-apiserver-pb canis-didcomm-doorman-pb canis-didcomm-mediator-pb canis-didcomm-cloudagent-pb canis-didcomm-issuer-pb canis-didcomm-verifier-pb canis-didcomm-lb-pb
 
 .PHONY: canis-common-pb
 canis-common-pb: pkg/protogen/common/messages.pb.go
@@ -158,6 +165,15 @@ pkg/didcomm/mediator/api/protogen/canis-didcomm-mediator.pb.go: pkg/protogen/com
 	@echo "Generating mediator protobuf files..."
 	@cd pkg && protoc -I proto -I proto/include/ -I proto/common -I didcomm/mediator/api/ proto/canis-didcomm-mediator.proto --go_out=plugins=grpc:.
 	@mv pkg/didcomm/mediator/api/canis-didcomm-mediator.pb.go pkg/didcomm/mediator/api/protogen/canis-didcomm-mediator.pb.go
+
+.PHONY: canis-didcomm-cloudagent-pb
+canis-didcomm-cloudagent-pb: pkg/didcomm/cloudagent/api/protogen/canis-didcomm-cloudagent.pb.go
+pkg/didcomm/cloudagent/api/protogen/canis-didcomm-cloudagent.pb.go: pkg/protogen/common/messages.pb.go pkg/proto/canis-didcomm-cloudagent.proto
+	@echo "Generating cloudagent protobuf files..."
+	@cd pkg && protoc -I proto -I proto/include/ -I proto/common -I didcomm/cloudagent/api/ proto/canis-didcomm-cloudagent.proto --go_out=plugins=grpc:.
+	@mv pkg/didcomm/cloudagent/api/canis-didcomm-cloudagent.pb.go pkg/didcomm/cloudagent/api/protogen/canis-didcomm-cloudagent.pb.go
+	@cd pkg && protoc -I proto -I proto/include/ -I proto/common/ -I didcomm/cloudagent/api/ proto/canis-didcomm-cloudagent.proto --grpc-gateway_out=logtostderr=true,request_context=true:.
+	@mv pkg/didcomm/cloudagent/api/canis-didcomm-cloudagent.pb.gw.go pkg/didcomm/cloudagent/api/protogen/canis-didcomm-cloudagent.pb.gw.go
 
 .PHONY: canis-didcomm-issuer-pb
 canis-didcomm-issuer-pb: pkg/didcomm/issuer/api/protogen/canis-didcomm-issuer.pb.go

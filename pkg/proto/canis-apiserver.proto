@@ -80,6 +80,7 @@ message Attribute {
 message CreateSchemaRequest {
     NewSchema schema = 1;
 }
+
 message CreateSchemaResponse {
     string id = 1;
 }

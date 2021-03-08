@@ -171,3 +171,18 @@ type EdgeAgent struct {
 	ConnectionID string
 	ExternalID   string
 }
+
+type CloudAgent struct {
+	ID        string
+	PublicKey []byte
+	NextKey   []byte
+}
+
+type CloudAgentConnection struct {
+	CloudAgentID string
+	TheirLabel   string
+	MyLabel      string
+	TheirDID     string
+	MyDID        string
+	ConnectionID string
+}

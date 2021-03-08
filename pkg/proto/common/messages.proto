@@ -48,7 +48,7 @@ message InvitationRequest {
 }
 
 message InvitationResponse {
-    string Invitation = 1;
+    string invitation = 1;
 }
 
 message AcceptInvitationRequest {
@@ -98,8 +98,84 @@ message RegisterEdgeAgentRequest {
     string secret = 3;
 }
 
-
 message RegisterEdgeAgentResponse {
     string Id = 1;
     string Invitation = 2;
 }
+
+message RegisterCloudAgentRequest {
+    bytes public_key = 1;
+    bytes next_key = 2;
+    string external_id = 3;
+    string secret = 4;
+}
+
+message RegisterCloudAgentResponse {
+    string cloud_agent_id = 1;
+}
+
+
+message Connection {
+    string id = 1;
+    string name = 2;
+    string their_did = 3;
+    string my_did = 4;
+}
+
+message ListConnectionsRequest {
+}
+
+message ListConnectionsResponse {
+    int64 count = 1;
+    repeated Connection connections = 2;
+}
+
+message ListCredentialsRequest {
+}
+
+message ListCredentialsResponse {
+    int64 count = 1;
+    repeated Credential credentials = 2;
+}
+
+message HandleInvitationRequest {
+    string invitation = 1;
+}
+
+message HandleInvitationResponse {
+
+}
+
+message PollConnectionRequest {
+
+}
+
+message PollConnectionResponse {
+
+}
+
+message AcceptConnectionRequest {
+
+}
+
+message AcceptConnectionResponse {
+
+}
+
+message PollCredentialOffersRequest {
+
+}
+
+message PollCredentialOffersResponse {
+
+}
+
+message AcceptCredentialRequest {
+
+}
+
+message AcceptCredentialResponse {
+
+}
+
+

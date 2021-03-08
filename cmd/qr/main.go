@@ -39,7 +39,7 @@ func encode() {
 		log.Fatalln("struggled to decode response body, sigh", err)
 	}
 
-	b := m["Invitation"].(string)
+	b := m["invitation"].(string)
 
 	ci := base64.URLEncoding.EncodeToString([]byte(b))
 	//str := fmt.Sprintf("http://192.168.86.30/?c_i=%s", ci)

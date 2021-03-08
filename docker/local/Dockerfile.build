@@ -21,6 +21,7 @@ COPY --from=canis /src/github.com/scoir/canis/bin/canis-didcomm-issuer /usr/loca
 COPY --from=canis /src/github.com/scoir/canis/bin/canis-didcomm-verifier /usr/local/bin/canis-didcomm-verifier
 COPY --from=canis /src/github.com/scoir/canis/bin/canis-didcomm-doorman /usr/local/bin/canis-didcomm-doorman
 COPY --from=canis /src/github.com/scoir/canis/bin/canis-didcomm-mediator /usr/local/bin/canis-didcomm-mediator
+COPY --from=canis /src/github.com/scoir/canis/bin/canis-didcomm-cloudagent /usr/local/bin/canis-didcomm-cloudagent
 COPY --from=canis /src/github.com/scoir/canis/bin/canis-didcomm-lb /usr/local/bin/canis-didcomm-lb
 COPY --from=canis /src/github.com/scoir/canis/bin/http-indy-resolver /usr/local/bin/http-indy-resolver
 COPY --from=canis /src/github.com/scoir/canis/bin/canis-webhook-notifier /usr/local/bin/canis-webhook-notifier
