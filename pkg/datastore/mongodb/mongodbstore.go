@@ -38,6 +38,7 @@ const (
 	EdgeAgentC            = "EdgeAgent"
 	CloudAgentC           = "CloudAgent"
 	CloudAgentConnectionC = "CloudAgentConnection"
+	CloudAgentCredentialC = "CloudAgentCredential"
 )
 
 type Config struct {

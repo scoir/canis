@@ -83,14 +83,30 @@ doorman:
 mediator:
   secret: ArwXoACJgOleVZ2PY7kXn7rA0II0mHYDhc6WrBH8fDAc
   grpc:
-    port: 10003
+    port: 12003
   inbound:
-    wsPort: 10002
-    httpPort: 10001
+    wsPort: 12002
+    httpPort: 12001
   external:
     type: "nodePort"
     loadbalancer:
       host: ""
+    nodePort:
+      wsPort: 32001
+      httpPort: 32003
+      host: 192.168.99.100
+
+cloudagent:
+  secret: ArwXoACJgOleVZ2PY7kXn7rA0II0mHYDhc6WrBH8fDAc
+  grpc:
+    port: 11003
+  grpcBridge:
+    port: 11004
+  inbound:
+    wsPort: 11002
+    httpPort: 11001
+  external:
+    type: "nodePort"
     nodePort:
       wsPort: 31001
       httpPort: 31003

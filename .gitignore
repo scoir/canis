@@ -10,3 +10,4 @@ config/kubeconfig.yaml
 config/sirius-minikube.yaml
 config/cloud-values.yaml
 config/cloud-kubeconfig.yaml
+config/certificates/*

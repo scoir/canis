@@ -117,13 +117,86 @@ func (r *mongoDBStore) GetCloudAgentConnection(a *datastore.CloudAgent, external
 	return ac, nil
 }
 
-func (r *mongoDBStore) GetCloudAgentConnectionForDID(a *datastore.CloudAgent, theirDID string) (*datastore.CloudAgentConnection, error) {
+func (r *mongoDBStore) GetCloudAgentConnectionForDIDs(myDID, theirDID string) (*datastore.CloudAgentConnection, error) {
 	ac := &datastore.CloudAgentConnection{}
 	err := r.db.Collection(CloudAgentConnectionC).FindOne(context.Background(),
-		bson.M{"cloudagentid": a.ID, "theirdid": theirDID}).Decode(ac)
+		bson.M{"mydid": myDID, "theirdid": theirDID}).Decode(ac)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed load agent connection")
+	}
+
+	return ac, nil
+}
+
+func (r *mongoDBStore) InsertCloudAgentCredential(cred *datastore.CloudAgentCredential) error {
+	_, err := r.db.Collection(CloudAgentCredentialC).InsertOne(context.Background(), cred)
+	if err != nil {
+		return errors.Wrap(err, "unable to insert agent")
+	}
+
+	return nil
+
+}
+
+func (r *mongoDBStore) UpdateCloudAgentCredential(cred *datastore.CloudAgentCredential) error {
+	_, err := r.db.Collection(CloudAgentCredentialC).UpdateOne(context.Background(), bson.M{"id": cred.ID}, bson.M{"$set": cred})
+	if err != nil {
+		return errors.Wrap(err, "unable to insert agent")
+	}
+
+	return nil
+
+}
+
+func (r *mongoDBStore) ListCloudAgentCredentials(a *datastore.CloudAgent) ([]*datastore.CloudAgentCredential, error) {
+	ctx := context.Background()
+	var ac []*datastore.CloudAgentCredential
+	results, err := r.db.Collection(CloudAgentCredentialC).Find(ctx,
+		bson.M{"cloudagentid": a.ID})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to list cloud agent credentials")
+	}
+
+	err = results.All(ctx, &ac)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to decode cloud agent credentials")
+	}
+
+	return ac, nil
+}
+
+func (r *mongoDBStore) DeleteCloudAgentCredential(a *datastore.CloudAgent, id string) error {
+	_, err := r.db.Collection(CloudAgentCredentialC).DeleteOne(context.Background(),
+		bson.M{"cloudagentid": a.ID, "id": id})
+
+	if err != nil {
+		return errors.Wrap(err, "unable to delete cloud agent credential")
+	}
+
+	return nil
+}
+
+func (r *mongoDBStore) GetCloudAgentCredential(a *datastore.CloudAgent, id string) (*datastore.CloudAgentCredential, error) {
+	ac := &datastore.CloudAgentCredential{}
+	err := r.db.Collection(CloudAgentCredentialC).FindOne(context.Background(),
+		bson.M{"cloudagentid": a.ID, "id": id}).Decode(ac)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load cloud agent credential")
+	}
+
+	return ac, nil
+}
+
+func (r *mongoDBStore) GetCloudAgentCredentialFromThread(cloudAgentID string, thid string) (*datastore.CloudAgentCredential, error) {
+	ac := &datastore.CloudAgentCredential{}
+	err := r.db.Collection(CloudAgentCredentialC).FindOne(context.Background(),
+		bson.M{"cloudagentid": cloudAgentID, "threadid": thid}).Decode(ac)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load cloud agent credential")
 	}
 
 	return ac, nil

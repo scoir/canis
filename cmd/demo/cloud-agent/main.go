@@ -31,6 +31,7 @@ func main() {
 	d, _ := json.MarshalIndent(conns, " ", " ")
 	fmt.Println(string(d))
 
+	connectToAgent(e)
 }
 
 type registration struct {
@@ -71,7 +72,7 @@ func registerEdgeAgent() *edge {
 	enc := json.NewEncoder(w)
 	_ = enc.Encode(reg)
 
-	req, err := http.NewRequest("POST", "http://local.scoir.com:11004/cloudagents", w)
+	req, err := http.NewRequest("POST", "https://canis.scoir.ninja/cloudagents", w)
 	if err != nil {
 		log.Fatalln("unexpected error creating request", err)
 	}
@@ -98,7 +99,7 @@ func registerEdgeAgent() *edge {
 }
 
 func connectToAgent(e *edge) {
-	req, err := http.NewRequest("GET", "http://local.scoir.com:7779/agents/agent-1/invitation/subject", nil)
+	req, err := http.NewRequest("GET", "http://34.72.71.135:7779/agents/agent-1/invitation/subject", nil)
 	if err != nil {
 		log.Fatalln("unexpected error creating request", err)
 	}
@@ -113,7 +114,7 @@ func connectToAgent(e *edge) {
 
 	fmt.Println(string(d))
 
-	req, err = http.NewRequest("POST", "http://local.scoir.com:11004/cloudagents/invitation", bytes.NewBuffer(d))
+	req, err = http.NewRequest("POST", "https://canis.scoir.ninja/cloudagents/invitation", bytes.NewBuffer(d))
 	if err != nil {
 		log.Fatalln("unexpected error creating request", err)
 	}
@@ -146,7 +147,7 @@ func connectToAgent(e *edge) {
 
 func listConnections(e *edge) map[string]interface{} {
 	d := []byte(`{}`)
-	req, err := http.NewRequest("POST", "http://local.scoir.com:11004/cloudagents/connections", bytes.NewBuffer(d))
+	req, err := http.NewRequest("POST", "https://canis.scoir.ninja/cloudagents/connections", bytes.NewBuffer(d))
 	if err != nil {
 		log.Fatalln("unexpected error creating request", err)
 	}

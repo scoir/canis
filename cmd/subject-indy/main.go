@@ -381,8 +381,8 @@ func (r *credentialHandler) IssueCredentialMsg(e service.DIDCommAction, d *icpro
 		return
 	}
 
-	credRequestMedataData := &cursa.CredentialRequestMetadata{}
-	credRequest := &cursa.CredentialRequest{}
+	credRequestMedataData := &datastore.CredentialRequestMetadata{}
+	credRequest := &datastore.CredentialRequest{}
 
 	b, _ := subjectStore.Get("credential_request_metadata")
 	err = json.Unmarshal(b, credRequestMedataData)

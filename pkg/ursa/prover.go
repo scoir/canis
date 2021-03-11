@@ -71,21 +71,9 @@ func (r *Prover) GetMasterSecret(masterSecretID string) (string, error) {
 	return string(ms), nil
 }
 
-type CredentialRequest struct {
-	ProverDID                 string `json:"prover_did"`
-	CredDefID                 string `json:"cred_def_id"`
-	BlindedMS                 string `json:"blinded_ms"`
-	BlindedMSCorrectnessProof string `json:"blinded_ms_correctness_proof"`
-	Nonce                     string `json:"nonce"`
-}
+func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDefData, offer *schema.IndyCredentialOffer,
+	masterSecret string) (*datastore.CredentialRequest, *datastore.CredentialRequestMetadata, error) {
 
-type CredentialRequestMetadata struct {
-	MasterSecretBlindingData string `json:"master_secret_blinding_data"`
-	Nonce                    string `json:"nonce"`
-	MasterSecretName         string `json:"master_secret_name"`
-}
-
-func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDefData, offer *schema.IndyCredentialOffer, masterSecret string) (*CredentialRequest, *CredentialRequestMetadata, error) {
 	credentialPubKey, err := CredDefPublicKey(credDef.PKey(), credDef.RKey())
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to build credential public key")
@@ -125,7 +113,7 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 		return nil, nil, err
 	}
 
-	cr := &CredentialRequest{
+	cr := &datastore.CredentialRequest{
 		ProverDID: proverDID,
 		CredDefID: credDef.ID,
 	}
@@ -155,7 +143,7 @@ func (r *Prover) CreateCredentialRequest(proverDID string, credDef *vdr.ClaimDef
 	defer reqNonce.Free()
 	cr.Nonce = string(js)
 
-	md := &CredentialRequestMetadata{MasterSecretName: "master_secret", Nonce: cr.Nonce}
+	md := &datastore.CredentialRequestMetadata{MasterSecretName: "master_secret", Nonce: cr.Nonce}
 
 	js, err = blindedSecrets.BlindingFactor.ToJSON()
 	if err != nil {
@@ -285,7 +273,7 @@ func (r *Prover) CreateProof(credentials map[string]*schema.IndyCredential, proo
 
 }
 
-func (r *Prover) ProcessCredentialSignature(cred *schema.IndyCredential, credRequest *CredentialRequest,
+func (r *Prover) ProcessCredentialSignature(cred *schema.IndyCredential, credRequest *datastore.CredentialRequest,
 	masterSecret, masterSecretBlindingData, credDefPKey string) (string, error) {
 
 	cryptoSignature, err := ursa.CredentialSignatureFromJSON(cred.Signature)

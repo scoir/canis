@@ -185,4 +185,32 @@ type CloudAgentConnection struct {
 	TheirDID     string
 	MyDID        string
 	ConnectionID string
+	Status       string
+}
+
+type CloudAgentCredential struct {
+	ID                        string
+	CloudAgentID              string
+	SystemState               string
+	MyDID                     string
+	TheirDID                  string
+	ThreadID                  string
+	Offer                     *Offer
+	Credential                *Credential
+	CredentialRequest         *CredentialRequest
+	CredentialRequestMetadata *CredentialRequestMetadata
+}
+
+type CredentialRequest struct {
+	ProverDID                 string `json:"prover_did"`
+	CredDefID                 string `json:"cred_def_id"`
+	BlindedMS                 string `json:"blinded_ms"`
+	BlindedMSCorrectnessProof string `json:"blinded_ms_correctness_proof"`
+	Nonce                     string `json:"nonce"`
+}
+
+type CredentialRequestMetadata struct {
+	MasterSecretBlindingData string `json:"master_secret_blinding_data"`
+	Nonce                    string `json:"nonce"`
+	MasterSecretName         string `json:"master_secret_name"`
 }

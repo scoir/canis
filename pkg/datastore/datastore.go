@@ -46,7 +46,7 @@ type Store interface {
 	// UpdateSchema update single schema
 	UpdateSchema(s *Schema) error
 
-	// InsertCredential add Crednetial to store
+	// InsertCredential add Credential to store
 	InsertCredential(c *IssuedCredential) (string, error)
 	//FindCredentialByOffer finds credential in offer state
 	FindCredentialByProtocolID(offerID string) (*IssuedCredential, error)
@@ -141,5 +141,19 @@ type Store interface {
 	DeleteCloudAgentConnection(a *CloudAgent, externalID string) error
 
 	// GetAgentConnectionForDID return single connection between an agent and an external subject
-	GetCloudAgentConnectionForDID(a *CloudAgent, theirDID string) (*CloudAgentConnection, error)
+	GetCloudAgentConnectionForDIDs(myDID string, theirDID string) (*CloudAgentConnection, error)
+
+	// InsertAgentCredential associates an agent with a credential
+	InsertCloudAgentCredential(cred *CloudAgentCredential) error
+	// InsertAgentCredential associates an agent with a credential
+	UpdateCloudAgentCredential(cred *CloudAgentCredential) error
+	// ListAgentCredentials returns all the credentials for an agent
+	ListCloudAgentCredentials(a *CloudAgent) ([]*CloudAgentCredential, error)
+	// GetAgentCredential return single credential between an agent and an external subject
+	GetCloudAgentCredential(a *CloudAgent, id string) (*CloudAgentCredential, error)
+	// DeleteAgentCredential deletes a credential for an agent
+	DeleteCloudAgentCredential(a *CloudAgent, id string) error
+
+	// GetAgentCredential return single credential between an agent and an external subject
+	GetCloudAgentCredentialFromThread(cloudAgentID string, thid string) (*CloudAgentCredential, error)
 }

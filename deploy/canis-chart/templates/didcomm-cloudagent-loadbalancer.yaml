@@ -1,0 +1,62 @@
+{{if eq .Values.cloudagent.external.type "loadbalancer"}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-cloudagent-external
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-cloudagent-external
+spec:
+  ports:
+    - name: ws-didcomm
+      port: {{ .Values.cloudagent.inbound.wsPort }}
+      protocol: TCP
+      targetPort: {{ .Values.cloudagent.inbound.wsPort }}
+    - name: http-didcomm
+      port: {{ .Values.cloudagent.inbound.httpPort }}
+      protocol: TCP
+      targetPort: {{ .Values.cloudagent.inbound.httpPort }}
+    - name: grpcbridge
+      port: {{ .Values.cloudagent.grpcBridge.port }}
+      protocol: TCP
+      targetPort: {{ .Values.cloudagent.grpcBridge.port }}
+    - name: grpc
+      port: {{ .Values.cloudagent.grpc.port }}
+      protocol: TCP
+      targetPort: {{ .Values.cloudagent.grpc.port }}
+  selector:
+    name: {{ include "canis.fullname" . }}-didcomm-cloudagent
+  sessionAffinity: None
+  type: LoadBalancer
+  loadBalancerIP: {{ .Values.cloudagent.external.loadbalancer.host }}
+{{ else }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: {{ include "canis.fullname" . }}-didcomm-cloudagent-external
+  name: {{ include "canis.fullname" . }}-didcomm-cloudagent-external
+spec:
+  ports:
+    - name: ws-didcomm
+      port: {{ .Values.cloudagent.inbound.wsPort }}
+      protocol: TCP
+      targetPort: {{ .Values.cloudagent.inbound.wsPort }}
+      nodePort: {{ .Values.cloudagent.external.nodePort.wsPort }}
+    - name: http-didcomm
+      port: {{ .Values.cloudagent.inbound.httpPort }}
+      protocol: TCP
+      targetPort: {{ .Values.cloudagent.inbound.httpPort }}
+      nodePort: {{ .Values.cloudagent.external.nodePort.httpPort }}
+    - name: grpcbridge
+      port: {{ .Values.cloudagent.grpcBridge.port }}
+      protocol: TCP
+      targetPort: {{ .Values.cloudagent.grpcBridge.port }}
+    - name: grpc
+      port: {{ .Values.cloudagent.grpc.port }}
+      protocol: TCP
+      targetPort: {{ .Values.cloudagent.grpc.port }}
+  selector:
+    name: {{ include "canis.fullname" . }}-didcomm-cloudagent
+  sessionAffinity: None
+  type: NodePort
+{{ end }}

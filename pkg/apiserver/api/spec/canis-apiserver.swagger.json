@@ -1108,6 +1108,9 @@
     "commonCredential": {
       "type": "object",
       "properties": {
+        "credential_id": {
+          "type": "string"
+        },
         "schema_id": {
           "type": "string"
         },
@@ -1115,6 +1118,9 @@
           "type": "string"
         },
         "type": {
+          "type": "string"
+        },
+        "status": {
           "type": "string"
         },
         "body": {

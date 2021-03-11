@@ -68,11 +68,13 @@ message CredentialAttribute {
 }
 
 message Credential {
-    string schema_id = 1;
-    string comment = 2;
-    string type = 3;
-    google.protobuf.Struct body = 4;
-    repeated CredentialAttribute preview = 5;
+    string credential_id = 1;
+    string schema_id = 2;
+    string comment = 3;
+    string type = 4;
+    string status = 5;
+    google.protobuf.Struct body = 6;
+    repeated CredentialAttribute preview = 7;
 
 }
 
@@ -120,6 +122,7 @@ message Connection {
     string name = 2;
     string their_did = 3;
     string my_did = 4;
+    string status = 5;
 }
 
 message ListConnectionsRequest {
@@ -155,7 +158,7 @@ message PollConnectionResponse {
 }
 
 message AcceptConnectionRequest {
-
+    string connection_id = 1;
 }
 
 message AcceptConnectionResponse {
@@ -171,7 +174,7 @@ message PollCredentialOffersResponse {
 }
 
 message AcceptCredentialRequest {
-
+    string credential_id = 1;
 }
 
 message AcceptCredentialResponse {

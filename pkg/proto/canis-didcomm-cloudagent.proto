@@ -14,25 +14,34 @@ service CloudAgent {
         body: "*"
     };
   }
+
   rpc GetEndpoint (common.EndpointRequest) returns (common.EndpointResponse) {}
 
-  rpc PollConnectionRequests(common.PollConnectionRequest) returns (common.PollConnectionResponse) {
-
-  }
-  rpc HandleInvitation(common.HandleInvitationRequest) returns (common.HandleInvitationResponse) {
+  rpc AcceptInvitation(common.HandleInvitationRequest) returns (common.HandleInvitationResponse) {
     option (google.api.http) = {
         post: "/cloudagents/invitation"
         body: "*"
     };
   }
-  rpc AcceptConnection(common.AcceptConnectionRequest) returns (common.AcceptConnectionResponse) {}
-  rpc PollCredentialOffers(common.PollCredentialOffersRequest) returns (common.PollCredentialOffersResponse) {}
-  rpc AcceptCredential(common.AcceptCredentialRequest) returns (common.AcceptCredentialResponse) {}
+
+  rpc AcceptCredential(common.AcceptCredentialRequest) returns (common.AcceptCredentialResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/credentials/{credential_id}"
+        body: "*"
+    };
+
+  }
+
   rpc ListConnections(common.ListConnectionsRequest) returns (common.ListConnectionsResponse) {
     option (google.api.http) = {
         post: "/cloudagents/connections"
     };
   }
-  rpc ListCredentials(common.ListCredentialsRequest) returns (common.ListCredentialsResponse) {}
+
+  rpc ListCredentials(common.ListCredentialsRequest) returns (common.ListCredentialsResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/credentials"
+    };
+  }
 
 }

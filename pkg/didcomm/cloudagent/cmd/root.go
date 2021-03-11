@@ -8,6 +8,7 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/secretlock/local"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
+	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/pkg/errors"
 	mongodbstore "github.com/scoir/aries-storage-mongo/pkg"
 	"github.com/spf13/cobra"
@@ -45,6 +47,18 @@ type Provider struct {
 	store                datastore.Store
 	ariesStorageProvider storage.Provider
 	conf                 config.Config
+	actx                 *ariescontext.Provider
+}
+
+func (r *Provider) GetVDRClient() (*vdr.Client, error) {
+	genesisFile := r.conf.GetString("registry.indy.genesisFile")
+	re := strings.NewReader(genesisFile)
+	cl, err := vdr.New(ioutil.NopCloser(re))
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get indy vdr client")
+	}
+
+	return cl, nil
 }
 
 func Execute() {
@@ -69,7 +83,8 @@ func initConfig() {
 		WithLedgerStore().
 		WithAMQP().
 		WithVDRI().
-		WithMasterLockKey()
+		WithMasterLockKey().
+		WithIndyRegistry()
 
 	dc, err := conf.DataStore()
 	if err != nil {
@@ -128,6 +143,10 @@ func (r *Provider) GetExternal() string {
 }
 
 func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
+	if r.actx != nil {
+		return r.actx, nil
+	}
+
 	host := r.conf.GetString("inbound.host")
 	wsPort := r.conf.GetInt("inbound.wsport")
 	internal := fmt.Sprintf("%s:%d", host, wsPort)
@@ -173,6 +192,8 @@ func (r *Provider) GetAriesContext() (*ariescontext.Provider, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get aries context")
 	}
+
+	r.actx = actx
 
 	return actx, err
 }
