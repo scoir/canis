@@ -38,7 +38,7 @@ func canon() {
 	out := map[string]interface{}{}
 	err := json.Unmarshal(d, &out)
 	if err != nil {
-		log.Fatalln("fuck", err)
+		log.Fatalln("broken", err)
 	}
 
 	proc := ld.NewJsonLdProcessor()

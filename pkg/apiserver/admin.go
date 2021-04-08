@@ -10,7 +10,6 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
@@ -292,8 +291,9 @@ func (r *APIServer) GetAgent(_ context.Context, req *api.GetAgentRequest) (*api.
 
 func (r *APIServer) GetAgentInvitation(ctx context.Context, request *common.InvitationRequest) (*common.InvitationResponse, error) {
 	doormanReq := &common.InvitationRequest{
-		AgentName:  request.AgentName,
-		ExternalId: request.ExternalId,
+		AgentName:      request.AgentName,
+		ExternalId:     request.ExternalId,
+		ConnectionName: request.ConnectionName,
 	}
 	invite, err := r.doorman.GetInvitation(ctx, doormanReq)
 	if err != nil {
@@ -311,9 +311,7 @@ func (r *APIServer) GetAgentInvitationImage(ctx context.Context, request *common
 		return nil, err
 	}
 
-	ci := base64.URLEncoding.EncodeToString([]byte(resp.Invitation))
-
-	qr, err := qrcode.Encode(ci, qrcode.Medium, 256)
+	qr, err := qrcode.Encode(resp.Invitation, qrcode.Medium, 256)
 	if err != nil {
 		return nil, status.Error(codes.Internal, errors.Wrapf(err, "unable to encode invitation QR code").Error())
 	}
@@ -340,13 +338,13 @@ func (r *APIServer) DeleteAgent(_ context.Context, req *api.DeleteAgentRequest) 
 }
 
 func (r *APIServer) UpdateAgent(_ context.Context, req *api.UpdateAgentRequest) (*api.UpdateAgentResponse, error) {
-	if req.Agent.Id == "" {
+	if req.Agent.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "id is required fields")
 	}
 
-	old, err := r.agentStore.GetAgent(req.Agent.Id)
+	old, err := r.agentStore.GetAgent(req.Agent.Name)
 	if err != nil {
-		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("agent with id %s already exists", req.Agent.Id))
+		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("agent with name %s does not exist", req.Agent.Name))
 	}
 
 	var upd = *old
@@ -490,40 +488,7 @@ func (r *APIServer) IssueCredential(ctx context.Context, req *common.IssueCreden
 }
 
 func (r *APIServer) RequestPresentation(ctx context.Context, req *common.RequestPresentationRequest) (*common.RequestPresentationResponse, error) {
-
-	pp := make(map[string]*common.AttrInfo)
-	for k, v := range req.Presentation.RequestedAttributes {
-		pp[k] = &common.AttrInfo{
-			Name:         v.Name,
-			Restrictions: v.Restrictions,
-			NonRevoked:   v.NonRevoked,
-		}
-	}
-
-	pq := make(map[string]*common.PredicateInfo)
-	for k, v := range req.Presentation.RequestedPredicates {
-		pq[k] = &common.PredicateInfo{
-			Name:         v.Name,
-			PType:        v.PType,
-			PValue:       v.PValue,
-			Restrictions: v.Restrictions,
-			NonRevoked:   v.NonRevoked,
-		}
-	}
-
-	rpr := &common.RequestPresentationRequest{
-		AgentName:  req.AgentName,
-		ExternalId: req.ExternalId,
-		Presentation: &common.RequestPresentation{
-			SchemaId:            req.Presentation.SchemaId,
-			Comment:             req.Presentation.Comment,
-			WillConfirm:         req.Presentation.WillConfirm,
-			RequestedAttributes: pp,
-			RequestedPredicates: pq,
-		},
-	}
-
-	resp, err := r.verifier.RequestPresentation(ctx, rpr)
+	resp, err := r.verifier.RequestPresentation(ctx, req)
 	if err != nil {
 		return nil, err
 	}

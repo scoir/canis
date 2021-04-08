@@ -44,4 +44,17 @@ service CloudAgent {
     };
   }
 
+  rpc ListProofRequests(common.ListProofRequestsRequest) returns (common.ListProofRequestsResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/proof_requests"
+    };
+  }
+
+  rpc PresentProof(common.PresentProofRequest) returns (common.PresentProofResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/proof_requests/{proof_request_id}"
+        body: "*"
+    };
+  }
+
 }

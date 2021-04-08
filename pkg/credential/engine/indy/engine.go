@@ -207,6 +207,9 @@ func (r *CredentialEngine) IssueCredential(issuerDID *datastore.DID, s *datastor
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load existing indy offer")
 	}
+
+	fmt.Println(string(d))
+
 	err = json.Unmarshal(d, &offer)
 	if err != nil {
 		return nil, errors.Wrap(err, "unexpected error decoding indy stored offer")

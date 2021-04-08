@@ -2,6 +2,7 @@ package doorman
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -99,20 +100,20 @@ func (r *Doorman) GetInvitation(_ context.Context, request *common.InvitationReq
 	var invite *ariesdidex.Invitation
 	if agent.HasPublicDID {
 		did := agent.PublicDID.DID.String()
-		invite, err = r.bouncer.CreateInvitationWithDIDNotify(agent.Name, did, r.accepted(agent, request.ExternalId), failed)
+		invite, err = r.bouncer.CreateInvitationWithDIDNotify(request.ConnectionName, did, r.accepted(agent, request.ExternalId), failed)
 		if err != nil {
 			return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("error creating invitation with public DID for agent %s", request.AgentName))
 		}
 	} else {
-		invite, err = r.bouncer.CreateInvitationNotify(agent.Name, r.accepted(agent, request.ExternalId), failed)
+		invite, err = r.bouncer.CreateInvitationNotify(request.ConnectionName, r.accepted(agent, request.ExternalId), failed)
 		if err != nil {
 			return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("error creating invitation for agent %s", request.AgentName))
 		}
 	}
 
-	d, _ := json.MarshalIndent(invite, " ", " ")
+	d, _ := json.Marshal(invite)
 	return &common.InvitationResponse{
-		Invitation: string(d),
+		Invitation: base64.URLEncoding.EncodeToString(d),
 	}, nil
 }
 
@@ -202,8 +203,16 @@ func (r *Doorman) AcceptInvitation(_ context.Context, req *common.AcceptInvitati
 	}
 
 	invite := &ariesdidex.Invitation{}
-	err = json.Unmarshal([]byte(req.Invitation), invite)
+
+	d, err := base64.URLEncoding.DecodeString(req.Invitation)
 	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invitation is not valid Base64 encoded JSON for an invite")
+	}
+
+	err = json.Unmarshal([]byte(d), invite)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println(invite)
 		return nil, status.Error(codes.InvalidArgument, "invitation is not valid JSON for an invite")
 	}
 

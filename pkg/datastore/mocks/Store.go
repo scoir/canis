@@ -55,6 +55,34 @@ func (_m *Store) DeleteAgentConnection(a *datastore.Agent, externalID string) er
 	return r0
 }
 
+// DeleteCloudAgentConnection provides a mock function with given fields: a, externalID
+func (_m *Store) DeleteCloudAgentConnection(a *datastore.CloudAgent, externalID string) error {
+	ret := _m.Called(a, externalID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgent, string) error); ok {
+		r0 = rf(a, externalID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteCloudAgentCredential provides a mock function with given fields: a, id
+func (_m *Store) DeleteCloudAgentCredential(a *datastore.CloudAgent, id string) error {
+	ret := _m.Called(a, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgent, string) error); ok {
+		r0 = rf(a, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteCredentialByOffer provides a mock function with given fields: offerID
 func (_m *Store) DeleteCredentialByOffer(offerID string) error {
 	ret := _m.Called(offerID)
@@ -205,6 +233,144 @@ func (_m *Store) GetAgentConnectionForDID(a *datastore.Agent, theirDID string) (
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*datastore.Agent, string) error); ok {
 		r1 = rf(a, theirDID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCloudAgent provides a mock function with given fields: ID
+func (_m *Store) GetCloudAgent(ID string) (*datastore.CloudAgent, error) {
+	ret := _m.Called(ID)
+
+	var r0 *datastore.CloudAgent
+	if rf, ok := ret.Get(0).(func(string) *datastore.CloudAgent); ok {
+		r0 = rf(ID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.CloudAgent)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(ID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCloudAgentConnection provides a mock function with given fields: a, invitationID
+func (_m *Store) GetCloudAgentConnection(a *datastore.CloudAgent, invitationID string) (*datastore.CloudAgentConnection, error) {
+	ret := _m.Called(a, invitationID)
+
+	var r0 *datastore.CloudAgentConnection
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgent, string) *datastore.CloudAgentConnection); ok {
+		r0 = rf(a, invitationID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.CloudAgentConnection)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.CloudAgent, string) error); ok {
+		r1 = rf(a, invitationID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCloudAgentConnectionForDIDs provides a mock function with given fields: myDID, theirDID
+func (_m *Store) GetCloudAgentConnectionForDIDs(myDID string, theirDID string) (*datastore.CloudAgentConnection, error) {
+	ret := _m.Called(myDID, theirDID)
+
+	var r0 *datastore.CloudAgentConnection
+	if rf, ok := ret.Get(0).(func(string, string) *datastore.CloudAgentConnection); ok {
+		r0 = rf(myDID, theirDID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.CloudAgentConnection)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(myDID, theirDID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCloudAgentCredential provides a mock function with given fields: a, id
+func (_m *Store) GetCloudAgentCredential(a *datastore.CloudAgent, id string) (*datastore.CloudAgentCredential, error) {
+	ret := _m.Called(a, id)
+
+	var r0 *datastore.CloudAgentCredential
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgent, string) *datastore.CloudAgentCredential); ok {
+		r0 = rf(a, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.CloudAgentCredential)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.CloudAgent, string) error); ok {
+		r1 = rf(a, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCloudAgentCredentialFromThread provides a mock function with given fields: cloudAgentID, thid
+func (_m *Store) GetCloudAgentCredentialFromThread(cloudAgentID string, thid string) (*datastore.CloudAgentCredential, error) {
+	ret := _m.Called(cloudAgentID, thid)
+
+	var r0 *datastore.CloudAgentCredential
+	if rf, ok := ret.Get(0).(func(string, string) *datastore.CloudAgentCredential); ok {
+		r0 = rf(cloudAgentID, thid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.CloudAgentCredential)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(cloudAgentID, thid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCloudAgentForDID provides a mock function with given fields: theirDID
+func (_m *Store) GetCloudAgentForDID(theirDID string) (*datastore.CloudAgent, error) {
+	ret := _m.Called(theirDID)
+
+	var r0 *datastore.CloudAgent
+	if rf, ok := ret.Get(0).(func(string) *datastore.CloudAgent); ok {
+		r0 = rf(theirDID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*datastore.CloudAgent)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(theirDID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -431,6 +597,34 @@ func (_m *Store) InsertAgentConnection(a *datastore.Agent, externalID string, co
 	return r0
 }
 
+// InsertCloudAgentConnection provides a mock function with given fields: ac
+func (_m *Store) InsertCloudAgentConnection(ac *datastore.CloudAgentConnection) error {
+	ret := _m.Called(ac)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgentConnection) error); ok {
+		r0 = rf(ac)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// InsertCloudAgentCredential provides a mock function with given fields: cred
+func (_m *Store) InsertCloudAgentCredential(cred *datastore.CloudAgentCredential) error {
+	ret := _m.Called(cred)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgentCredential) error); ok {
+		r0 = rf(cred)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // InsertCredential provides a mock function with given fields: c
 func (_m *Store) InsertCredential(c *datastore.IssuedCredential) (string, error) {
 	ret := _m.Called(c)
@@ -575,6 +769,52 @@ func (_m *Store) ListAgentConnections(a *datastore.Agent) ([]*datastore.AgentCon
 	return r0, r1
 }
 
+// ListCloudAgentConnections provides a mock function with given fields: a
+func (_m *Store) ListCloudAgentConnections(a *datastore.CloudAgent) ([]*datastore.CloudAgentConnection, error) {
+	ret := _m.Called(a)
+
+	var r0 []*datastore.CloudAgentConnection
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgent) []*datastore.CloudAgentConnection); ok {
+		r0 = rf(a)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*datastore.CloudAgentConnection)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.CloudAgent) error); ok {
+		r1 = rf(a)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListCloudAgentCredentials provides a mock function with given fields: a
+func (_m *Store) ListCloudAgentCredentials(a *datastore.CloudAgent) ([]*datastore.CloudAgentCredential, error) {
+	ret := _m.Called(a)
+
+	var r0 []*datastore.CloudAgentCredential
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgent) []*datastore.CloudAgentCredential); ok {
+		r0 = rf(a)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*datastore.CloudAgentCredential)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*datastore.CloudAgent) error); ok {
+		r1 = rf(a)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListDIDs provides a mock function with given fields: c
 func (_m *Store) ListDIDs(c *datastore.DIDCriteria) (*datastore.DIDList, error) {
 	ret := _m.Called(c)
@@ -644,6 +884,27 @@ func (_m *Store) ListWebhooks(typ string) ([]*datastore.Webhook, error) {
 	return r0, r1
 }
 
+// RegisterCloudAgent provides a mock function with given fields: externalID, publicKey, nextKey
+func (_m *Store) RegisterCloudAgent(externalID string, publicKey []byte, nextKey []byte) (string, error) {
+	ret := _m.Called(externalID, publicKey, nextKey)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, []byte, []byte) string); ok {
+		r0 = rf(externalID, publicKey, nextKey)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []byte, []byte) error); ok {
+		r1 = rf(externalID, publicKey, nextKey)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RegisterEdgeAgent provides a mock function with given fields: connectionID, externalID
 func (_m *Store) RegisterEdgeAgent(connectionID string, externalID string) (string, error) {
 	ret := _m.Called(connectionID, externalID)
@@ -700,6 +961,48 @@ func (_m *Store) UpdateAgent(a *datastore.Agent) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*datastore.Agent) error); ok {
 		r0 = rf(a)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateCloudAgent provides a mock function with given fields: ea
+func (_m *Store) UpdateCloudAgent(ea *datastore.CloudAgent) error {
+	ret := _m.Called(ea)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgent) error); ok {
+		r0 = rf(ea)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateCloudAgentConnection provides a mock function with given fields: ac
+func (_m *Store) UpdateCloudAgentConnection(ac *datastore.CloudAgentConnection) error {
+	ret := _m.Called(ac)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgentConnection) error); ok {
+		r0 = rf(ac)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateCloudAgentCredential provides a mock function with given fields: cred
+func (_m *Store) UpdateCloudAgentCredential(cred *datastore.CloudAgentCredential) error {
+	ret := _m.Called(cred)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*datastore.CloudAgentCredential) error); ok {
+		r0 = rf(cred)
 	} else {
 		r0 = ret.Error(0)
 	}

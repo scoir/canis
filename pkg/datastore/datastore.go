@@ -126,17 +126,19 @@ type Store interface {
 	GetCloudAgent(ID string) (*CloudAgent, error)
 
 	// GetCloudAgentForDID retrieves the internal ID associated with a registered DID for an existing connection
-	GetCloudAgentForDID(theirDID string) (*CloudAgent, error)
+	GetCloudAgentForDID(myDID string) (*CloudAgent, error)
 
 	// UpdateCloudAgent updates the cloud agent using the connection ID and the external ID
 	UpdateCloudAgent(ea *CloudAgent) error
 
 	// InsertAgentConnection associates an agent with a connection
-	InsertCloudAgentConnection(a *CloudAgent, conn *didexchange.Connection) error
+	InsertCloudAgentConnection(ac *CloudAgentConnection) error
+	// UpdateAgentConnection associates an agent with a connection
+	UpdateCloudAgentConnection(ac *CloudAgentConnection) error
 	// ListAgentConnections returns all the connections for an agent
 	ListCloudAgentConnections(a *CloudAgent) ([]*CloudAgentConnection, error)
 	// GetAgentConnection return single connection between an agent and an external subject
-	GetCloudAgentConnection(a *CloudAgent, externalID string) (*CloudAgentConnection, error)
+	GetCloudAgentConnection(a *CloudAgent, invitationID string) (*CloudAgentConnection, error)
 	// DeleteAgentConnection deletes a connection for an agent
 	DeleteCloudAgentConnection(a *CloudAgent, externalID string) error
 
@@ -156,4 +158,15 @@ type Store interface {
 
 	// GetAgentCredential return single credential between an agent and an external subject
 	GetCloudAgentCredentialFromThread(cloudAgentID string, thid string) (*CloudAgentCredential, error)
+
+	// InsertAgentProofRequest associates an agent with a ProofRequest
+	InsertCloudAgentProofRequest(cred *CloudAgentProofRequest) error
+	// InsertAgentProofRequest associates an agent with a ProofRequest
+	UpdateCloudAgentProofRequest(cred *CloudAgentProofRequest) error
+	// ListAgentProofRequests returns all the ProofRequests for an agent
+	ListCloudAgentProofRequests(a *CloudAgent) ([]*CloudAgentProofRequest, error)
+	// GetAgentProofRequest return single ProofRequest between an agent and an external subject
+	GetCloudAgentProofRequest(a *CloudAgent, id string) (*CloudAgentProofRequest, error)
+	// DeleteAgentProofRequest deletes a ProofRequest for an agent
+	DeleteCloudAgentProofRequest(a *CloudAgent, id string) error
 }

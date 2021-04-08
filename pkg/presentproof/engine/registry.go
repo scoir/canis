@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/presexch"
 
 	"github.com/scoir/canis/pkg/datastore"
-	"github.com/scoir/canis/pkg/schema"
 )
 
 const PresentProofType = "https://didcomm.org/present-proof/2.0/request-presentation"
@@ -14,16 +14,14 @@ const PresentProofType = "https://didcomm.org/present-proof/2.0/request-presenta
 //go:generate mockery -name=PresentationEngine
 type PresentationEngine interface {
 	Accept(typ string) bool
-	RequestPresentation(name, version string, attrInfo map[string]*schema.IndyProofRequestAttr,
-		predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error)
+	RequestPresentation(name string, definitions *presexch.PresentationDefinitions) (*decorator.AttachmentData, error)
 	RequestPresentationFormat() string
 	Verify(presentation, request []byte, theirDID string, myDID string) error
 }
 
 //go:generate mockery -name=PresentationRegistry
 type PresentationRegistry interface {
-	RequestPresentation(name, version, typ string, attrInfo map[string]*schema.IndyProofRequestAttr,
-		predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error)
+	RequestPresentation(name, typ string, definitions *presexch.PresentationDefinitions) (*decorator.AttachmentData, error)
 	Verify(format string, presentation, request []byte, theirDID string, myDID string) error
 }
 
@@ -49,15 +47,14 @@ func New(prov provider, opts ...Option) *Registry {
 }
 
 // RequestPresentation
-func (r *Registry) RequestPresentation(name, version, typ string, attrInfo map[string]*schema.IndyProofRequestAttr,
-	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
+func (r *Registry) RequestPresentation(name, typ string, definitions *presexch.PresentationDefinitions) (*decorator.AttachmentData, error) {
 
 	e, err := r.resolveEngine(typ)
 	if err != nil {
 		return nil, err
 	}
 
-	return e.RequestPresentation(name, version, attrInfo, predicateInfo)
+	return e.RequestPresentation(name, definitions)
 }
 
 func (r *Registry) Verify(format string, presentation, request []byte, theirDID string, myDID string) error {

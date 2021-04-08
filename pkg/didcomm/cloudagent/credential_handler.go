@@ -9,10 +9,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/hyperledger/aries-framework-go/pkg/client/issuecredential"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/common/service"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/pkg/errors"
 
+	"github.com/scoir/canis/pkg/credential/engine/indy"
+	"github.com/scoir/canis/pkg/credential/engine/lds"
 	"github.com/scoir/canis/pkg/datastore"
 	"github.com/scoir/canis/pkg/schema"
 	cursa "github.com/scoir/canis/pkg/ursa"
@@ -75,18 +78,94 @@ func (r *credentialHandler) GetCredentialClient() (*issuecredential.Client, erro
 	return r.credcl, nil
 }
 
-func (r *credentialHandler) ProposeCredentialMsg(_ service.DIDCommAction, _ *icprotocol.ProposeCredential) {
+func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icprotocol.OfferCredential) {
+	for _, format := range d.Formats {
+		for _, attach := range d.OffersAttach {
+			if attach.ID == format.AttachID {
+				switch format.Format {
+				case lds.LinkedDataSignature:
+					r.saveLDSOffer(e, d, attach)
+				case indy.Indy:
+					r.saveIndyOffer(e, d, attach)
+				}
+				continue
+			}
+		}
+	}
+}
+
+func (r *credentialHandler) IssueCredentialMsg(e service.DIDCommAction, d *icprotocol.IssueCredential) {
+
+	for _, format := range d.Formats {
+		for _, attach := range d.CredentialsAttach {
+			if attach.ID == format.AttachID {
+				switch format.Format {
+				case lds.LinkedDataSignature:
+					r.acceptLDSOffer(e, d, attach)
+				case indy.Indy:
+					r.acceptIndyOffer(e, d, attach)
+				}
+				continue
+			}
+		}
+	}
 
 }
 
-func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icprotocol.OfferCredential) {
-
+func (r *credentialHandler) saveLDSOffer(e service.DIDCommAction, offer *icprotocol.OfferCredential, attachment decorator.Attachment) {
 	ep := e.Properties.(eventProps)
 	myDID := ep.MyDID()
 	theirDID := ep.TheirDID()
 	thid, _ := e.Message.ThreadID()
 
 	cloudAgentConnection, err := r.store.GetCloudAgentConnectionForDIDs(myDID, theirDID)
+	if err != nil {
+		log.Println("uable to load cloud agent connection for LDS offer", err)
+		return
+	}
+
+	fmt.Println("Accepting credential offer", offer.Comment)
+	d, _ := attachment.Data.Fetch()
+	cloudAgentCredential := &datastore.CloudAgentCredential{
+		ID:           uuid.New().String(),
+		CloudAgentID: cloudAgentConnection.CloudAgentID,
+		SystemState:  "offered",
+		Format:       lds.LinkedDataSignature,
+		MyDID:        myDID,
+		TheirDID:     theirDID,
+		ThreadID:     thid,
+		IssuerConnection: &datastore.IDName{
+			ID:   cloudAgentConnection.ConnectionID,
+			Name: cloudAgentConnection.TheirLabel,
+		},
+		Offer: &datastore.Offer{
+			Comment: offer.Comment,
+			Type:    offer.Type,
+			Data:    d,
+		},
+	}
+
+	err = r.store.InsertCloudAgentCredential(cloudAgentCredential)
+	if err != nil {
+		log.Println("unable to save cloud agent credential", err)
+		return
+	}
+
+	log.Println("Credential offer saved from", theirDID, "to", myDID)
+
+}
+
+func (r *credentialHandler) saveIndyOffer(e service.DIDCommAction, d *icprotocol.OfferCredential, attachment decorator.Attachment) {
+	ep := e.Properties.(eventProps)
+	myDID := ep.MyDID()
+	theirDID := ep.TheirDID()
+	thid, _ := e.Message.ThreadID()
+
+	cloudAgentConnection, err := r.store.GetCloudAgentConnectionForDIDs(myDID, theirDID)
+	if err != nil {
+		log.Println("uable to load cloud agent connection for Indy offer", err)
+		return
+	}
 
 	fmt.Println("Accepting credential offer", d.Comment)
 	ms, err := r.prover.CreateMasterSecret(masterSecretID)
@@ -96,7 +175,7 @@ func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icpro
 	}
 
 	offer := &schema.IndyCredentialOffer{}
-	bits, _ := d.OffersAttach[0].Data.Fetch()
+	bits, _ := attachment.Data.Fetch()
 	err = json.Unmarshal(bits, offer)
 	if err != nil {
 		log.Println("extract offer from protocol message", err)
@@ -133,12 +212,17 @@ func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icpro
 	}
 
 	cloudAgentCredential := &datastore.CloudAgentCredential{
-		ID:                        uuid.New().String(),
-		CloudAgentID:              cloudAgentConnection.CloudAgentID,
-		SystemState:               "offered",
-		MyDID:                     myDID,
-		TheirDID:                  theirDID,
-		ThreadID:                  thid,
+		ID:           uuid.New().String(),
+		CloudAgentID: cloudAgentConnection.CloudAgentID,
+		SystemState:  "offered",
+		Format:       indy.Indy,
+		MyDID:        myDID,
+		TheirDID:     theirDID,
+		ThreadID:     thid,
+		IssuerConnection: &datastore.IDName{
+			ID:   cloudAgentConnection.ConnectionID,
+			Name: cloudAgentConnection.TheirLabel,
+		},
 		CredentialRequest:         credReq,
 		CredentialRequestMetadata: credReqMeta,
 		Offer: &datastore.Offer{
@@ -156,20 +240,9 @@ func (r *credentialHandler) OfferCredentialMsg(e service.DIDCommAction, d *icpro
 
 	log.Println("Credential offer saved from", theirDID, "to", myDID)
 
-	//msg := &icprotocol.RequestCredential{
-	//	Type:    icprotocol.RequestCredentialMsgType,
-	//	Comment: d.Comment,
-	//	RequestsAttach: []decorator.Attachment{
-	//		{Data: decorator.AttachmentData{
-	//			Base64: base64.StdEncoding.EncodeToString(b),
-	//		}},
-	//	},
-	//}
-
-	//e.Continue(icprotocol.WithRequestCredential(msg))
 }
 
-func (r *credentialHandler) IssueCredentialMsg(e service.DIDCommAction, d *icprotocol.IssueCredential) {
+func (r *credentialHandler) acceptLDSOffer(e service.DIDCommAction, issue *icprotocol.IssueCredential, attachment decorator.Attachment) {
 	fmt.Println("Accepting credential")
 	thid, _ := e.Message.ThreadID()
 	err := r.credcl.AcceptCredential(thid)
@@ -193,7 +266,54 @@ func (r *credentialHandler) IssueCredentialMsg(e service.DIDCommAction, d *icpro
 		return
 	}
 
-	data, err := d.CredentialsAttach[0].Data.Fetch()
+	data, err := attachment.Data.Fetch()
+	if err != nil {
+		log.Println("error fetching credential", err)
+		return
+	}
+
+	fmt.Println(string(data))
+
+	cloudAgentCredential.Credential = &datastore.Credential{
+		Description: issue.Comment,
+		MimeType:    lds.LinkedDataSignature,
+		LastModTime: time.Now(),
+		Data:        data,
+	}
+	cloudAgentCredential.SystemState = "issued"
+
+	err = r.store.UpdateCloudAgentCredential(cloudAgentCredential)
+	if err != nil {
+		log.Println("unable to update issued cloud agent credential", err)
+	}
+
+}
+
+func (r *credentialHandler) acceptIndyOffer(e service.DIDCommAction, issue *icprotocol.IssueCredential, attachment decorator.Attachment) {
+	fmt.Println("Accepting credential")
+	thid, _ := e.Message.ThreadID()
+	err := r.credcl.AcceptCredential(thid)
+	if err != nil {
+		log.Println("Error accepting credential", err)
+		return
+	}
+
+	ep := e.Properties.(eventProps)
+	myDID := ep.MyDID()
+	theirDID := ep.TheirDID()
+	cloudAgentConnection, err := r.store.GetCloudAgentConnectionForDIDs(myDID, theirDID)
+	if err != nil {
+		log.Println("cloud agent conneciton not found from", theirDID, "to", myDID)
+		return
+	}
+
+	cloudAgentCredential, err := r.store.GetCloudAgentCredentialFromThread(cloudAgentConnection.CloudAgentID, thid)
+	if err != nil {
+		log.Println("cloud agent credential", thid, "not found for", cloudAgentConnection.CloudAgentID)
+		return
+	}
+
+	data, err := attachment.Data.Fetch()
 	if err != nil {
 		log.Println("error fetching credential", err)
 		return
@@ -237,8 +357,8 @@ func (r *credentialHandler) IssueCredentialMsg(e service.DIDCommAction, d *icpro
 	data, _ = json.Marshal(cred)
 
 	cloudAgentCredential.Credential = &datastore.Credential{
-		Description: d.Comment,
-		MimeType:    d.Formats[0].Format,
+		Description: issue.Comment,
+		MimeType:    indy.Indy,
 		LastModTime: time.Now(),
 		Data:        data,
 	}
@@ -250,6 +370,11 @@ func (r *credentialHandler) IssueCredentialMsg(e service.DIDCommAction, d *icpro
 
 }
 
+//No-ops
 func (r *credentialHandler) RequestCredentialMsg(_ service.DIDCommAction, _ *icprotocol.RequestCredential) {
+
+}
+
+func (r *credentialHandler) ProposeCredentialMsg(_ service.DIDCommAction, _ *icprotocol.ProposeCredential) {
 
 }

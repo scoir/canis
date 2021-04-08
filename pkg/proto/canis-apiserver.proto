@@ -303,7 +303,7 @@ service Admin {
     }
     rpc UpdateAgent (UpdateAgentRequest) returns (UpdateAgentResponse) {
         option (google.api.http) = {
-            post: "/agents/{agent.id}"
+            post: "/agents/{agent.name}"
             body: "agent"
         };
     }

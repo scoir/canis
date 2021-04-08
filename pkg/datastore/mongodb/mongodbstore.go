@@ -25,20 +25,21 @@ import (
 )
 
 const (
-	PublicDIDC            = "PublicDID"
-	DIDC                  = "DID"
-	AgentC                = "Agent"
-	AgentConnectionC      = "AgentConnection"
-	SchemaC               = "Schema"
-	CredentialC           = "IssuedCredential"
-	PresentationC         = "Presentation"
-	PresentationRequestC  = "PresentationRequest"
-	WebhookC              = "Webhook"
-	MediatorDIDC          = "MediatorDID"
-	EdgeAgentC            = "EdgeAgent"
-	CloudAgentC           = "CloudAgent"
-	CloudAgentConnectionC = "CloudAgentConnection"
-	CloudAgentCredentialC = "CloudAgentCredential"
+	PublicDIDC              = "PublicDID"
+	DIDC                    = "DID"
+	AgentC                  = "Agent"
+	AgentConnectionC        = "AgentConnection"
+	SchemaC                 = "Schema"
+	CredentialC             = "IssuedCredential"
+	PresentationC           = "Presentation"
+	PresentationRequestC    = "PresentationRequest"
+	WebhookC                = "Webhook"
+	MediatorDIDC            = "MediatorDID"
+	EdgeAgentC              = "EdgeAgent"
+	CloudAgentC             = "CloudAgent"
+	CloudAgentConnectionC   = "CloudAgentConnection"
+	CloudAgentCredentialC   = "CloudAgentCredential"
+	CloudAgentProofRequestC = "CloudAgentProofRequest"
 )
 
 type Config struct {

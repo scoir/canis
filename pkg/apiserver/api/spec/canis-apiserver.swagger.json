@@ -89,7 +89,7 @@
         ]
       }
     },
-    "/agents/{agent.id}": {
+    "/agents/{agent.name}": {
       "post": {
         "operationId": "Admin_UpdateAgent",
         "responses": {
@@ -108,7 +108,7 @@
         },
         "parameters": [
           {
-            "name": "agent.id",
+            "name": "agent.name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1090,21 +1090,6 @@
     "commonAcceptInvitationResponse": {
       "type": "object"
     },
-    "commonAttrInfo": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "restrictions": {
-          "type": "string"
-        },
-        "non_revoked": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
     "commonCredential": {
       "type": "object",
       "properties": {
@@ -1121,6 +1106,18 @@
           "type": "string"
         },
         "status": {
+          "type": "string"
+        },
+        "my_did": {
+          "type": "string"
+        },
+        "their_did": {
+          "type": "string"
+        },
+        "issuer_id": {
+          "type": "string"
+        },
+        "issuer_label": {
           "type": "string"
         },
         "body": {
@@ -1145,6 +1142,17 @@
         }
       }
     },
+    "commonInputDescriptor": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "schema": {
+          "$ref": "#/definitions/commonPresentationSchema"
+        }
+      }
+    },
     "commonInvitationResponse": {
       "type": "object",
       "properties": {
@@ -1161,25 +1169,17 @@
         }
       }
     },
-    "commonPredicateInfo": {
+    "commonPresentationSchema": {
       "type": "object",
       "properties": {
+        "uri": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
-        "p_type": {
+        "purpose": {
           "type": "string"
-        },
-        "p_value": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "restrictions": {
-          "type": "string"
-        },
-        "non_revoked": {
-          "type": "string",
-          "format": "date-time"
         }
       }
     },
@@ -1211,28 +1211,16 @@
         "name": {
           "type": "string"
         },
-        "version": {
+        "purpose": {
           "type": "string"
         },
-        "schema_id": {
+        "format": {
           "type": "string"
         },
-        "comment": {
-          "type": "string"
-        },
-        "will_confirm": {
-          "type": "boolean"
-        },
-        "requested_attributes": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/commonAttrInfo"
-          }
-        },
-        "requested_predicates": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/commonPredicateInfo"
+        "input_descriptors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/commonInputDescriptor"
           }
         }
       }

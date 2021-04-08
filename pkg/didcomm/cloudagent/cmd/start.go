@@ -13,6 +13,8 @@ import (
 
 	"github.com/scoir/canis/pkg/credential"
 	"github.com/scoir/canis/pkg/didcomm/cloudagent"
+	"github.com/scoir/canis/pkg/framework"
+	canisproof "github.com/scoir/canis/pkg/presentproof"
 )
 
 var startCmd = &cobra.Command{
@@ -26,6 +28,23 @@ func runStart(_ *cobra.Command, _ []string) {
 	i, err := cloudagent.New(ctx)
 	if err != nil {
 		log.Fatalln("unable to initialize mediator", err)
+	}
+
+	actx, _ := ctx.GetAriesContext()
+	pofHandler, err := cloudagent.NewProofHandler(actx)
+	if err != nil {
+		log.Fatalln("unable to create proof handler", err)
+	}
+
+	prov := framework.NewSimpleProvider(actx)
+	psup, err := canisproof.New(prov)
+	if err != nil {
+		log.Fatalln("unable to create proof supervisor", err)
+	}
+
+	err = psup.Start(pofHandler)
+	if err != nil {
+		log.Fatalln("unable to start proof supervisor", err)
 	}
 
 	credHandler, err := cloudagent.NewCredHandler(ctx)
@@ -47,6 +66,7 @@ func runStart(_ *cobra.Command, _ []string) {
 	if err != nil {
 		log.Println("cloudagent exited with", err)
 	}
+
 }
 
 func init() {

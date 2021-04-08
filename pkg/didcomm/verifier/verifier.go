@@ -17,7 +17,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	ppclient "github.com/hyperledger/aries-framework-go/pkg/client/presentproof"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
-	presentproof2 "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
+	ppprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/presexch"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -27,7 +28,6 @@ import (
 	api "github.com/scoir/canis/pkg/didcomm/verifier/api/protogen"
 	"github.com/scoir/canis/pkg/presentproof/engine"
 	"github.com/scoir/canis/pkg/protogen/common"
-	"github.com/scoir/canis/pkg/schema"
 )
 
 type Server struct {
@@ -82,38 +82,33 @@ func (r *Server) RequestPresentation(_ context.Context, req *common.RequestPrese
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load connection: %v", err))
 	}
 
-	sch, err := r.store.GetSchema(req.Presentation.SchemaId)
-	if err != nil {
-		return nil, status.Error(codes.NotFound, fmt.Sprintf("unable to load schema: %v", err))
+	var definitions = &presexch.PresentationDefinitions{
+		Name:             req.Presentation.Name,
+		Purpose:          req.Presentation.Purpose,
+		InputDescriptors: make([]*presexch.InputDescriptor, len(req.Presentation.InputDescriptors)),
 	}
 
-	attrInfo := map[string]*schema.IndyProofRequestAttr{}
-	for k, v := range req.Presentation.RequestedAttributes {
-		attrInfo[k] = &schema.IndyProofRequestAttr{
-			Name:         v.Name,
-			Restrictions: v.Restrictions,
+	for i, descriptor := range req.Presentation.InputDescriptors {
+		definitions.InputDescriptors[i] = &presexch.InputDescriptor{
+			ID: descriptor.Id,
+			Schema: &presexch.Schema{
+				URI:     descriptor.Schema.Uri,
+				Name:    descriptor.Schema.Name,
+				Purpose: descriptor.Schema.Purpose,
+			},
 		}
 	}
 
-	predicateInfo := map[string]*schema.IndyProofRequestPredicate{}
-	for k, v := range req.Presentation.RequestedPredicates {
-		predicateInfo[k] = &schema.IndyProofRequestPredicate{
-			Name:         v.Name,
-			PType:        v.PType,
-			PValue:       v.PValue,
-			Restrictions: v.Restrictions,
-		}
-	}
-	presentation, err := r.registry.RequestPresentation(req.Presentation.Name, req.Presentation.Version, sch.Format, attrInfo, predicateInfo)
+	presentation, err := r.registry.RequestPresentation(req.Presentation.Name, req.Presentation.Format, definitions)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("unexpected error creating presentation request: %v", err))
 	}
 
 	attachID := uuid.New().String()
 	sendReq := &ppclient.RequestPresentation{
-		Formats: []presentproof2.Format{{
+		Formats: []ppprotocol.Format{{
 			AttachID: attachID,
-			Format:   sch.Format,
+			Format:   req.Presentation.Format,
 		}},
 		RequestPresentationsAttach: []decorator.Attachment{
 			{
@@ -132,7 +127,6 @@ func (r *Server) RequestPresentation(_ context.Context, req *common.RequestPrese
 	data, _ := presentation.Fetch()
 	prs := &datastore.PresentationRequest{
 		AgentID:               agent.Name,
-		SchemaID:              sch.Name,
 		ExternalID:            req.ExternalId,
 		PresentationRequestID: requestPresentationID,
 		Data:                  data,

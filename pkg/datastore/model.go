@@ -10,6 +10,7 @@ import (
 	"time"
 
 	icprotocol "github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/issuecredential"
+	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/presentproof"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/identifiers"
 	"github.com/mr-tron/base58"
 )
@@ -185,20 +186,40 @@ type CloudAgentConnection struct {
 	TheirDID     string
 	MyDID        string
 	ConnectionID string
+	InvitationID string
 	Status       string
+	LastUpdated  time.Time
 }
 
 type CloudAgentCredential struct {
 	ID                        string
 	CloudAgentID              string
 	SystemState               string
+	Format                    string
 	MyDID                     string
 	TheirDID                  string
 	ThreadID                  string
+	IssuerConnection          *IDName
 	Offer                     *Offer
 	Credential                *Credential
 	CredentialRequest         *CredentialRequest
 	CredentialRequestMetadata *CredentialRequestMetadata
+}
+
+type CloudAgentProofRequest struct {
+	ID                  string
+	CloudAgentID        string
+	SystemState         string
+	Format              string
+	MyDID               string
+	TheirDID            string
+	ThreadID            string
+	RequestPresentation *presentproof.RequestPresentation
+}
+
+type IDName struct {
+	ID   string
+	Name string
 }
 
 type CredentialRequest struct {

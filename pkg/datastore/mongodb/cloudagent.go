@@ -2,9 +2,9 @@ package mongodb
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 
@@ -58,18 +58,47 @@ func (r *mongoDBStore) UpdateCloudAgent(a *datastore.CloudAgent) error {
 	return nil
 }
 
-func (r *mongoDBStore) InsertCloudAgentConnection(a *datastore.CloudAgent, conn *didexchange.Connection) error {
-	ac := &datastore.CloudAgentConnection{
-		CloudAgentID: a.ID,
-		TheirLabel:   conn.TheirLabel,
-		TheirDID:     conn.TheirDID,
-		MyDID:        conn.MyDID,
-		ConnectionID: conn.ConnectionID,
+func (r *mongoDBStore) InsertCloudAgentConnection(ac *datastore.CloudAgentConnection) error {
+
+	if ac.CloudAgentID == "" {
+		return errors.New("cloud agent ID is required")
 	}
+
+	if ac.ConnectionID == "" && ac.InvitationID == "" {
+		return errors.New("either a connection ID or an invitation ID are required")
+	}
+
+	ac.LastUpdated = time.Now()
 
 	_, err := r.db.Collection(CloudAgentConnectionC).InsertOne(context.Background(), ac)
 	if err != nil {
 		return errors.Wrap(err, "unable to insert agent")
+	}
+
+	return nil
+
+}
+
+func (r *mongoDBStore) UpdateCloudAgentConnection(ac *datastore.CloudAgentConnection) error {
+
+	if ac.CloudAgentID == "" {
+		return errors.New("cloud agent ID is required")
+	}
+
+	criteria := bson.M{"cloudagentid": ac.CloudAgentID}
+	if ac.InvitationID != "" {
+		criteria["invitationid"] = ac.InvitationID
+	} else if ac.ConnectionID != "" {
+		criteria["connectionid"] = ac.ConnectionID
+	} else {
+		return errors.New("either a connection ID or an invitation ID are required")
+	}
+
+	ac.LastUpdated = time.Now()
+
+	_, err := r.db.Collection(CloudAgentConnectionC).UpdateOne(context.Background(), criteria, bson.M{"$set": ac})
+	if err != nil {
+		return errors.Wrap(err, "unable to update cloud agent")
 	}
 
 	return nil
@@ -105,10 +134,10 @@ func (r *mongoDBStore) DeleteCloudAgentConnection(a *datastore.CloudAgent, exter
 	return nil
 }
 
-func (r *mongoDBStore) GetCloudAgentConnection(a *datastore.CloudAgent, externalID string) (*datastore.CloudAgentConnection, error) {
+func (r *mongoDBStore) GetCloudAgentConnection(a *datastore.CloudAgent, invitationID string) (*datastore.CloudAgentConnection, error) {
 	ac := &datastore.CloudAgentConnection{}
 	err := r.db.Collection(CloudAgentConnectionC).FindOne(context.Background(),
-		bson.M{"cloudagentid": a.ID, "externalid": externalID}).Decode(ac)
+		bson.M{"cloudagentid": a.ID, "invitationid": invitationID}).Decode(ac)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load cloud agent connection")
@@ -197,6 +226,79 @@ func (r *mongoDBStore) GetCloudAgentCredentialFromThread(cloudAgentID string, th
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load cloud agent credential")
+	}
+
+	return ac, nil
+}
+
+func (r *mongoDBStore) InsertCloudAgentProofRequest(cred *datastore.CloudAgentProofRequest) error {
+	_, err := r.db.Collection(CloudAgentProofRequestC).InsertOne(context.Background(), cred)
+	if err != nil {
+		return errors.Wrap(err, "unable to insert agent")
+	}
+
+	return nil
+
+}
+
+func (r *mongoDBStore) UpdateCloudAgentProofRequest(cred *datastore.CloudAgentProofRequest) error {
+	_, err := r.db.Collection(CloudAgentProofRequestC).UpdateOne(context.Background(), bson.M{"id": cred.ID}, bson.M{"$set": cred})
+	if err != nil {
+		return errors.Wrap(err, "unable to insert agent")
+	}
+
+	return nil
+
+}
+
+func (r *mongoDBStore) ListCloudAgentProofRequests(a *datastore.CloudAgent) ([]*datastore.CloudAgentProofRequest, error) {
+	ctx := context.Background()
+	var ac []*datastore.CloudAgentProofRequest
+	results, err := r.db.Collection(CloudAgentProofRequestC).Find(ctx,
+		bson.M{"cloudagentid": a.ID})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to list cloud agent ProofRequests")
+	}
+
+	err = results.All(ctx, &ac)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to decode cloud agent ProofRequests")
+	}
+
+	return ac, nil
+}
+
+func (r *mongoDBStore) DeleteCloudAgentProofRequest(a *datastore.CloudAgent, id string) error {
+	_, err := r.db.Collection(CloudAgentProofRequestC).DeleteOne(context.Background(),
+		bson.M{"cloudagentid": a.ID, "id": id})
+
+	if err != nil {
+		return errors.Wrap(err, "unable to delete cloud agent ProofRequest")
+	}
+
+	return nil
+}
+
+func (r *mongoDBStore) GetCloudAgentProofRequest(a *datastore.CloudAgent, id string) (*datastore.CloudAgentProofRequest, error) {
+	ac := &datastore.CloudAgentProofRequest{}
+	err := r.db.Collection(CloudAgentProofRequestC).FindOne(context.Background(),
+		bson.M{"cloudagentid": a.ID, "id": id}).Decode(ac)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load cloud agent ProofRequest")
+	}
+
+	return ac, nil
+}
+
+func (r *mongoDBStore) GetCloudAgentProofRequestFromThread(cloudAgentID string, thid string) (*datastore.CloudAgentProofRequest, error) {
+	ac := &datastore.CloudAgentProofRequest{}
+	err := r.db.Collection(CloudAgentProofRequestC).FindOne(context.Background(),
+		bson.M{"cloudagentid": cloudAgentID, "threadid": thid}).Decode(ac)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load cloud agent ProofRequest")
 	}
 
 	return ac, nil

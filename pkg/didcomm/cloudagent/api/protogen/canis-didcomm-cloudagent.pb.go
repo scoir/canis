@@ -38,8 +38,8 @@ var file_canis_didcomm_cloudagent_proto_rawDesc = []byte{
 	0x12, 0x07, 0x64, 0x69, 0x64, 0x63, 0x6f, 0x6d, 0x6d, 0x1a, 0x1c, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
 	0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e,
 	0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x15, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2f,
-	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x32, 0xba,
-	0x05, 0x0a, 0x0a, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x12, 0x74, 0x0a,
+	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x32, 0xc0,
+	0x07, 0x0a, 0x0a, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x12, 0x74, 0x0a,
 	0x12, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x41, 0x67,
 	0x65, 0x6e, 0x74, 0x12, 0x21, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x52, 0x65, 0x67,
 	0x69, 0x73, 0x74, 0x65, 0x72, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52,
@@ -82,9 +82,26 @@ var file_canis_didcomm_cloudagent_proto_rawDesc = []byte{
 	0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c,
 	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x20, 0x82, 0xd3, 0xe4, 0x93, 0x02,
 	0x1a, 0x22, 0x18, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x73, 0x2f,
-	0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x42, 0x18, 0x5a, 0x16, 0x64,
-	0x69, 0x64, 0x63, 0x6f, 0x6d, 0x6d, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x61, 0x67, 0x65, 0x6e,
-	0x74, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x12, 0x7d, 0x0a, 0x11, 0x4c,
+	0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x73,
+	0x12, 0x20, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72,
+	0x6f, 0x6f, 0x66, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x21, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x4c, 0x69, 0x73, 0x74,
+	0x50, 0x72, 0x6f, 0x6f, 0x66, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x23, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1d, 0x22, 0x1b, 0x2f,
+	0x63, 0x6c, 0x6f, 0x75, 0x64, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x6f,
+	0x66, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x73, 0x12, 0x84, 0x01, 0x0a, 0x0c, 0x50,
+	0x72, 0x65, 0x73, 0x65, 0x6e, 0x74, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x12, 0x1b, 0x2e, 0x63, 0x6f,
+	0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x50, 0x72, 0x65, 0x73, 0x65, 0x6e, 0x74, 0x50, 0x72, 0x6f, 0x6f,
+	0x66, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f,
+	0x6e, 0x2e, 0x50, 0x72, 0x65, 0x73, 0x65, 0x6e, 0x74, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x39, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x33, 0x22, 0x2e,
+	0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f,
+	0x6f, 0x66, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x73, 0x2f, 0x7b, 0x70, 0x72, 0x6f,
+	0x6f, 0x66, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x7d, 0x3a, 0x01,
+	0x2a, 0x42, 0x18, 0x5a, 0x16, 0x64, 0x69, 0x64, 0x63, 0x6f, 0x6d, 0x6d, 0x2f, 0x63, 0x6c, 0x6f,
+	0x75, 0x64, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var file_canis_didcomm_cloudagent_proto_goTypes = []interface{}{
@@ -94,12 +111,16 @@ var file_canis_didcomm_cloudagent_proto_goTypes = []interface{}{
 	(*common.AcceptCredentialRequest)(nil),    // 3: common.AcceptCredentialRequest
 	(*common.ListConnectionsRequest)(nil),     // 4: common.ListConnectionsRequest
 	(*common.ListCredentialsRequest)(nil),     // 5: common.ListCredentialsRequest
-	(*common.RegisterCloudAgentResponse)(nil), // 6: common.RegisterCloudAgentResponse
-	(*common.EndpointResponse)(nil),           // 7: common.EndpointResponse
-	(*common.HandleInvitationResponse)(nil),   // 8: common.HandleInvitationResponse
-	(*common.AcceptCredentialResponse)(nil),   // 9: common.AcceptCredentialResponse
-	(*common.ListConnectionsResponse)(nil),    // 10: common.ListConnectionsResponse
-	(*common.ListCredentialsResponse)(nil),    // 11: common.ListCredentialsResponse
+	(*common.ListProofRequestsRequest)(nil),   // 6: common.ListProofRequestsRequest
+	(*common.PresentProofRequest)(nil),        // 7: common.PresentProofRequest
+	(*common.RegisterCloudAgentResponse)(nil), // 8: common.RegisterCloudAgentResponse
+	(*common.EndpointResponse)(nil),           // 9: common.EndpointResponse
+	(*common.HandleInvitationResponse)(nil),   // 10: common.HandleInvitationResponse
+	(*common.AcceptCredentialResponse)(nil),   // 11: common.AcceptCredentialResponse
+	(*common.ListConnectionsResponse)(nil),    // 12: common.ListConnectionsResponse
+	(*common.ListCredentialsResponse)(nil),    // 13: common.ListCredentialsResponse
+	(*common.ListProofRequestsResponse)(nil),  // 14: common.ListProofRequestsResponse
+	(*common.PresentProofResponse)(nil),       // 15: common.PresentProofResponse
 }
 var file_canis_didcomm_cloudagent_proto_depIdxs = []int32{
 	0,  // 0: didcomm.CloudAgent.RegisterCloudAgent:input_type -> common.RegisterCloudAgentRequest
@@ -108,14 +129,18 @@ var file_canis_didcomm_cloudagent_proto_depIdxs = []int32{
 	3,  // 3: didcomm.CloudAgent.AcceptCredential:input_type -> common.AcceptCredentialRequest
 	4,  // 4: didcomm.CloudAgent.ListConnections:input_type -> common.ListConnectionsRequest
 	5,  // 5: didcomm.CloudAgent.ListCredentials:input_type -> common.ListCredentialsRequest
-	6,  // 6: didcomm.CloudAgent.RegisterCloudAgent:output_type -> common.RegisterCloudAgentResponse
-	7,  // 7: didcomm.CloudAgent.GetEndpoint:output_type -> common.EndpointResponse
-	8,  // 8: didcomm.CloudAgent.AcceptInvitation:output_type -> common.HandleInvitationResponse
-	9,  // 9: didcomm.CloudAgent.AcceptCredential:output_type -> common.AcceptCredentialResponse
-	10, // 10: didcomm.CloudAgent.ListConnections:output_type -> common.ListConnectionsResponse
-	11, // 11: didcomm.CloudAgent.ListCredentials:output_type -> common.ListCredentialsResponse
-	6,  // [6:12] is the sub-list for method output_type
-	0,  // [0:6] is the sub-list for method input_type
+	6,  // 6: didcomm.CloudAgent.ListProofRequests:input_type -> common.ListProofRequestsRequest
+	7,  // 7: didcomm.CloudAgent.PresentProof:input_type -> common.PresentProofRequest
+	8,  // 8: didcomm.CloudAgent.RegisterCloudAgent:output_type -> common.RegisterCloudAgentResponse
+	9,  // 9: didcomm.CloudAgent.GetEndpoint:output_type -> common.EndpointResponse
+	10, // 10: didcomm.CloudAgent.AcceptInvitation:output_type -> common.HandleInvitationResponse
+	11, // 11: didcomm.CloudAgent.AcceptCredential:output_type -> common.AcceptCredentialResponse
+	12, // 12: didcomm.CloudAgent.ListConnections:output_type -> common.ListConnectionsResponse
+	13, // 13: didcomm.CloudAgent.ListCredentials:output_type -> common.ListCredentialsResponse
+	14, // 14: didcomm.CloudAgent.ListProofRequests:output_type -> common.ListProofRequestsResponse
+	15, // 15: didcomm.CloudAgent.PresentProof:output_type -> common.PresentProofResponse
+	8,  // [8:16] is the sub-list for method output_type
+	0,  // [0:8] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -163,6 +188,8 @@ type CloudAgentClient interface {
 	AcceptCredential(ctx context.Context, in *common.AcceptCredentialRequest, opts ...grpc.CallOption) (*common.AcceptCredentialResponse, error)
 	ListConnections(ctx context.Context, in *common.ListConnectionsRequest, opts ...grpc.CallOption) (*common.ListConnectionsResponse, error)
 	ListCredentials(ctx context.Context, in *common.ListCredentialsRequest, opts ...grpc.CallOption) (*common.ListCredentialsResponse, error)
+	ListProofRequests(ctx context.Context, in *common.ListProofRequestsRequest, opts ...grpc.CallOption) (*common.ListProofRequestsResponse, error)
+	PresentProof(ctx context.Context, in *common.PresentProofRequest, opts ...grpc.CallOption) (*common.PresentProofResponse, error)
 }
 
 type cloudAgentClient struct {
@@ -227,6 +254,24 @@ func (c *cloudAgentClient) ListCredentials(ctx context.Context, in *common.ListC
 	return out, nil
 }
 
+func (c *cloudAgentClient) ListProofRequests(ctx context.Context, in *common.ListProofRequestsRequest, opts ...grpc.CallOption) (*common.ListProofRequestsResponse, error) {
+	out := new(common.ListProofRequestsResponse)
+	err := c.cc.Invoke(ctx, "/didcomm.CloudAgent/ListProofRequests", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudAgentClient) PresentProof(ctx context.Context, in *common.PresentProofRequest, opts ...grpc.CallOption) (*common.PresentProofResponse, error) {
+	out := new(common.PresentProofResponse)
+	err := c.cc.Invoke(ctx, "/didcomm.CloudAgent/PresentProof", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudAgentServer is the server API for CloudAgent service.
 type CloudAgentServer interface {
 	RegisterCloudAgent(context.Context, *common.RegisterCloudAgentRequest) (*common.RegisterCloudAgentResponse, error)
@@ -235,6 +280,8 @@ type CloudAgentServer interface {
 	AcceptCredential(context.Context, *common.AcceptCredentialRequest) (*common.AcceptCredentialResponse, error)
 	ListConnections(context.Context, *common.ListConnectionsRequest) (*common.ListConnectionsResponse, error)
 	ListCredentials(context.Context, *common.ListCredentialsRequest) (*common.ListCredentialsResponse, error)
+	ListProofRequests(context.Context, *common.ListProofRequestsRequest) (*common.ListProofRequestsResponse, error)
+	PresentProof(context.Context, *common.PresentProofRequest) (*common.PresentProofResponse, error)
 }
 
 // UnimplementedCloudAgentServer can be embedded to have forward compatible implementations.
@@ -258,6 +305,12 @@ func (*UnimplementedCloudAgentServer) ListConnections(context.Context, *common.L
 }
 func (*UnimplementedCloudAgentServer) ListCredentials(context.Context, *common.ListCredentialsRequest) (*common.ListCredentialsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCredentials not implemented")
+}
+func (*UnimplementedCloudAgentServer) ListProofRequests(context.Context, *common.ListProofRequestsRequest) (*common.ListProofRequestsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListProofRequests not implemented")
+}
+func (*UnimplementedCloudAgentServer) PresentProof(context.Context, *common.PresentProofRequest) (*common.PresentProofResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PresentProof not implemented")
 }
 
 func RegisterCloudAgentServer(s *grpc.Server, srv CloudAgentServer) {
@@ -372,6 +425,42 @@ func _CloudAgent_ListCredentials_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudAgent_ListProofRequests_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(common.ListProofRequestsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudAgentServer).ListProofRequests(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/didcomm.CloudAgent/ListProofRequests",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudAgentServer).ListProofRequests(ctx, req.(*common.ListProofRequestsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudAgent_PresentProof_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(common.PresentProofRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudAgentServer).PresentProof(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/didcomm.CloudAgent/PresentProof",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudAgentServer).PresentProof(ctx, req.(*common.PresentProofRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _CloudAgent_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "didcomm.CloudAgent",
 	HandlerType: (*CloudAgentServer)(nil),
@@ -399,6 +488,14 @@ var _CloudAgent_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCredentials",
 			Handler:    _CloudAgent_ListCredentials_Handler,
+		},
+		{
+			MethodName: "ListProofRequests",
+			Handler:    _CloudAgent_ListProofRequests_Handler,
+		},
+		{
+			MethodName: "PresentProof",
+			Handler:    _CloudAgent_PresentProof_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

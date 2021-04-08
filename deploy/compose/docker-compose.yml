@@ -165,6 +165,8 @@ services:
         target: /etc/canis/canis-amqp-config.yml
       - source: master-lock-key
         target: /etc/canis/canis-master-lock-key.yml
+      - source: indy-registry
+        target: /etc/canis/canis-indy-registry.yml
     deploy:
       replicas: 1
       update_config:
