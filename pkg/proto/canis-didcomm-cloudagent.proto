@@ -1,0 +1,60 @@
+syntax = "proto3";
+package didcomm;
+
+import "google/api/annotations.proto";
+import "common/messages.proto";
+
+option go_package = "didcomm/cloudagent/api";
+
+service CloudAgent {
+
+  rpc RegisterCloudAgent (common.RegisterCloudAgentRequest) returns (common.RegisterCloudAgentResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents"
+        body: "*"
+    };
+  }
+
+  rpc GetEndpoint (common.EndpointRequest) returns (common.EndpointResponse) {}
+
+  rpc AcceptInvitation(common.HandleInvitationRequest) returns (common.HandleInvitationResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/invitation"
+        body: "*"
+    };
+  }
+
+  rpc AcceptCredential(common.AcceptCredentialRequest) returns (common.AcceptCredentialResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/credentials/{credential_id}"
+        body: "*"
+    };
+
+  }
+
+  rpc ListConnections(common.ListConnectionsRequest) returns (common.ListConnectionsResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/connections"
+    };
+  }
+
+  rpc ListCredentials(common.ListCredentialsRequest) returns (common.ListCredentialsResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/credentials"
+    };
+  }
+
+  rpc ListProofRequests(common.ListProofRequestsRequest) returns (common.ListProofRequestsResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/proof_requests"
+    };
+  }
+
+  rpc PresentProof(common.PresentProofRequest) returns (common.PresentProofResponse) {
+    option (google.api.http) = {
+        post: "/cloudagents/proof_requests/{proof_request_id}"
+        body: "*"
+    };
+  }
+
+}

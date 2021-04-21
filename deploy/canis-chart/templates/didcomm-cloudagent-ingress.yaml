@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "canis.fullname" . }}-ingress
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: canis-ingress
+spec:
+  tls:
+  - secretName: canis-didcomm-cert
+  rules:
+  - http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: {{ include "canis.fullname" . }}-didcomm-cloudagent-external
+          servicePort: {{ .Values.cloudagent.grpcBridge.port }}

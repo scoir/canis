@@ -17,6 +17,8 @@ import (
 	"github.com/scoir/canis/pkg/protogen/common"
 )
 
+var connectionName string
+
 var invitationGetCmd = &cobra.Command{
 	Use:   "get AGENT_NAME",
 	Short: "Generate a connection invitation to the specified agent.",
@@ -28,6 +30,8 @@ func init() {
 	invitationsCmd.AddCommand(invitationGetCmd)
 	invitationGetCmd.Flags().StringVar(&subject, "subject", "", "subject name for the destination of the invitation")
 	_ = invitationGetCmd.MarkFlagRequired("subject")
+	invitationGetCmd.Flags().StringVar(&connectionName, "name", "", "connedtion name for the destination of the invitation")
+	_ = invitationGetCmd.MarkFlagRequired("name")
 }
 
 func invitationGet(_ *cobra.Command, args []string) error {
@@ -39,8 +43,9 @@ func invitationGet(_ *cobra.Command, args []string) error {
 	ctx := context.Background()
 
 	req := &common.InvitationRequest{
-		AgentName:  args[0],
-		ExternalId: subject,
+		AgentName:      args[0],
+		ExternalId:     subject,
+		ConnectionName: connectionName,
 	}
 	invite, err := cli.GetAgentInvitation(ctx, req)
 	if err != nil {

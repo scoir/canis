@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "canis.fullname" . }}-didcomm-cloudagent-config
+  labels:
+    app: {{ include "canis.fullname" . }}-didcomm-cloudagent
+data:
+  canis-cloudagent-config.yaml: |-
+    ###############################################################
+    #
+    #  DIDComm cloudagent
+    #
+    ###############################################################
+    inbound:
+      host: 0.0.0.0
+      httpPort: {{ .Values.cloudagent.inbound.httpPort }}
+      wsPort: {{ .Values.cloudagent.inbound.wsPort }}
+      {{if eq .Values.cloudagent.external.type "loadbalancer"}}
+      external: "ws://{{ .Values.cloudagent.external.loadbalancer.host}}:{{ .Values.cloudagent.inbound.wsPort }}"
+      {{ else }}
+      external: "ws://{{ .Values.cloudagent.external.nodePort.host }}:{{ .Values.cloudagent.external.nodePort.wsPort }}"
+      {{ end }}
+
+    ###############################################################
+    #
+    #  GRPC Server
+    #
+    ###############################################################
+    cloudagent:
+      grpc:
+        host: 0.0.0.0
+        port: {{ .Values.cloudagent.grpc.port }}
+      grpcBridge:
+        host: 0.0.0.0
+        port: {{ .Values.cloudagent.grpcBridge.port }}
+      cloudAgentSecret: {{ .Values.cloudagent.secret }}

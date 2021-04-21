@@ -25,17 +25,21 @@ import (
 )
 
 const (
-	PublicDIDC           = "PublicDID"
-	DIDC                 = "DID"
-	AgentC               = "Agent"
-	AgentConnectionC     = "AgentConnection"
-	SchemaC              = "Schema"
-	CredentialC          = "IssuedCredential"
-	PresentationC        = "Presentation"
-	PresentationRequestC = "PresentationRequest"
-	WebhookC             = "Webhook"
-	MediatorDIDC         = "MediatorDID"
-	EdgeAgentC           = "EdgeAgent"
+	PublicDIDC              = "PublicDID"
+	DIDC                    = "DID"
+	AgentC                  = "Agent"
+	AgentConnectionC        = "AgentConnection"
+	SchemaC                 = "Schema"
+	CredentialC             = "IssuedCredential"
+	PresentationC           = "Presentation"
+	PresentationRequestC    = "PresentationRequest"
+	WebhookC                = "Webhook"
+	MediatorDIDC            = "MediatorDID"
+	EdgeAgentC              = "EdgeAgent"
+	CloudAgentC             = "CloudAgent"
+	CloudAgentConnectionC   = "CloudAgentConnection"
+	CloudAgentCredentialC   = "CloudAgentCredential"
+	CloudAgentProofRequestC = "CloudAgentProofRequest"
 )
 
 type Config struct {
@@ -378,7 +382,6 @@ func (r *mongoDBStore) GetAgent(name string) (*datastore.Agent, error) {
 	}
 
 	return agent, nil
-
 }
 
 // GetAgentByInvitation return single agent

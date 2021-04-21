@@ -101,7 +101,7 @@ func (r *Runner) Launch() error {
 		defer wg.Done()
 		err := r.launchWebBridge()
 		if err != nil {
-			log.Println("webhooks server exited with error", err)
+			log.Println("webbridge server exited with error", err)
 		}
 	}()
 

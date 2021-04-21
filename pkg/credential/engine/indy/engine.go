@@ -156,7 +156,7 @@ func (r *CredentialEngine) CreateCredentialOffer(issuer *datastore.DID, _ string
 		return "", nil, errors.Wrap(err, "unable to find schema on ledger to create cred def")
 	}
 
-	credDefID := cursa.CredentialDefinitionID(issuer, indySchema.SeqNo, CLSignatureType, DefaultTag)
+	credDefID := cursa.CredentialDefinitionID(issuer.DID.MethodID(), indySchema.SeqNo, CLSignatureType, DefaultTag)
 
 	rec, err := r.getCredDefRecord(credDefID)
 	if err != nil {
@@ -192,7 +192,7 @@ func (r *CredentialEngine) getCredDefRecord(credDefID string) (*creddefWalletRec
 func (r *CredentialEngine) IssueCredential(issuerDID *datastore.DID, s *datastore.Schema, offerID string,
 	requestAttachment decorator.AttachmentData, values map[string]interface{}) (*decorator.AttachmentData, error) {
 
-	request := cursa.CredentialRequest{}
+	request := datastore.CredentialRequest{}
 	d, err := requestAttachment.Fetch()
 	if err != nil {
 		return nil, errors.New("invalid attachment for issuing indy credential")
@@ -207,6 +207,9 @@ func (r *CredentialEngine) IssueCredential(issuerDID *datastore.DID, s *datastor
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load existing indy offer")
 	}
+
+	fmt.Println(string(d))
+
 	err = json.Unmarshal(d, &offer)
 	if err != nil {
 		return nil, errors.Wrap(err, "unexpected error decoding indy stored offer")

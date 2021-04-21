@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/presexch"
 	"github.com/hyperledger/indy-vdr/wrappers/golang/vdr"
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
@@ -56,8 +57,7 @@ type PresentationRequest struct {
 }
 
 // RequestPresentationAttach
-func (r *Engine) RequestPresentation(name, version string, attrInfo map[string]*schema.IndyProofRequestAttr,
-	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
+func (r *Engine) RequestPresentation(name string, definitions *presexch.PresentationDefinitions) (*decorator.AttachmentData, error) {
 
 	nonce, err := r.oracle.NewNonce()
 	if err != nil {
@@ -65,11 +65,8 @@ func (r *Engine) RequestPresentation(name, version string, attrInfo map[string]*
 	}
 
 	b, err := json.Marshal(&PresentationRequest{
-		Name:                name,
-		Version:             version,
-		Nonce:               nonce,
-		RequestedAttributes: attrInfo,
-		RequestedPredicates: predicateInfo,
+		Name:  name,
+		Nonce: nonce,
 	})
 	if err != nil {
 		return nil, err

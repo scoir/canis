@@ -46,7 +46,7 @@ type Store interface {
 	// UpdateSchema update single schema
 	UpdateSchema(s *Schema) error
 
-	// InsertCredential add Crednetial to store
+	// InsertCredential add Credential to store
 	InsertCredential(c *IssuedCredential) (string, error)
 	//FindCredentialByOffer finds credential in offer state
 	FindCredentialByProtocolID(offerID string) (*IssuedCredential, error)
@@ -116,4 +116,57 @@ type Store interface {
 
 	// UpdateEdgeAgent updates the edge agent using the connection ID and the external ID
 	UpdateEdgeAgent(ea *EdgeAgent) error
+
+	// RegisterCloudAgent associates the DID and external ID with an internal ID for a registered
+	// Cloud Agent
+	RegisterCloudAgent(externalID string, publicKey, nextKey []byte) (string, error)
+
+	// GetCloudAgent retrieves the internal ID associated with a registered DID for an
+	// Cloud Agent
+	GetCloudAgent(ID string) (*CloudAgent, error)
+
+	// GetCloudAgentForDID retrieves the internal ID associated with a registered DID for an existing connection
+	GetCloudAgentForDID(myDID string) (*CloudAgent, error)
+
+	// UpdateCloudAgent updates the cloud agent using the connection ID and the external ID
+	UpdateCloudAgent(ea *CloudAgent) error
+
+	// InsertAgentConnection associates an agent with a connection
+	InsertCloudAgentConnection(ac *CloudAgentConnection) error
+	// UpdateAgentConnection associates an agent with a connection
+	UpdateCloudAgentConnection(ac *CloudAgentConnection) error
+	// ListAgentConnections returns all the connections for an agent
+	ListCloudAgentConnections(a *CloudAgent) ([]*CloudAgentConnection, error)
+	// GetAgentConnection return single connection between an agent and an external subject
+	GetCloudAgentConnection(a *CloudAgent, invitationID string) (*CloudAgentConnection, error)
+	// DeleteAgentConnection deletes a connection for an agent
+	DeleteCloudAgentConnection(a *CloudAgent, externalID string) error
+
+	// GetAgentConnectionForDID return single connection between an agent and an external subject
+	GetCloudAgentConnectionForDIDs(myDID string, theirDID string) (*CloudAgentConnection, error)
+
+	// InsertAgentCredential associates an agent with a credential
+	InsertCloudAgentCredential(cred *CloudAgentCredential) error
+	// InsertAgentCredential associates an agent with a credential
+	UpdateCloudAgentCredential(cred *CloudAgentCredential) error
+	// ListAgentCredentials returns all the credentials for an agent
+	ListCloudAgentCredentials(a *CloudAgent) ([]*CloudAgentCredential, error)
+	// GetAgentCredential return single credential between an agent and an external subject
+	GetCloudAgentCredential(a *CloudAgent, id string) (*CloudAgentCredential, error)
+	// DeleteAgentCredential deletes a credential for an agent
+	DeleteCloudAgentCredential(a *CloudAgent, id string) error
+
+	// GetAgentCredential return single credential between an agent and an external subject
+	GetCloudAgentCredentialFromThread(cloudAgentID string, thid string) (*CloudAgentCredential, error)
+
+	// InsertAgentProofRequest associates an agent with a ProofRequest
+	InsertCloudAgentProofRequest(cred *CloudAgentProofRequest) error
+	// InsertAgentProofRequest associates an agent with a ProofRequest
+	UpdateCloudAgentProofRequest(cred *CloudAgentProofRequest) error
+	// ListAgentProofRequests returns all the ProofRequests for an agent
+	ListCloudAgentProofRequests(a *CloudAgent) ([]*CloudAgentProofRequest, error)
+	// GetAgentProofRequest return single ProofRequest between an agent and an external subject
+	GetCloudAgentProofRequest(a *CloudAgent, id string) (*CloudAgentProofRequest, error)
+	// DeleteAgentProofRequest deletes a ProofRequest for an agent
+	DeleteCloudAgentProofRequest(a *CloudAgent, id string) error
 }

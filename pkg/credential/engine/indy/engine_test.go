@@ -22,7 +22,6 @@ import (
 	"github.com/scoir/canis/pkg/datastore"
 	gmock "github.com/scoir/canis/pkg/mock"
 	"github.com/scoir/canis/pkg/schema"
-	cursa "github.com/scoir/canis/pkg/ursa"
 )
 
 func TestIssuerCredential(t *testing.T) {
@@ -115,7 +114,7 @@ func TestIssuerCredential(t *testing.T) {
 		require.NoError(t, err)
 
 		//Need to track down the NONCES
-		requestAttachment := decorator.AttachmentData{JSON: &cursa.CredentialRequest{
+		requestAttachment := decorator.AttachmentData{JSON: &datastore.CredentialRequest{
 			ProverDID:                 "did:scr:123456789",
 			CredDefID:                 "cred-def-1",
 			BlindedMS:                 string(blindedMS),

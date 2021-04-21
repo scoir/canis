@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -46,30 +45,10 @@ func credentialsRequestProof(_ *cobra.Command, args []string) error {
 
 	ctx := context.Background()
 
-	attrs := make(map[string]*common.AttrInfo)
-	for _, value := range attrValues {
-		vals := strings.Split(value, "=")
-		if len(vals) != 2 {
-			return errors.Errorf("invalid attribute %s, must be in format [name=value]", value)
-		}
-		name := vals[0]
-
-		attrs[name] = &common.AttrInfo{
-			Name:         name,
-			Restrictions: vals[1],
-			NonRevoked:   nil,
-		}
-	}
-
+	//TODO:  fill out these fields from parameters
 	agentName := args[0]
 	var presentation = &common.RequestPresentation{
-		Name:                "Proof Name...",
-		Version:             "0.1.0",
-		SchemaId:            schemaName,
-		Comment:             comment,
-		WillConfirm:         true,
-		RequestedAttributes: attrs,
-		RequestedPredicates: nil,
+		Name: "Proof Name...",
 	}
 
 	req := &common.RequestPresentationRequest{

@@ -197,7 +197,7 @@ func (r *CredHandler) RequestCredentialMsg(e service.DIDCommAction, request *icp
 		Formats: []icprotocol.Format{
 			{
 				AttachID: credentialAttachment.ID,
-				Format:   "hlindy-zkp-v1.0",
+				Format:   schema.Format,
 			},
 		},
 		CredentialsAttach: []decorator.Attachment{credentialAttachment},

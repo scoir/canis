@@ -7,20 +7,6 @@ import "google/protobuf/struct.proto";
 
 option go_package = "github.com/scoir/canis/pkg/protogen/common";
 
-message AttrInfo {
-    string name = 1;
-    string restrictions = 2; // wql query
-    google.protobuf.Timestamp non_revoked = 3;
-}
-
-message PredicateInfo {
-    string name = 1; // attribute name, (case insensitive and ignore spaces)
-    string p_type = 2; // (Currently >= only)
-    int32 p_value = 3;
-    string restrictions = 4; // wql query
-    google.protobuf.Timestamp non_revoked = 5;
-}
-
 message RequestPresentationRequest {
     string agent_name = 1;
     string external_id = 2;
@@ -29,12 +15,20 @@ message RequestPresentationRequest {
 
 message RequestPresentation {
     string name = 1;
-    string version = 2;
-    string schema_id = 3;
-    string comment = 4;
-    bool will_confirm = 5;
-    map<string, AttrInfo> requested_attributes = 6;
-    map<string, PredicateInfo> requested_predicates = 7;
+    string purpose = 2;
+    string format = 3;
+    repeated InputDescriptor input_descriptors = 4;
+}
+
+message InputDescriptor {
+    string id = 1;
+    PresentationSchema schema = 2;
+}
+
+message PresentationSchema {
+    string uri = 1;
+    string name = 2;
+    string purpose = 3;
 }
 
 message RequestPresentationResponse {
@@ -48,7 +42,7 @@ message InvitationRequest {
 }
 
 message InvitationResponse {
-    string Invitation = 1;
+    string invitation = 1;
 }
 
 message AcceptInvitationRequest {
@@ -68,11 +62,17 @@ message CredentialAttribute {
 }
 
 message Credential {
-    string schema_id = 1;
-    string comment = 2;
-    string type = 3;
-    google.protobuf.Struct body = 4;
-    repeated CredentialAttribute preview = 5;
+    string credential_id = 1;
+    string schema_id = 2;
+    string comment = 3;
+    string type = 4;
+    string status = 5;
+    string my_did = 6;
+    string their_did = 7;
+    string issuer_id = 8;
+    string issuer_label = 9;
+    google.protobuf.Struct body = 10;
+    repeated CredentialAttribute preview = 11;
 
 }
 
@@ -98,8 +98,109 @@ message RegisterEdgeAgentRequest {
     string secret = 3;
 }
 
-
 message RegisterEdgeAgentResponse {
     string Id = 1;
     string Invitation = 2;
 }
+
+message RegisterCloudAgentRequest {
+    bytes public_key = 1;
+    bytes next_key = 2;
+    string external_id = 3;
+    string secret = 4;
+}
+
+message RegisterCloudAgentResponse {
+    string cloud_agent_id = 1;
+}
+
+
+message Connection {
+    string id = 1;
+    string name = 2;
+    string their_did = 3;
+    string my_did = 4;
+    string status = 5;
+    google.protobuf.Timestamp last_updated = 6;
+    string last_action = 7;
+}
+
+message ListConnectionsRequest {
+}
+
+message ListConnectionsResponse {
+    int64 count = 1;
+    repeated Connection connections = 2;
+}
+
+message ListCredentialsRequest {
+}
+
+message ListCredentialsResponse {
+    int64 count = 1;
+    repeated Credential credentials = 2;
+}
+
+message HandleInvitationRequest {
+    string invitation = 1;
+}
+
+message HandleInvitationResponse {
+
+}
+
+message PollConnectionRequest {
+
+}
+
+message PollConnectionResponse {
+
+}
+
+message AcceptConnectionRequest {
+    string connection_id = 1;
+}
+
+message AcceptConnectionResponse {
+
+}
+
+message PollCredentialOffersRequest {
+
+}
+
+message PollCredentialOffersResponse {
+
+}
+
+message AcceptCredentialRequest {
+    string credential_id = 1;
+}
+
+message AcceptCredentialResponse {
+
+}
+
+
+message ListProofRequestsRequest {
+}
+
+message ProofRequest {
+    string proof_request_id = 1;
+    RequestPresentation request_presentation = 2;
+}
+
+message ListProofRequestsResponse {
+    int64 count = 1;
+    repeated ProofRequest requests = 2;
+}
+
+message PresentProofRequest {
+    string proof_request_id = 1;
+    string credential_id = 2;
+}
+
+message PresentProofResponse {
+
+}
+

@@ -40,6 +40,9 @@ func init() {
 
 	schemaCreateCmd.Flags().StringVar(&format, "format", "", "the schema format [hlindy-zkp-v1.0 | lds/ld-proof]")
 	_ = schemaCreateCmd.MarkFlagRequired("format")
+
+	schemaCreateCmd.Flags().StringVar(&schemaType, "type", "", "the schema type name")
+	_ = schemaCreateCmd.MarkFlagRequired("type")
 }
 
 func schemaCreate(_ *cobra.Command, args []string) error {

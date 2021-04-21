@@ -571,15 +571,15 @@ func request_Admin_UpdateAgent_0(ctx context.Context, marshaler runtime.Marshale
 		_   = err
 	)
 
-	val, ok = pathParams["agent.id"]
+	val, ok = pathParams["agent.name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "agent.id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "agent.name")
 	}
 
-	err = runtime.PopulateFieldFromPath(&protoReq, "agent.id", val)
+	err = runtime.PopulateFieldFromPath(&protoReq, "agent.name", val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "agent.id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "agent.name", err)
 	}
 
 	msg, err := client.UpdateAgent(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -606,15 +606,15 @@ func local_request_Admin_UpdateAgent_0(ctx context.Context, marshaler runtime.Ma
 		_   = err
 	)
 
-	val, ok = pathParams["agent.id"]
+	val, ok = pathParams["agent.name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "agent.id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "agent.name")
 	}
 
-	err = runtime.PopulateFieldFromPath(&protoReq, "agent.id", val)
+	err = runtime.PopulateFieldFromPath(&protoReq, "agent.name", val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "agent.id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "agent.name", err)
 	}
 
 	msg, err := server.UpdateAgent(ctx, &protoReq)
@@ -2328,7 +2328,7 @@ var (
 
 	pattern_Admin_DeleteAgent_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"agents", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Admin_UpdateAgent_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"agents", "agent.id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Admin_UpdateAgent_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"agents", "agent.name"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Admin_GetAgentInvitation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"agents", "agent_name", "invitation", "external_id"}, "", runtime.AssumeColonVerbOpt(true)))
 

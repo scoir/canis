@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -21,7 +20,7 @@ func main() {
 }
 
 func encode() {
-	req, err := http.NewRequest("GET", "http://local.scoir.com:7779/agents/agent-1/invitation/subject", nil)
+	req, err := http.NewRequest("GET", "http://local.scoir.com:7779/agents/highschool-agent-1/invitation/student-c", nil)
 	if err != nil {
 		log.Fatalln("unexpected error creating request", err)
 	}
@@ -39,15 +38,14 @@ func encode() {
 		log.Fatalln("struggled to decode response body, sigh", err)
 	}
 
-	b := m["Invitation"].(string)
+	b := m["invitation"].(string)
 
-	ci := base64.URLEncoding.EncodeToString([]byte(b))
 	//str := fmt.Sprintf("http://192.168.86.30/?c_i=%s", ci)
 
 	fmt.Println(b)
 
 	fname := "./invite.png"
-	err = qrcode.WriteFile(ci, qrcode.Medium, 256, fname)
+	err = qrcode.WriteFile(b, qrcode.Medium, 256, fname)
 	if err != nil {
 		log.Fatal(err)
 	}

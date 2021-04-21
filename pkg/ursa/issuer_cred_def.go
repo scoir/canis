@@ -13,8 +13,6 @@ import (
 
 	"github.com/hyperledger/ursa-wrapper-go/pkg/libursa/ursa"
 	"github.com/pkg/errors"
-
-	"github.com/scoir/canis/pkg/datastore"
 )
 
 const (
@@ -22,8 +20,8 @@ const (
 	MARKER    = "3"
 )
 
-func CredentialDefinitionID(did *datastore.DID, schemaID uint32, signatureType, tag string) string {
-	return strings.Join([]string{did.DID.MethodID(), MARKER, signatureType, strconv.Itoa(int(schemaID)), tag}, DELIMITER)
+func CredentialDefinitionID(did string, schemaID uint32, signatureType, tag string) string {
+	return strings.Join([]string{did, MARKER, signatureType, strconv.Itoa(int(schemaID)), tag}, DELIMITER)
 }
 
 type CredentialDefinition struct {

@@ -1,10 +1,13 @@
 package jsonld
 
 import (
-	"log"
+	"encoding/base64"
+	"encoding/json"
 
+	"github.com/google/uuid"
 	"github.com/hyperledger/aries-framework-go/pkg/client/didexchange"
 	"github.com/hyperledger/aries-framework-go/pkg/didcomm/protocol/decorator"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/presexch"
 	ariescontext "github.com/hyperledger/aries-framework-go/pkg/framework/context"
 	"github.com/hyperledger/aries-framework-go/pkg/kms"
 	"github.com/hyperledger/aries-framework-go/pkg/storage"
@@ -12,7 +15,11 @@ import (
 
 	credindyengine "github.com/scoir/canis/pkg/credential/engine/indy"
 	"github.com/scoir/canis/pkg/presentproof"
-	"github.com/scoir/canis/pkg/schema"
+)
+
+const (
+	DIFPresentationExchange = "dif/presentation-exchange/definitions@v1.0"
+	CanisOperationalDomain  = "canis.org/credentials"
 )
 
 type provider interface {
@@ -45,22 +52,42 @@ func New(prov provider) (*Engine, error) {
 	return eng, nil
 }
 
-// Accept type should be json-ld
+// Accept type should be dif/presentation-exchange/definitions@v1.0
 func (r *Engine) Accept(typ string) bool {
-	return typ == "json-ld"
+	return typ == DIFPresentationExchange
+}
+
+type RequestPresentation struct {
+	// Domain is operational domain of a digital proof.
+	Domain string `json:"domain,omitempty"`
+	// Challenge is a random or pseudo-random value option authentication
+	Challenge string `json:"challenge,omitempty"`
+
+	Definitions *presexch.PresentationDefinitions `json:"presentation_definitions"`
 }
 
 // RequestPresentation
-func (r *Engine) RequestPresentation(name, version string, attrInfo map[string]*schema.IndyProofRequestAttr,
-	predicateInfo map[string]*schema.IndyProofRequestPredicate) (*decorator.AttachmentData, error) {
-	log.Println(attrInfo)
-	log.Println(predicateInfo)
+func (r *Engine) RequestPresentation(name string, definitions *presexch.PresentationDefinitions) (*decorator.AttachmentData, error) {
 
-	return nil, errors.New("not implemented")
+	rp := &RequestPresentation{
+		Domain:      CanisOperationalDomain,
+		Challenge:   uuid.New().String(),
+		Definitions: definitions,
+	}
+
+	b, err := json.Marshal(rp)
+	if err != nil {
+		return nil, errors.Wrap(err, "unexpected error marshalling DIF presentation request")
+	}
+
+	return &decorator.AttachmentData{
+		Base64: base64.StdEncoding.EncodeToString(b),
+	}, nil
+
 }
 
 func (r *Engine) RequestPresentationFormat() string {
-	return "LDS/LD-Proof"
+	return DIFPresentationExchange
 }
 
 func (r *Engine) Verify(presentation, request []byte, theirDID string, myDID string) error {
