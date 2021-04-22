@@ -10,6 +10,10 @@ spec:
       port: {{ .Values.cloudagent.grpc.port }}
       protocol: TCP
       targetPort: {{ .Values.cloudagent.grpc.port }}
+    - name: ws-didcomm
+      port: {{ .Values.cloudagent.inbound.wsPort }}
+      protocol: TCP
+      targetPort: {{ .Values.cloudagent.inbound.wsPort }}
   selector:
     name: {{ include "canis.fullname" . }}-didcomm-cloudagent
   sessionAffinity: None

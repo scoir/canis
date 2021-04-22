@@ -16,9 +16,9 @@ data:
       httpPort: {{ .Values.cloudagent.inbound.httpPort }}
       wsPort: {{ .Values.cloudagent.inbound.wsPort }}
       {{if eq .Values.cloudagent.external.type "loadbalancer"}}
-      external: "ws://{{ .Values.cloudagent.external.loadbalancer.host}}:{{ .Values.cloudagent.inbound.wsPort }}"
+      external: "{{ .Values.cloudagent.inbound.external}}"
       {{ else }}
-      external: "ws://{{ .Values.cloudagent.external.nodePort.host }}:{{ .Values.cloudagent.external.nodePort.wsPort }}"
+      external: "{{ .Values.cloudagent.inbound.external}}"
       {{ end }}
 
     ###############################################################
